@@ -3,15 +3,24 @@
 import Salsa.Core.Configuration.*;
 import Salsa.Core.Configuration.Sections.*;
 import SALSALibrary.*;
+import com.google.common.base.Optional;
+import org.apache.commons.cli.*;
+import salsa.configuration.ConfigurationMgr;
 import salsa.configuration.sections.MDSasChisqSection;
 
-//C# TO JAVA CONVERTER NOTE: There is no Java equivalent to C# namespace aliases:
-//using ManxcatMDSRoutines = salsa.mdsaschisq.ManxcatMDS;
-//C# TO JAVA CONVERTER NOTE: There is no Java equivalent to C# namespace aliases:
-//using ManxcatRotateMDSRoutines = salsa.mdsaschisq.RotateManxcatMDS;
+import java.util.regex.Pattern;
 
 public class ManxcatCentral
 {
+    private static Options programOptions = new Options();
+    static {
+        programOptions.addOption(String.valueOf(ManxcatConstants.CMD_OPTION_SHORT_C),Constants.CMD_OPTION_LONG_C, true,
+                ManxcatConstants.CMD_OPTION_DESCRIPTION_C);
+        programOptions.addOption(String.valueOf(ManxcatConstants.CMD_OPTION_SHORT_N),Constants.CMD_OPTION_LONG_N,true,
+                ManxcatConstants.CMD_OPTION_DESCRIPTION_N);
+        programOptions.addOption(String.valueOf(ManxcatConstants.CMD_OPTION_SHORT_T),Constants.CMD_OPTION_LONG_T,true,
+                ManxcatConstants.CMD_OPTION_DESCRIPTION_T);
+    }
 	//  Input Variables               
 	public static MDSasChisqSection config;
 	public static String ConfigurationFileName = ""; // Configuration file name
@@ -43,36 +52,29 @@ public class ManxcatCentral
 	static void main(String[] args)
 	{
 
-		// Load the command line args into our helper class which allows us to name arguments
-		Salsa.Core.Arguments pargs = new Salsa.Core.Arguments(args);
-		pargs.Usage = "Usage: Salsa.PairwiseClustering.exe /configFile=<string> /nodeCount=<int> /threadCount=<int>";
+        Optional<CommandLine> parserResult = parseCommandLineArguments(args, programOptions);
+        if (!parserResult.isPresent()){
+            System.out.println(ManxcatConstants.ERR_PROGRAM_ARGUMENTS_PARSING_FAILED);
+            new HelpFormatter().printHelp(ManxcatConstants.PROGRAM_NAME, programOptions);
+            return;
+        }
 
-		if (pargs.CheckRequired(new String[] {"configFile", "nodeCount", "threadCount"}) == false)
-		{
-			System.out.println(pargs.Usage);
-			return;
-		}
+        CommandLine cmd = parserResult.get();
+        if (!(cmd.hasOption(ManxcatConstants.CMD_OPTION_LONG_C) &&
+                cmd.hasOption(ManxcatConstants.CMD_OPTION_LONG_N) &&
+                cmd.hasOption(ManxcatConstants.CMD_OPTION_LONG_T))){
+            System.out.println(ManxcatConstants.ERR_INVALID_PROGRAM_ARGUMENTS);
+            new HelpFormatter().printHelp(ManxcatConstants.PROGRAM_NAME, programOptions);
+            return;
+        }
 
 
-		ConfigurationFileName = pargs.<String>GetValue("configFile"); // Name of file containing configuration data
-		ReadConfiguration();
-
-		if (args.length >= 2)
-		{
-			SALSAUtility.NodeCount = pargs.<Integer>GetValue("nodeCount");
-			config.NodeCount = SALSAUtility.NodeCount;
-		}
-
-		SALSAUtility.ThreadCount = config.ThreadCount; // Number of Threads
-
-		if (args.length == 3)
-		{
-			SALSAUtility.ThreadCount = pargs.<Integer>GetValue("threadCount");
-			config.ThreadCount = SALSAUtility.ThreadCount;
-		}
+		ReadConfiguration(cmd);
 
 		SALSAUtility.ConsoleDebugOutput = config.ConsoleDebugOutput;
 		SALSAUtility.DebugPrintOption = config.DebugPrintOption;
+
+        // TODO - continue from here
 
 		//  Set up Threading
 		SALSAUtility.SetupParallelOptions();
@@ -296,11 +298,36 @@ public class ManxcatCentral
 		}
 	}
 
-	private static void ReadConfiguration()
+    /**
+     * Parse command line arguments
+     * @param args Command line arguments
+     * @param opts Command line options
+     * @return An <code>Optional&lt;CommandLine&gt;</code> object
+     */
+    private static Optional<CommandLine> parseCommandLineArguments(String [] args, Options opts){
+
+        CommandLineParser optParser = new GnuParser();
+
+        try {
+            return Optional.fromNullable(optParser.parse(opts, args));
+        } catch (ParseException e) {
+            System.out.println(e);
+        }
+        return Optional.fromNullable(null);
+    }
+
+	private static void ReadConfiguration(CommandLine cmd)
 	{
-		// load configuration from file
-		ConfMgr = ConfigurationMgr.LoadConfiguration(ConfigurationFileName, true);
-		config = ConfMgr.ManxcatSection;
+        config = ConfigurationMgr.LoadConfiguration(cmd.getOptionValue(ManxcatConstants.CMD_OPTION_LONG_C)).mdSasChisqSection;
+        SALSAUtility.NodeCount = Integer.parseInt(cmd.getOptionValue(ManxcatConstants.CMD_OPTION_LONG_N));
+        SALSAUtility.ThreadCount = Integer.parseInt(cmd.getOptionValue(ManxcatConstants.CMD_OPTION_LONG_T));
+        // Override section's node and thread counts with command line values if different
+        if (config.getNodeCount() != SALSAUtility.NodeCount) {
+            config.setNodeCount(SALSAUtility.NodeCount);
+        }
+        if (config.getThreadCount() != SALSAUtility.ThreadCount) {
+            config.setThreadCount(SALSAUtility.ThreadCount);
+        }
 
 		SALSAUtility.NumberOriginalPoints = config.DataPoints;
 		SALSAUtility.CalcFixedCrossFixed = config.CalcFixedCrossFixed;
@@ -326,10 +353,9 @@ public class ManxcatCentral
 		SALSAUtility.SelectedClusters = new java.util.HashSet<Integer>();
 		if (!tangible.DotNetToJavaStringHelper.isNullOrEmpty(config.SelectedClusters) && !"none".equals(config.SelectedClusters))
 		{
-			char[] sep = new char[] {','};
-			String[] splits = config.SelectedClusters.trim().split(java.util.regex.Pattern.quote(sep.toString()), -1);
-//C# TO JAVA CONVERTER TODO TASK: There is no equivalent to implicit typing in Java:
-			for (var split : splits)
+            Pattern pat = Pattern.compile("[,]");
+			String[] splits = pat.split(config.SelectedClusters.trim());
+			for (String split : splits)
 			{
 				int cnum = Integer.parseInt(split);
 				if (!SALSAUtility.SelectedClusters.contains(cnum))

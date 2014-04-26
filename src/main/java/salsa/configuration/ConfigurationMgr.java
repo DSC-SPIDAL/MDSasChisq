@@ -18,4 +18,4 @@ public class ConfigurationMgr {
         return new ConfigurationMgr(configurationFilePath);
     }
 }
-}
+
