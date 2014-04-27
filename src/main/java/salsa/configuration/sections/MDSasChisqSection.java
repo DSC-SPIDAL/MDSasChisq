@@ -104,6 +104,8 @@ public class MDSasChisqSection {
             XmaxBound = Double.parseDouble(p.getProperty("XmaxBound","0.0"));
             Normalize = Boolean.parseBoolean(p.getProperty("Normalize","false"));
             ServerUrlPrefix = p.getProperty("ServerUrlPrefix","");
+            dataTypeSize = Integer.parseInt(p.getProperty("DataTypeSize", "2"));
+            isBigEndian = Boolean.parseBoolean(p.getProperty("IsBigEndian", "fasle"));
         }catch (IOException e){
             e.printStackTrace();
         }
@@ -202,6 +204,8 @@ public class MDSasChisqSection {
     public double XmaxBound;
     public boolean Normalize;
     public String ServerUrlPrefix;
+    public int dataTypeSize = 2; // 2 for short
+    public boolean isBigEndian = false; // true for Java style binary data and false for C# style binary data
 
 
     public int getNodeCount() {

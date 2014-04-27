@@ -74,7 +74,6 @@ public class ManxcatCentral
 		SALSAUtility.ConsoleDebugOutput = config.ConsoleDebugOutput;
 		SALSAUtility.DebugPrintOption = config.DebugPrintOption;
 
-        // TODO - continue from here
 
 		//  Set up Threading
 		SALSAUtility.SetupParallelOptions();

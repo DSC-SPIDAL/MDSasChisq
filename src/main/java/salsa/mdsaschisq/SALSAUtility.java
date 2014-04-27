@@ -4,6 +4,7 @@ import HPC.Utilities.*;
 import Manxcat.*;
 import Salsa.Core.Configuration.Sections.*;
 import MPI.*;
+import mpi.Intracomm;
 
 //C# TO JAVA CONVERTER TODO TASK: There is no preprocessor in Java:
 //#if USE_UINT16
@@ -19,11 +20,8 @@ import MPI.*;
 
 public class SALSAUtility
 {
-	public static ParallelOptions _parallelOptions;
-
 	public static int checkerboard = 0; // If 0 store full matrix, If 1 lower triangular, If 2 use load balanced checkerboard pattern
-	public static MPI.Environment MPI_Environment; // MPI Environment
-	public static Intracommunicator MPI_communicator = null; //MPI communicator
+	public static Intracomm MPI_communicator = null; //MPI communicator
 	public static int MPI_Rank = 0; // Rank of process
 	public static int MPI_Size = 1; // Number of MPI Processes
 	public static String ParallelPattern = ""; // Basic Parallel Pattern
@@ -172,6 +170,20 @@ public class SALSAUtility
 		return e;
 
 	} // end SALSAError
+
+    public static void printException(Exception e) {
+        System.out.println("SALSA Error " + e.getMessage());
+    }
+
+    public static void printAndThrowRuntimeException(RuntimeException e) {
+        System.out.println("SALSA Error " + e.getMessage());
+        throw e;
+    }
+
+    public static void printAndThrowRuntimeException(String message) {
+        System.out.println("SALSA Error " + message);
+        throw new RuntimeException(message);
+    } // end printAndThrowRuntimeException
 
 	// PrintOption = 0 Essential Printout
 	// PrintOption = 1 Summary Printout

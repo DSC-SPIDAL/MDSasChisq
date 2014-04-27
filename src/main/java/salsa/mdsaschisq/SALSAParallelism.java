@@ -3,6 +3,10 @@
 import MPI.*;
 import Salsa.Core.*;
 import Salsa.Core.Blas.*;
+import mpi.MPI;
+import mpi.MPIException;
+
+import static edu.rice.hj.HJ.initializeHabanero;
 
 //smbeason
 //C# TO JAVA CONVERTER TODO TASK: There is no preprocessor in Java:
@@ -25,35 +29,33 @@ public class SALSAParallelism
 //  Distance related variables
 	public static double[][] buffer;
 
-	public static void SetupParallelism(tangible.RefObject<String[]> args)
+    public static void SetupParallelism(String[] args) throws MPIException
 	{
-		//  Set up MPI
-		SALSAUtility.MPI_Environment = new MPI.Environment(args);
-		SALSAUtility.MPI_communicator = Communicator.world; //initializing MPI world communicator
-		SALSAUtility.MPI_Rank = SALSAUtility.MPI_communicator.getRank(); // Rank of this process
-		SALSAUtility.MPI_Size = SALSAUtility.MPI_communicator.getSize(); // Number of MPI Processes
+        //  Set up MPI
+        MPI.Init(args);
+        SALSAUtility.MPI_communicator = MPI.COMM_WORLD; //initializing MPI world communicator
+		SALSAUtility.MPI_Rank = SALSAUtility.MPI_communicator.Rank(); // Rank of this process
+		SALSAUtility.MPI_Size = SALSAUtility.MPI_communicator.Size(); // Number of MPI Processes
 
 		// Set up MPI
 		SALSAUtility.MPIperNodeCount = SALSAUtility.MPI_Size / SALSAUtility.NodeCount;
-
-		//smbeason
-		Manxcat.ManxcatCentral.Configuration.MPIperNodeCount = SALSAUtility.MPIperNodeCount;
-		//smbeason
+		ManxcatCentral.config.MPIperNodeCount = SALSAUtility.MPIperNodeCount;
 
 		if ((SALSAUtility.MPIperNodeCount * SALSAUtility.NodeCount) != SALSAUtility.MPI_Size)
 		{
-			RuntimeException e = SALSAUtility.SALSAError("Inconsistent MPI counts Nodes " + (new Integer(SALSAUtility.NodeCount)).toString() + " Size " + (new Integer(SALSAUtility.MPI_Size)).toString());
-
-			throw (e);
+            SALSAUtility.printAndThrowRuntimeException("Inconsistent MPI counts Nodes " + SALSAUtility.NodeCount + " Size " + SALSAUtility.MPI_Size);
 		}
 
-		SALSAUtility.ParallelPattern = "Machine:" + MPI.Environment.getProcessorName().toString() + " " + (new Integer(SALSAUtility.ThreadCount)).toString() + "x" + (new Integer(SALSAUtility.MPIperNodeCount)).toString() + "x" + (new Integer(SALSAUtility.NodeCount)).toString();
+		SALSAUtility.ParallelPattern = "Machine:" + MPI.Get_processor_name() + " " + SALSAUtility.ThreadCount + "x" + SALSAUtility.MPIperNodeCount + "x" + SALSAUtility.NodeCount;
 		if (SALSAUtility.MPI_Rank == 0)
 		{
-			SALSAUtility.SALSAPrint(0, " Distance Data Type: " + Double.class);
-			SALSAUtility.SALSAPrint(0, SALSAUtility.ParallelPattern);
+            // TODO - distance type - short
+            SALSAUtility.SALSAPrint(0, " Distance Data Type: " + (ManxcatCentral.config.dataTypeSize == 2 ? "short" : ManxcatCentral.config.dataTypeSize));
+            SALSAUtility.SALSAPrint(0, SALSAUtility.ParallelPattern);
 		}
 
+        // Set up threads
+        initializeHabanero();
 	}
 
 	public static void TearDownParallelism()
