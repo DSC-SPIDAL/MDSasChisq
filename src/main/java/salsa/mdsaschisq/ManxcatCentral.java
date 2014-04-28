@@ -4,6 +4,7 @@ import Salsa.Core.Configuration.*;
 import Salsa.Core.Configuration.Sections.*;
 import SALSALibrary.*;
 import com.google.common.base.Optional;
+import mpi.MPIException;
 import org.apache.commons.cli.*;
 import salsa.configuration.ConfigurationMgr;
 import salsa.configuration.sections.MDSasChisqSection;
@@ -68,33 +69,28 @@ public class ManxcatCentral
             return;
         }
 
-
+        //  Read Metadata using this as source of other metadata
 		ReadConfiguration(cmd);
 
-		SALSAUtility.ConsoleDebugOutput = config.ConsoleDebugOutput;
-		SALSAUtility.DebugPrintOption = config.DebugPrintOption;
-
-
-		//  Set up Threading
-		SALSAUtility.SetupParallelOptions();
-
-		//  Set up Parallelism
-		tangible.RefObject<String[]> tempRef_args = new tangible.RefObject<String[]>(args);
-		SALSAParallelism.SetupParallelism(tempRef_args);
-		args = tempRef_args.argValue;
+        try {
+            //  Set up Parallelism
+            SALSAParallelism.SetupParallelism(args);
+        }catch (MPIException e) {
+            SALSAUtility.printException(e);
+            return; // End program on error
+        }
 
 		// Define Points to be used
-		SALSALibrary.SALSA_ProcessVariedandFixed.setupFixedandVaried();
+		SALSA_ProcessVariedandFixed.setupFixedandVaried();
 
 		// Set up Decomposition of USED points
 		SALSAParallelism.SetParallelDecomposition();
 
 		//  Redistribute points so an equal number (upto 1) varied in each thread
-		SALSALibrary.SALSA_ProcessVariedandFixed.RedistributePoints();
+		SALSA_ProcessVariedandFixed.RedistributePoints();
 
 		try
 		{
-
 			// Set up Normalizations
 			ChisqPrintConstant = config.ChisqPrintConstant; // This can be customized in set up routines
 			ChisqFunctionCalcMultiplier = config.FunctionErrorCalcMultiplier;
@@ -373,6 +369,8 @@ public class ManxcatCentral
 
 		SALSAUtility.ManxcatRunName = !tangible.DotNetToJavaStringHelper.isNullOrEmpty(config.ManxcatRunName) ? config.ManxcatRunName : "Unspecified Run";
 		SALSAUtility.ManxcatRunDescription = !tangible.DotNetToJavaStringHelper.isNullOrEmpty(config.ManxcatRunDescription) ? config.ManxcatRunDescription : "Description not specified";
+        SALSAUtility.ConsoleDebugOutput = config.ConsoleDebugOutput;
+        SALSAUtility.DebugPrintOption = config.DebugPrintOption;
 	}
 
 	public static void ManxcatControl(Hotsun.CalcfgSignature Calcfg, Hotsun.IntializeSignature InitializeApplication, Hotsun.InitializeParametersSignature InitializeParameters, Hotsun.SolveMatrixSignature SolveMatrix, Hotsun.WriteSolutionSignature WriteSolution, Hotsun.FindQlimitsSignature FindQlimits, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct, Hotsun.SequelSignature Sequel)

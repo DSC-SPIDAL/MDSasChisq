@@ -133,13 +133,6 @@ public class SALSAUtility
 	public static boolean ConsoleDebugOutput = true; // If true send Monitoring output to console
 	public static int DebugPrintOption = 2; // Control Printing (= 0 None, ==1 Summary, = 2 Full)
 
-	//  Set up Parallel Threading
-	public static void SetupParallelOptions()
-	{
-		SALSAUtility._parallelOptions = new ParallelOptions();
-		SALSAUtility._parallelOptions.MaxDegreeOfParallelism = SALSAUtility.ThreadCount;
-	}
-
 	public static ParallelOptions getParallelOptions()
 	{
 		return _parallelOptions;

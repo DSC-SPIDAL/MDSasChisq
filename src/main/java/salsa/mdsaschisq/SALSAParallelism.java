@@ -1,73 +1,52 @@
 ﻿package salsa.mdsaschisq;
 
-import MPI.*;
-import Salsa.Core.*;
-import Salsa.Core.Blas.*;
 import mpi.MPI;
 import mpi.MPIException;
 
+import static edu.rice.hj.HJ.finalizeHabanero;
 import static edu.rice.hj.HJ.initializeHabanero;
 
-//smbeason
-//C# TO JAVA CONVERTER TODO TASK: There is no preprocessor in Java:
-//#if USE_UINT16
-//C# TO JAVA CONVERTER NOTE: There is no Java equivalent to C# namespace aliases:
-//using TDistance = System.UInt16;
-//#elif USE_INT16
-//C# TO JAVA CONVERTER NOTE: There is no Java equivalent to C# namespace aliases:
-//using System.UInt16 = System.Int16;
-//#else
-//C# TO JAVA CONVERTER NOTE: There is no Java equivalent to C# namespace aliases:
-//using System.Int16 = System.Double;
-//#endif
-
-//smbeason
-
+/**
+ * Set Parallelism related Parameters
+ */
 public class SALSAParallelism
-{ // Set Parallelism related Parameters
+{
 
-//  Distance related variables
+    //  Distance related variables
 	public static double[][] buffer;
 
-    public static void SetupParallelism(String[] args) throws MPIException
-	{
+    public static void SetupParallelism(String[] args) throws MPIException {
         //  Set up MPI
         MPI.Init(args);
         SALSAUtility.MPI_communicator = MPI.COMM_WORLD; //initializing MPI world communicator
-		SALSAUtility.MPI_Rank = SALSAUtility.MPI_communicator.Rank(); // Rank of this process
-		SALSAUtility.MPI_Size = SALSAUtility.MPI_communicator.Size(); // Number of MPI Processes
+        SALSAUtility.MPI_Rank = SALSAUtility.MPI_communicator.Rank(); // Rank of this process
+        SALSAUtility.MPI_Size = SALSAUtility.MPI_communicator.Size(); // Number of MPI Processes
 
-		// Set up MPI
-		SALSAUtility.MPIperNodeCount = SALSAUtility.MPI_Size / SALSAUtility.NodeCount;
-		ManxcatCentral.config.MPIperNodeCount = SALSAUtility.MPIperNodeCount;
+        // Set up MPI
+        SALSAUtility.MPIperNodeCount = SALSAUtility.MPI_Size / SALSAUtility.NodeCount;
+        ManxcatCentral.config.MPIperNodeCount = SALSAUtility.MPIperNodeCount;
 
-		if ((SALSAUtility.MPIperNodeCount * SALSAUtility.NodeCount) != SALSAUtility.MPI_Size)
-		{
+        if ((SALSAUtility.MPIperNodeCount * SALSAUtility.NodeCount) != SALSAUtility.MPI_Size) {
             SALSAUtility.printAndThrowRuntimeException("Inconsistent MPI counts Nodes " + SALSAUtility.NodeCount + " Size " + SALSAUtility.MPI_Size);
-		}
+        }
 
-		SALSAUtility.ParallelPattern = "Machine:" + MPI.Get_processor_name() + " " + SALSAUtility.ThreadCount + "x" + SALSAUtility.MPIperNodeCount + "x" + SALSAUtility.NodeCount;
-		if (SALSAUtility.MPI_Rank == 0)
-		{
+        SALSAUtility.ParallelPattern = "Machine:" + MPI.Get_processor_name() + " " + SALSAUtility.ThreadCount + "x" + SALSAUtility.MPIperNodeCount + "x" + SALSAUtility.NodeCount;
+        if (SALSAUtility.MPI_Rank == 0) {
             // TODO - distance type - short
             SALSAUtility.SALSAPrint(0, " Distance Data Type: " + (ManxcatCentral.config.dataTypeSize == 2 ? "short" : ManxcatCentral.config.dataTypeSize));
             SALSAUtility.SALSAPrint(0, SALSAUtility.ParallelPattern);
-		}
+        }
 
         // Set up threads
         initializeHabanero();
-	}
+    }
 
-	public static void TearDownParallelism()
-	{
-
-
-		if (SALSAUtility.MPI_Environment != null)
-		{
-			SALSAUtility.MPI_Environment.Dispose();
-			SALSAUtility.MPI_Environment = null;
-		}
-	}
+    public static void TearDownParallelism() {
+        // Finalize threads
+        finalizeHabanero();
+        // End MPI
+        MPI.Finalize();
+    }
 
 	public static void SetParallelDecomposition()
 	{
