@@ -5,6 +5,7 @@ import Manxcat.*;
 import Salsa.Core.Configuration.Sections.*;
 import MPI.*;
 import mpi.Intracomm;
+import salsa.mpi.MpiOps;
 
 //C# TO JAVA CONVERTER TODO TASK: There is no preprocessor in Java:
 //#if USE_UINT16
@@ -133,10 +134,7 @@ public class SALSAUtility
 	public static boolean ConsoleDebugOutput = true; // If true send Monitoring output to console
 	public static int DebugPrintOption = 2; // Control Printing (= 0 None, ==1 Summary, = 2 Full)
 
-	public static ParallelOptions getParallelOptions()
-	{
-		return _parallelOptions;
-	}
+    public static MpiOps mpiOps;
 
 
 	public static void SetupDistanceWeights()
@@ -570,7 +568,7 @@ public class SALSAUtility
 
 //                        double SubRatio = SubTime / (HPDuration * 0.001);
 					double SubRatio = SubTime / (HPDuration);
-					sw.Write(String.format("%1$-15s%2$-8s", Math.round(SubTime), String.format("%0.4f", SubRatio))); // Subset Time
+					sw.Write(String.format("%1$-15s%2$-8s", Math.round(SubTime), String.format("%.4f", SubRatio))); // Subset Time
 				}
 				sw.WriteLine(" "); // Blank line
 			}

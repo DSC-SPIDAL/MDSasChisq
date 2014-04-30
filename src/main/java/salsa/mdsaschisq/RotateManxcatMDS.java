@@ -124,7 +124,7 @@ public class RotateManxcatMDS
 
 			String OriginalMDSFileName = ManxcatCentral.config.InitializationFileName;
 //                if (!OriginalMDSFileName.Contains(":") || !OriginalMDSFileName.Contains("$"))
-//                    OriginalMDSFileName = ManxcatCentral.config.ControlDirectoryName + "\\" + OriginalMDSFileName;
+//                    OriginalMDSFileName = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + OriginalMDSFileName;
 			SALSAUtility.SALSAPrint(2, " Reference Points Taken from Initialization File " + OriginalMDSFileName);
 
 			// Begin Changes saliya 03/25/11
@@ -180,7 +180,7 @@ public class RotateManxcatMDS
 			int RotationNumberofPoints = -1;
 			String RotationFileName = ManxcatCentral.config.RotationLabelsFileName;
 //                if (!RotationFileName.Contains(":"))
-//                    RotationFileName = ManxcatCentral.config.ControlDirectoryName + "\\" + RotationFileName;
+//                    RotationFileName = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + RotationFileName;
 			if (RotationFileName.contains("SIMPLE"))
 			{
 				RotationFileProperties.LocalPointStartIndex = 1;
@@ -302,10 +302,10 @@ public class RotateManxcatMDS
 		String secondM = "";
 		for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++)
 		{
-			firstM += String.format("%0.4E", FirstMean[LocalVectorIndex]) + " ";
-			secondM += String.format("%0.4E", SecondMean[LocalVectorIndex]) + " ";
+			firstM += String.format("%.4E", FirstMean[LocalVectorIndex]) + " ";
+			secondM += String.format("%.4E", SecondMean[LocalVectorIndex]) + " ";
 		}
-		SALSAUtility.SALSAPrint(0, " First Scale " + String.format("%0.4E", FirstScale) + " Second Scale " + String.format("%0.4E", SecondScale) + " First Mean " + firstM + " Second Mean " + secondM);
+		SALSAUtility.SALSAPrint(0, " First Scale " + String.format("%.4E", FirstScale) + " Second Scale " + String.format("%.4E", SecondScale) + " First Mean " + firstM + " Second Mean " + secondM);
 
 	} // End SetupRotateMDS()
 
@@ -479,7 +479,7 @@ public class RotateManxcatMDS
 							String deriv = "";
 							for (int ipar = 0; ipar < Hotsun.npar; ipar++)
 							{
-								deriv += String.format("%0.4E", DerivativeFl[LocalVectorIndex][ipar]) + " ";
+								deriv += String.format("%.4E", DerivativeFl[LocalVectorIndex][ipar]) + " ";
 							}
 								GenericManxcat.AccumDebug(GlobalIndex);
 						}
@@ -761,11 +761,11 @@ public class RotateManxcatMDS
 			RotationFileProperties.RotationParameters = "";
 			for (int CountRotPars = 0; CountRotPars < Hotsun.npar; CountRotPars++)
 			{
-				RotationFileProperties.RotationParameters += " " + String.format("%0.4E", param[CountRotPars][0]) + ",";
+				RotationFileProperties.RotationParameters += " " + String.format("%.4E", param[CountRotPars][0]) + ",";
 			}
 			for (int Cosmicdiagonals = 0; Cosmicdiagonals < PointVectorDimension; Cosmicdiagonals++)
 			{
-				RotationFileProperties.RotationParameters += " " + String.format("%0.4E", CurrentCosmicScaling[Cosmicdiagonals][Cosmicdiagonals]) + ",";
+				RotationFileProperties.RotationParameters += " " + String.format("%.4E", CurrentCosmicScaling[Cosmicdiagonals][Cosmicdiagonals]) + ",";
 			}
 			// Comment should have key features of Run
 			String OldComment = RotationFileProperties.Comment;
@@ -774,15 +774,15 @@ public class RotateManxcatMDS
 				OldComment += "\n";
 			}
 			OldComment += "MDS ROTATION Run " + Configuration.RunNumber.toString() + " Start Time " + SALSAUtility.startTime.ToLocalTime() + " *** ";
-			OldComment += "\n RotationOption " + Configuration.RotationOption + " First Scale " + String.format("%0.4E", FirstScale) + " Second Scale " + (new Double(SecondScale)).toString() + "\n First Mean";
+			OldComment += "\n RotationOption " + Configuration.RotationOption + " First Scale " + String.format("%.4E", FirstScale) + " Second Scale " + (new Double(SecondScale)).toString() + "\n First Mean";
 			for (int PointIndex = 0; PointIndex < PointVectorDimension; PointIndex++)
 			{
-				OldComment += " " + String.format("%0.4E", FirstMean[PointIndex]);
+				OldComment += " " + String.format("%.4E", FirstMean[PointIndex]);
 			}
 			OldComment += " Second Mean";
 			for (int PointIndex = 0; PointIndex < PointVectorDimension; PointIndex++)
 			{
-				OldComment += " " + String.format("%0.4E", SecondMean[PointIndex]);
+				OldComment += " " + String.format("%.4E", SecondMean[PointIndex]);
 			}
 			RotationFileProperties.Comment = OldComment;
 
@@ -819,7 +819,7 @@ public class RotateManxcatMDS
 
 					for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++)
 					{
-						Coordinates += String.format("%0.4E", Vector[LocalVectorIndex]) + "\t";
+						Coordinates += String.format("%.4E", Vector[LocalVectorIndex]) + "\t";
 					}
 					sw.WriteLine(String.format((new Integer(UsedDataPoint + 1)).toString() + "\t" + Coordinates + (new Integer(SingleCluster)).toString()));
 				}

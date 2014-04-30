@@ -1,14 +1,17 @@
 package salsa.configuration.sections;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
 public class MDSasChisqSection {
     private int threadCount;
+    private Properties p;
 
     public MDSasChisqSection(String configurationFilePath) {
-        Properties p = new Properties();
+        p = new Properties();
         try {
             p.load(new FileInputStream(configurationFilePath));
             BaseResultDirectoryName = p.getProperty("BaseResultDirectoryName","");
@@ -109,6 +112,106 @@ public class MDSasChisqSection {
         }catch (IOException e){
             e.printStackTrace();
         }
+    }
+
+    public void saveAs(String file) throws IOException {
+        p.setProperty("BaseResultDirectoryName",BaseResultDirectoryName);
+        p.setProperty("ControlDirectoryName",ControlDirectoryName);
+        p.setProperty("ClusterDirectory",ClusterDirectory);
+        p.setProperty("DistanceMatrixFile",DistanceMatrixFile);
+        p.setProperty("DataLabelsFileName",DataLabelsFileName);
+        p.setProperty("ReducedVectorOutputFileName",ReducedVectorOutputFileName);
+        p.setProperty("ResultDirectoryExtension",ResultDirectoryExtension);
+        p.setProperty("TimingOutputFileName",TimingOutputFileName);
+        p.setProperty("SummaryOutputFileName",SummaryOutputFileName);
+        p.setProperty("InitializationFileName",InitializationFileName);
+        p.setProperty("WeightingFileName",WeightingFileName);
+        p.setProperty("Selectedvariedpointfile",Selectedvariedpointfile);
+        p.setProperty("Selectedfixedpointfile",Selectedfixedpointfile);
+        p.setProperty("RotationLabelsFileName",RotationLabelsFileName);
+        p.setProperty("CoordinateWriteFrequency",String.valueOf(CoordinateWriteFrequency));
+        p.setProperty("IndexFile",IndexFile);
+        p.setProperty("DataPoints",String.valueOf(DataPoints));
+        p.setProperty("CalcFixedCrossFixed",String.valueOf(CalcFixedCrossFixed));
+        p.setProperty("StoredDistanceOption",String.valueOf(StoredDistanceOption));
+        p.setProperty("DiskDistanceOption",String.valueOf(DiskDistanceOption));
+        p.setProperty("ProcessingOption",String.valueOf(ProcessingOption));
+        p.setProperty("DistanceProcessingOption",String.valueOf(DistanceProcessingOption));
+        p.setProperty("InitializationOption",String.valueOf(InitializationOption));
+        p.setProperty("WeightingOption",String.valueOf(WeightingOption));
+        p.setProperty("Write2Das3D",String.valueOf(Write2Das3D));
+        p.setProperty("LocalVectorDimension",String.valueOf(LocalVectorDimension));
+        p.setProperty("Selectedvariedpoints",Selectedvariedpoints);
+        p.setProperty("VariedPointCriterion",VariedPointCriterion);
+        p.setProperty("Selectedfixedpoints",Selectedfixedpoints);
+        p.setProperty("FixedPointCriterion",FixedPointCriterion);
+        p.setProperty("ConversionOption",ConversionOption);
+        p.setProperty("ConversionInformation",ConversionInformation);
+        p.setProperty("RotationOption",String.valueOf(RotationOption));
+        p.setProperty("InitializationLoops",String.valueOf(InitializationLoops));
+        p.setProperty("Chisqnorm",String.valueOf(Chisqnorm));
+        p.setProperty("DistanceFormula",String.valueOf(DistanceFormula));
+        p.setProperty("FullSecondDerivativeOption",String.valueOf(FullSecondDerivativeOption));
+        p.setProperty("MinimumDistance",String.valueOf(MinimumDistance));
+        p.setProperty("FunctionErrorCalcMultiplier",String.valueOf(FunctionErrorCalcMultiplier));
+        p.setProperty("ChisqPrintConstant",String.valueOf(ChisqPrintConstant));
+        p.setProperty("Maxit",String.valueOf(Maxit));
+        p.setProperty("Nbadgo",String.valueOf(Nbadgo));
+        p.setProperty("ChisqChangePerPoint",String.valueOf(ChisqChangePerPoint));
+        p.setProperty("FletcherRho",String.valueOf(FletcherRho));
+        p.setProperty("FletcherSigma",String.valueOf(FletcherSigma));
+        p.setProperty("Omega",String.valueOf(Omega));
+        p.setProperty("OmegaOption",String.valueOf(OmegaOption));
+        p.setProperty("QHighInitialFactor",String.valueOf(QHighInitialFactor));
+        p.setProperty("QgoodReductionFactor",String.valueOf(QgoodReductionFactor));
+        p.setProperty("QLimitscalculationInterval",String.valueOf(QLimitscalculationInterval));
+        p.setProperty("Extraprecision",String.valueOf(Extraprecision));
+        p.setProperty("AddonforQcomputation",String.valueOf(AddonforQcomputation));
+        p.setProperty("InitialSteepestDescents",String.valueOf(InitialSteepestDescents));
+        p.setProperty("TimeCutmillisec",String.valueOf(TimeCutmillisec));
+        p.setProperty("CGResidualLimit",String.valueOf(CGResidualLimit));
+        p.setProperty("PowerIterationLimit",String.valueOf(PowerIterationLimit));
+        p.setProperty("Eigenvaluechange",String.valueOf(Eigenvaluechange));
+        p.setProperty("Eigenvectorchange",String.valueOf(Eigenvectorchange));
+        p.setProperty("Derivtest",String.valueOf(Derivtest));
+        p.setProperty("RunNumber",String.valueOf(RunNumber));
+        p.setProperty("RunSetLabel",RunSetLabel);
+        p.setProperty("Pattern",Pattern);
+        p.setProperty("ThreadCount",String.valueOf(ThreadCount));
+        p.setProperty("NodeCount",String.valueOf(NodeCount));
+        p.setProperty("MPIperNodeCount",String.valueOf(MPIperNodeCount));
+        p.setProperty("MPIIOStrategy",String.valueOf(MPIIOStrategy));
+        p.setProperty("HistogramBinCount",String.valueOf(HistogramBinCount));
+        p.setProperty("Extradata1",Extradata1);
+        p.setProperty("Extradata2",Extradata2);
+        p.setProperty("Extradata3",Extradata3);
+        p.setProperty("Extradata4",Extradata4);
+        p.setProperty("ExtraOption1",String.valueOf(ExtraOption1));
+        p.setProperty("DebugPrintOption",String.valueOf(DebugPrintOption));
+        p.setProperty("ConsoleDebugOutput",String.valueOf(ConsoleDebugOutput));
+        p.setProperty("Comment",Comment);
+        p.setProperty("UndefinedDistanceValue",String.valueOf(UndefinedDistanceValue));
+        p.setProperty("DistanceWeightsCuts",DistanceWeightsCuts);
+        p.setProperty("DistanceCut",String.valueOf(DistanceCut));
+        p.setProperty("LinkCut",String.valueOf(LinkCut));
+        p.setProperty("TransformMethod",String.valueOf(TransformMethod));
+        p.setProperty("TransformParameter",String.valueOf(TransformParameter));
+        p.setProperty("ManxcatRunDescription",ManxcatRunDescription);
+        p.setProperty("ManxcatRunName",ManxcatRunName);
+        p.setProperty("SelectedClusters",SelectedClusters);
+        p.setProperty("ClusterFile",ClusterFile);
+        p.setProperty("Pcutf",String.valueOf(Pcutf));
+        p.setProperty("Alpha",String.valueOf(Alpha));
+        p.setProperty("Yres",String.valueOf(Yres));
+        p.setProperty("Xres",String.valueOf(Xres));
+        p.setProperty("YmaxBound",String.valueOf(YmaxBound));
+        p.setProperty("XmaxBound",String.valueOf(XmaxBound));
+        p.setProperty("Normalize",String.valueOf(Normalize));
+        p.setProperty("ServerUrlPrefix",ServerUrlPrefix);
+        p.setProperty("DataTypeSize",String.valueOf(dataTypeSize));
+        p.setProperty("IsBigEndian",String.valueOf(isBigEndian));
+
+        p.store(new FileOutputStream(file), "");
     }
 
     public String BaseResultDirectoryName;

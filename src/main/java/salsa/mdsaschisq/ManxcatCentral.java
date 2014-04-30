@@ -1,27 +1,32 @@
 ﻿package salsa.mdsaschisq;
 
-import Salsa.Core.Configuration.*;
-import Salsa.Core.Configuration.Sections.*;
-import SALSALibrary.*;
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
+import mpi.MPI;
 import mpi.MPIException;
 import org.apache.commons.cli.*;
 import salsa.configuration.ConfigurationMgr;
 import salsa.configuration.sections.MDSasChisqSection;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.regex.Pattern;
 
 public class ManxcatCentral
 {
     private static Options programOptions = new Options();
     static {
-        programOptions.addOption(String.valueOf(ManxcatConstants.CMD_OPTION_SHORT_C),Constants.CMD_OPTION_LONG_C, true,
+        programOptions.addOption(String.valueOf(ManxcatConstants.CMD_OPTION_SHORT_C),ManxcatConstants.CMD_OPTION_LONG_C, true,
                 ManxcatConstants.CMD_OPTION_DESCRIPTION_C);
-        programOptions.addOption(String.valueOf(ManxcatConstants.CMD_OPTION_SHORT_N),Constants.CMD_OPTION_LONG_N,true,
+        programOptions.addOption(String.valueOf(ManxcatConstants.CMD_OPTION_SHORT_N),ManxcatConstants.CMD_OPTION_LONG_N,true,
                 ManxcatConstants.CMD_OPTION_DESCRIPTION_N);
-        programOptions.addOption(String.valueOf(ManxcatConstants.CMD_OPTION_SHORT_T),Constants.CMD_OPTION_LONG_T,true,
+        programOptions.addOption(String.valueOf(ManxcatConstants.CMD_OPTION_SHORT_T),ManxcatConstants.CMD_OPTION_LONG_T,true,
                 ManxcatConstants.CMD_OPTION_DESCRIPTION_T);
     }
+    private static Format dateFormatter = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
 	//  Input Variables               
 	public static MDSasChisqSection config;
 	public static String ConfigurationFileName = ""; // Configuration file name
@@ -40,7 +45,6 @@ public class ManxcatCentral
 	public static double ChisqFunctionCalcMultiplier = 10.0; // Multiplicative Constant for Function (square this for Chisq) Calculation)
 	public static double ChisqPrintConstant = 1.0; // Extrs Multiplicative Constant for Chisq Printing (divided by number of degrees of freedom)
 	public static String ResultDirectoryName = ""; // Full String for Result Directory
-	public static String ActualDataFileName = ""; // Full Input File name  for Data File Name
 	public static String ActualOutputFileName = ""; // Full Output File namee
 
 	//  Note Best solution alwasys stored with Scaling or Addition of Marquardt Factor if this requested
@@ -50,11 +54,9 @@ public class ManxcatCentral
 	public static int IterationtorecalculateQLimits = 0; // Iteration after and including which calculating Q limits warranted
 	public static double LineFactorGuess = 1.0; // Initial Guess at Line Factor
 
-	static void main(String[] args)
-	{
-
+    static void main(String[] args) {
         Optional<CommandLine> parserResult = parseCommandLineArguments(args, programOptions);
-        if (!parserResult.isPresent()){
+        if (!parserResult.isPresent()) {
             System.out.println(ManxcatConstants.ERR_PROGRAM_ARGUMENTS_PARSING_FAILED);
             new HelpFormatter().printHelp(ManxcatConstants.PROGRAM_NAME, programOptions);
             return;
@@ -63,235 +65,185 @@ public class ManxcatCentral
         CommandLine cmd = parserResult.get();
         if (!(cmd.hasOption(ManxcatConstants.CMD_OPTION_LONG_C) &&
                 cmd.hasOption(ManxcatConstants.CMD_OPTION_LONG_N) &&
-                cmd.hasOption(ManxcatConstants.CMD_OPTION_LONG_T))){
+                cmd.hasOption(ManxcatConstants.CMD_OPTION_LONG_T))) {
             System.out.println(ManxcatConstants.ERR_INVALID_PROGRAM_ARGUMENTS);
             new HelpFormatter().printHelp(ManxcatConstants.PROGRAM_NAME, programOptions);
             return;
         }
 
         //  Read Metadata using this as source of other metadata
-		ReadConfiguration(cmd);
+        ReadConfiguration(cmd);
 
         try {
             //  Set up Parallelism
             SALSAParallelism.SetupParallelism(args);
-        }catch (MPIException e) {
+        } catch (MPIException e) {
             SALSAUtility.printException(e);
             return; // End program on error
         }
 
-		// Define Points to be used
-		SALSA_ProcessVariedandFixed.setupFixedandVaried();
+        // Define Points to be used
+        SALSA_ProcessVariedandFixed.setupFixedandVaried();
 
-		// Set up Decomposition of USED points
-		SALSAParallelism.SetParallelDecomposition();
+        // Set up Decomposition of USED points
+        SALSAParallelism.SetParallelDecomposition();
 
-		//  Redistribute points so an equal number (upto 1) varied in each thread
-		SALSA_ProcessVariedandFixed.RedistributePoints();
+        //  Redistribute points so an equal number (upto 1) varied in each thread
+        SALSA_ProcessVariedandFixed.RedistributePoints();
 
-		try
-		{
-			// Set up Normalizations
-			ChisqPrintConstant = config.ChisqPrintConstant; // This can be customized in set up routines
-			ChisqFunctionCalcMultiplier = config.FunctionErrorCalcMultiplier;
+        try {
+            // Set up Normalizations
+            // This can be customized in set up routines
+            ChisqPrintConstant = config.ChisqPrintConstant;
+            ChisqFunctionCalcMultiplier = config.FunctionErrorCalcMultiplier;
 
-			ProcessingOption = config.ProcessingOption; // Determines type of fit
+            // Determines type of fit
+            ProcessingOption = config.ProcessingOption;
 
-			//  Set up Hotsum and DoubleStar initial parameters
-			if (ProcessingOption <= 100)
-			{
-				ManxcatMDS.SetupHotsunforMDS();
-			}
+            //  Set up Hotsum and DoubleStar initial parameters
+            if (ProcessingOption <= 100) {
+                ManxcatMDS.SetupHotsunforMDS();
+            } else if (ProcessingOption <= 200) {
+                RotateManxcatMDS.SetupHotsunforRotateMDS();
+            }
+            Hotsun.SetupManxcat();
 
-			else if (ProcessingOption <= 200)
-			{
-				RotateManxcatMDS.SetupHotsunforRotateMDS();
-			}
-			Hotsun.SetupManxcat();
+            if (Hotsun.DecomposeParameters) { // Set up MPI if parallel parameter
+                FromAfar2DDoubleVector = setup2DDoubleMPIPacket();
+                TogoDistributed2DDoubleVector = setup2DDoubleMPIPacket();
+                FromAfar1DStringVector = setup1DStringMPIPacket();
+                TogoDistributed1DStringVector = setup1DStringMPIPacket();
+                TogoDiagVector = setup2DDoubleMPIPacket();
+                TogoSqDgInvVector = setup2DDoubleMPIPacket();
+            }
 
-			if (Hotsun.DecomposeParameters)
-			{ // Set up MPI if parallel parameter
-				tangible.RefObject<MPI2DDoubleVectorPacket> tempRef_FromAfar2DDoubleVector = new tangible.RefObject<MPI2DDoubleVectorPacket>(FromAfar2DDoubleVector);
-				SetupMPIPacket(tempRef_FromAfar2DDoubleVector);
-				FromAfar2DDoubleVector = tempRef_FromAfar2DDoubleVector.argValue;
-				tangible.RefObject<MPI2DDoubleVectorPacket> tempRef_TogoDistributed2DDoubleVector = new tangible.RefObject<MPI2DDoubleVectorPacket>(TogoDistributed2DDoubleVector);
-				SetupMPIPacket(tempRef_TogoDistributed2DDoubleVector);
-				TogoDistributed2DDoubleVector = tempRef_TogoDistributed2DDoubleVector.argValue;
-				tangible.RefObject<MPI2DDoubleVectorPacket> tempRef_FromAfar1DStringVector = new tangible.RefObject<MPI2DDoubleVectorPacket>(FromAfar1DStringVector);
-				SetupMPIPacket(tempRef_FromAfar1DStringVector);
-				FromAfar1DStringVector = tempRef_FromAfar1DStringVector.argValue;
-				tangible.RefObject<MPI2DDoubleVectorPacket> tempRef_TogoDistributed1DStringVector = new tangible.RefObject<MPI2DDoubleVectorPacket>(TogoDistributed1DStringVector);
-				SetupMPIPacket(tempRef_TogoDistributed1DStringVector);
-				TogoDistributed1DStringVector = tempRef_TogoDistributed1DStringVector.argValue;
+            //  Set up Timing
+            SALSAUtility.InitializeTiming(8);
+            SALSAUtility.SetUpMPISubTimers(3, "");
+            SALSAUtility.SetUpSubTimer(0, "MatrixSolve");
+            SALSAUtility.SetUpSubTimer(1, "EigenSolve");
+            SALSAUtility.SetUpSubTimer(2, "Calcfg");
+            Hotsun.TotalTimeUsed = 0.0;
 
-				tangible.RefObject<MPI2DDoubleVectorPacket> tempRef_TogoDiagVector = new tangible.RefObject<MPI2DDoubleVectorPacket>(TogoDiagVector);
-				SetupMPIPacket(tempRef_TogoDiagVector);
-				TogoDiagVector = tempRef_TogoDiagVector.argValue;
-				tangible.RefObject<MPI2DDoubleVectorPacket> tempRef_TogoSqDgInvVector = new tangible.RefObject<MPI2DDoubleVectorPacket>(TogoSqDgInvVector);
-				SetupMPIPacket(tempRef_TogoSqDgInvVector);
-				TogoSqDgInvVector = tempRef_TogoSqDgInvVector.argValue;
-			}
+            // Set up general Manxcat Application structure
+            Hotsun.FullSecondDerivative = false;
 
-			//  Set up Timing
-			SALSAUtility.InitializeTiming(8);
-			SALSAUtility.SetUpMPISubTimers(3, "");
-			SALSAUtility.SetUpSubTimer(0, "MatrixSolve");
-			SALSAUtility.SetUpSubTimer(1, "EigenSolve");
-			SALSAUtility.SetUpSubTimer(2, "Calcfg");
-			Hotsun.TotalTimeUsed = 0.0;
+            //  Increase Run Number
+            if ((ProcessingOption == 0) || (ProcessingOption == 100)) {
+                ++ManxcatCentral.config.RunNumber;
+            }
 
-			// Set up general Manxcat Application structure
-			Hotsun.FullSecondDerivative = false;
+            //  Construct One Line Label
+            config.Pattern = SALSAUtility.ParallelPattern;
+            SALSAUtility.PatternLabel = String
+                    .format("==== MDS %1$s ==== Option:%2$s PointCount_Global:%3$s ==== Run %4$s %5$s == File %6$s ==" +
+                                    " %7$s ==== ",
+                            SALSAUtility.ParallelPattern, ManxcatCentral.config.ProcessingOption,
+                            SALSAUtility.PointCount_Global, ManxcatCentral.config.RunSetLabel,
+                            ManxcatCentral.config.RunNumber, ManxcatCentral.config.DistanceMatrixFile,
+                            SALSAUtility.startTime);
+            SALSAUtility.SALSAPrint(0, SALSAUtility.PatternLabel);
 
-			//  Increase Run Number
-			if ((ProcessingOption == 0) || (ProcessingOption == 100))
-			{
-				++ManxcatCentral.config.RunNumber;
-			}
+            ManxcatCentral.config.Comment += (!Strings
+                    .isNullOrEmpty(ManxcatCentral.config.Comment) ? "\n" : "") + SALSAUtility.PatternLabel;
 
-			//  Construct One Line Label
-			config.Pattern = SALSAUtility.ParallelPattern;
-			SALSAUtility.PatternLabel = String.format("==== MDS %1$s ==== Option:%2$s PointCount_Global:%3$s ==== Run %4$s %5$s == File %6$s == %7$s ==== ", SALSAUtility.ParallelPattern, ManxcatCentral.config.ProcessingOption, SALSAUtility.PointCount_Global, ManxcatCentral.config.RunSetLabel, ManxcatCentral.config.RunNumber, ManxcatCentral.config.DistanceMatrixFile, SALSAUtility.startTime.ToLocalTime());
-			SALSAUtility.SALSAPrint(0, SALSAUtility.PatternLabel);
+            // Initial Processing Complete
+            // Make certain all processes have processed original data before writing updated
+            SALSAUtility.MPI_communicator.Barrier();
 
+            // Set results directory
+            String timestamp = dateFormatter.format(new Date());
+            String pattern = String.format("%1$sx%2$sx%3$s", SALSAUtility.ThreadCount, SALSAUtility.MPIperNodeCount,
+                                           SALSAUtility.NodeCount);
 
-			String startstring = "";
+            ManxcatCentral.config.ResultDirectoryExtension = String
+                    .format("%1s %2$s %3$s %4$s", ManxcatConstants.PROGRAM_NAME, ManxcatCentral.config.RunSetLabel,
+                            timestamp, pattern);
+            ManxcatCentral.ResultDirectoryName = ManxcatCentral.config.BaseResultDirectoryName + File
+                    .pathSeparatorChar + ManxcatCentral.config.ResultDirectoryExtension;
 
-			if (!ManxcatCentral.config.Comment.equals(""))
-			{
-				startstring = "\n";
-			}
-			ManxcatCentral.config.Comment += startstring + SALSAUtility.PatternLabel;
+            if (SALSAUtility.MPIIOStrategy > 0) {
+                ManxcatCentral.ResultDirectoryName += "-Unit" + SALSAUtility.MPI_Size;
+            }
 
-			// Initial Processing Complete
-			SALSAUtility.MPI_communicator.Barrier(); // Make certain all processes have processed original data before writing updated
+            if ((SALSAUtility.MPIIOStrategy > 0) || (SALSAUtility.MPI_Rank == 0)) {
+                if ((new java.io.File(ResultDirectoryName)).isDirectory()) {
+                    SALSAUtility.SALSAPrint(0, "The directory " + ResultDirectoryName + " exists");
+                } else {
+                    File dir = new File(ResultDirectoryName);
+                    boolean success = dir.mkdir();
+                    SALSAUtility.SALSAPrint(0,
+                                            "The directory " + ResultDirectoryName + " creation was " + (success ?
+                                                    "successful" : "unsuccessful") + " at " + dateFormatter
+                                                    .format(new Date(dir.lastModified())));
+                }
+            }
 
-			// Set results directory
+            // Make certain all processes have processed original data before writing updated
+            SALSAUtility.MPI_communicator.Barrier();
 
-			// Begin Changes smbeason 8-21-2009
-			// This change is to support a "Standard" naming schema for all our results.  It support the performance runs.
-			String timestamp = new java.util.Date().toString("'D['yyyy'-'MM'-'dd'] T['HH'-'mm'-'ss']'");
-			String pattern = String.format("%1$sx%2$sx%3$s", SALSAUtility.ThreadCount, SALSAUtility.MPIperNodeCount, SALSAUtility.NodeCount);
-
-			if (ProcessingOption != 12)
-			{
-				ManxcatCentral.config.ResultDirectoryExtension = String.format("ManxcatMDS %1$s %2$s P[%3$s]", ManxcatCentral.config.RunSetLabel, timestamp, pattern);
-				ManxcatCentral.ResultDirectoryName = ManxcatCentral.config.BaseResultDirectoryName + "\\" + ManxcatCentral.config.ResultDirectoryExtension;
-			}
-
-			// ManxcatCentral.MetadataforRun.ResultDirectoryExtension = "Results-" + ManxcatCentral.MetadataforRun.RunSetLabel + "-R" + ManxcatCentral.MetadataforRun.RunNumber.ToString();
-			// ManxcatCentral.ResultDirectoryName = ManxcatCentral.MetadataforRun.BaseResultDirectoryName + "\\" + ManxcatCentral.MetadataforRun.ResultDirectoryExtension;
-			// End Changes smbeason 8-21-2009
-
-			if (SALSAUtility.MPIIOStrategy > 0)
-			{
-				ManxcatCentral.ResultDirectoryName += "-Unit" + (new Integer(SALSAUtility.MPI_Size)).toString();
-			}
-
-			if ((SALSAUtility.MPIIOStrategy > 0) || (SALSAUtility.MPI_Rank == 0))
-			{
-				if ((new java.io.File(ResultDirectoryName)).isDirectory())
-				{
-					SALSAUtility.SALSAPrint(0, "The directory " + ResultDirectoryName + " exists");
-				}
-				else
-				{
-					java.io.File di = (new java.io.File(ResultDirectoryName)).mkdir();
-					SALSAUtility.SALSAPrint(0, "The directory " + ResultDirectoryName + " was created successfully at " + Directory.GetCreationTime(ResultDirectoryName));
-				}
-			}
-
-			if (ProcessingOption == 12)
-			{
-				MDS.ManxcatMDSDataProcessing.UpdateManxcatMDS_Option12();
-
-				if ((SALSAUtility.MPIIOStrategy > 1) || (SALSAUtility.MPI_Rank == 0))
-				{
-					String[] split = ManxcatCentral.ConfigurationFileName.split("[\\\\/]", -1);
-					String ControlFileLastName = split[split.length - 1];
-					SALSAUtility.SALSAUpdateMetaData(ManxcatCentral.config);
-					// ConfMgr.SaveAs(config.ControlDirectoryName + "\\" + ControlFileLastName, true);
-					// MetaDataIO.WriteControl_Cluster(ManxcatCentral.config.ControlDirectoryName + "\\" + ControlFileLastName, ref ManxcatCentral.config); // Updated Control data
-				}
-				System.out.println("Completed");
-				return;
-			}
-
-			// Begin Changes smbeason 8-21-2009
-			// for our performance runs, the control file lives on the headnode, whereas the data file lives on the local compute node.  Thus, we need to specify
-			// the full path to the data file in the control file rather than building it here.
-			ActualDataFileName = config.DistanceMatrixFile;
-			// ActualDataFileName = ManxcatCentral.MetadataforRun.ControlDirectoryName + "\\" + ManxcatCentral.MetadataforRun.DataFileName;
-			// End Changes smbeason 8-21-2009
-
-			SALSAUtility.MPI_communicator.Barrier(); // Make certain all processes have processed original data before writing updated
-
-			//  Write out Current Summary and Updated Control File
-			if ((SALSAUtility.MPIIOStrategy > 0) || (SALSAUtility.MPI_Rank == 0))
-			{
-				ConfMgr.SaveAs(config.SummaryOutputFileName);
-			}
-
-			if ((SALSAUtility.MPIIOStrategy > 1) || (SALSAUtility.MPI_Rank == 0))
-			{
-				String[] split = ManxcatCentral.ConfigurationFileName.split("[\\\\/]", -1);
-				String ControlFileLastName = split[split.length - 1];
-				// ConfMgr.SaveAs(config.ControlDirectoryName + "\\" + ControlFileLastName, true);
-			}
+            //  Write out Current Summary and Updated Control File
+            if ((SALSAUtility.MPIIOStrategy > 0) || (SALSAUtility.MPI_Rank == 0)) {
+                config.saveAs(config.SummaryOutputFileName);
+            }
 
 
-			// Actually run application
-			SALSAUtility.MPI_communicator.Barrier(); // Make certain all processes have processed original data before writing updated
-			if (ProcessingOption <= 90)
-			{
-				ManxcatCentral.ManxcatControl(new Hotsun.Hotsun.CalcfgSignature(ManxcatMDS.Calcfg), new Hotsun.Hotsun.IntializeSignature(ManxcatMDS.SetupMDSasChisq), new Hotsun.Hotsun.InitializeParametersSignature(ManxcatMDS.InitializeParameters), new Hotsun.Hotsun.SolveMatrixSignature(ManxcatMDS.SolveMatrix), new Hotsun.Hotsun.WriteSolutionSignature(MDS.ManxcatMDSWriteSolution.WriteMDS), new Hotsun.Hotsun.FindQlimitsSignature(ManxcatMDS.FindQlimits), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(ManxcatMDS.GlobalMatrixVectorProduct), new Hotsun.Hotsun.SequelSignature(ManxcatMDS.Sequel));
+            // Make certain all processes have processed original data before writing updated
+            SALSAUtility.MPI_communicator.Barrier();
 
-			}
-			else if (ProcessingOption <= 100)
-			{
-				/* Special case of <= 100 where actualy ManxcatAsChisq is ommitted. 
+            if (ProcessingOption <= 90) {
+                /* Actually run application */
+                ManxcatCentral.ManxcatControl(ManxcatMDS::Calcfg,
+                                              ManxcatMDS::SetupMDSasChisq,
+                                              ManxcatMDS::InitializeParameters,
+                                              ManxcatMDS::SolveMatrix,
+                                              ManxcatMDSWriteSolution::WriteMDS,
+                                              ManxcatMDS::FindQlimits,
+                                              ManxcatMDS::GlobalMatrixVectorProduct,
+                                              ManxcatMDS::Sequel);
+
+            } else if (ProcessingOption <= 100) {
+                /* Special case of <= 100 where doing ManxcatAsChisq for real is omitted.
 				 * Original distances are read in from file along with previously
 				 * calculated coordinates specified by initialization file and density
 				 * graphs along with html page are created */
-				ManxcatMDS.SetupMDSasChisq();
-				// fill hotsun.globalparam with initialization file
-				ManxcatMDS.FillupHotsun();
-				// Todo (html+density) - something is different when using built in manxcat population
-//                    ManxcatMDSRoutines.InitializeParameters(Hotsun.CurrentSolution, Hotsun.InitializationLoops);
-				ManxcatMDS.Sequel();
-			}
-			else if (ProcessingOption <= 200)
-			{
-				ManxcatCentral.ManxcatControl(new Hotsun.Hotsun.CalcfgSignature(RotateManxcatMDS.Calcfg), new Hotsun.Hotsun.IntializeSignature(RotateManxcatMDS.SetupRotateMDS), new Hotsun.Hotsun.InitializeParametersSignature(RotateManxcatMDS.InitializeParameters), new Hotsun.Hotsun.SolveMatrixSignature(GenericManxcat.SolveMatrix), new Hotsun.Hotsun.WriteSolutionSignature(RotateManxcatMDS.WriteRotateMDS), new Hotsun.Hotsun.FindQlimitsSignature(GenericManxcat.FindQlimits), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GenericManxcat.GlobalMatrixVectorProduct), new Hotsun.Hotsun.SequelSignature(RotateManxcatMDS.Sequel));
-			}
-			SALSAUtility.MPI_communicator.Barrier();
+                ManxcatMDS.SetupMDSasChisq();
+                // fill hotsun.globalparam with initialization file
+                ManxcatMDS.FillupHotsun();
+                ManxcatMDS.Sequel();
+            } else if (ProcessingOption <= 200) {
+                ManxcatCentral.ManxcatControl(RotateManxcatMDS::Calcfg, RotateManxcatMDS::SetupRotateMDS,
+                                              RotateManxcatMDS::InitializeParameters, GenericManxcat::SolveMatrix,
+                                              RotateManxcatMDS::WriteRotateMDS, GenericManxcat::FindQlimits,
+                                              GenericManxcat::GlobalMatrixVectorProduct, RotateManxcatMDS::Sequel);
+            }
+            SALSAUtility.MPI_communicator.Barrier();
 
-			String TimingMessage = "\nTiming ";
-			for (int subtimer = 0; subtimer < SALSAUtility.NumberofSubTimings; subtimer++)
-			{
-				if (!SALSAUtility.SubTimingEnable[subtimer])
-				{
-					continue;
-				}
-				double SubTime = SALSAUtility.SubDurations[subtimer];
-				TimingMessage += " " + SALSAUtility.SubTimingNames[subtimer] + " " + String.format("%0.0f", SubTime) + " (" + String.format("%0.3f", SubTime / SALSAUtility.HPDuration) + ")";
-			}
-			SALSAUtility.SALSAPrint(0, TimingMessage);
+            String TimingMessage = "\nTiming ";
+            for (int subtimer = 0; subtimer < SALSAUtility.NumberofSubTimings; subtimer++) {
+                if (!SALSAUtility.SubTimingEnable[subtimer]) {
+                    continue;
+                }
+                double SubTime = SALSAUtility.SubDurations[subtimer];
+                TimingMessage += " " + SALSAUtility.SubTimingNames[subtimer] + " " + String
+                        .format("%.0f", SubTime) + " (" + String
+                        .format("%.3f", SubTime / SALSAUtility.HPDuration) + ")";
+            }
+            SALSAUtility.SALSAPrint(0, TimingMessage);
 
-			if ((SALSAUtility.MPIIOStrategy > 0) || (SALSAUtility.MPI_Rank == 0))
-			{
-				MetaDataIO.WriteResults_Cluster(config.SummaryOutputFileName, SALSAUtility.CosmicOutput);
-				SALSAUtility.WriteTiming_Cluster(config.TimingOutputFileName, config.RunSetLabel, config.RunNumber, config.DistanceMatrixFile, MPI.Environment.getProcessorName());
-				ManxcatHtmlUtility.WriteHTML();
-			}
-		}
-		finally
-		{
-			// Begin Changes smbeason 8-21-2009
-			   SALSAParallelism.TearDownParallelism();
-			// End Changes smbeason 8-21-2009
-		}
-	}
+            if ((SALSAUtility.MPIIOStrategy > 0) || (SALSAUtility.MPI_Rank == 0)) {
+                MetaDataIO.WriteResults_Cluster(config.SummaryOutputFileName, SALSAUtility.CosmicOutput);
+                SALSAUtility.WriteTiming_Cluster(config.TimingOutputFileName, config.RunSetLabel, config.RunNumber,
+                                                 config.DistanceMatrixFile,
+                                                 MPI.Get_processor_name());
+                ManxcatHtmlUtility.WriteHTML();
+            }
+        } catch (IOException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        } finally {
+            SALSAParallelism.TearDownParallelism();
+        }
+    }
 
     /**
      * Parse command line arguments
@@ -373,8 +325,13 @@ public class ManxcatCentral
         SALSAUtility.DebugPrintOption = config.DebugPrintOption;
 	}
 
-	public static void ManxcatControl(Hotsun.CalcfgSignature Calcfg, Hotsun.IntializeSignature InitializeApplication, Hotsun.InitializeParametersSignature InitializeParameters, Hotsun.SolveMatrixSignature SolveMatrix, Hotsun.WriteSolutionSignature WriteSolution, Hotsun.FindQlimitsSignature FindQlimits, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct, Hotsun.SequelSignature Sequel)
-	{
+    public static void ManxcatControl(Hotsun.CalcfgSignature Calcfg, Hotsun.IntializeSignature InitializeApplication,
+                                      Hotsun.InitializeParametersSignature InitializeParameters,
+                                      Hotsun.SolveMatrixSignature SolveMatrix,
+                                      Hotsun.WriteSolutionSignature WriteSolution,
+                                      Hotsun.FindQlimitsSignature FindQlimits,
+                                      Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct,
+                                      Hotsun.SequelSignature Sequel) {
 		//  Set up Specific Manxcat Applicatin
 		InitializeApplication.invoke(); // Reads in Data
 
@@ -399,7 +356,7 @@ public class ManxcatCentral
 			Hotsun.EigenvalueIndicator1 = 0;
 			Hotsun.EigenvalueIndicator2 = 0;
 
-			ManxcatCentral.launchQlimits(new Hotsun.Hotsun.FindQlimitsSignature(FindQlimits)); // Find limits on Q
+			ManxcatCentral.launchQlimits(FindQlimits); // Find limits on Q
 
 			Hotsun.ichsav = -1; // changed from = 1 in old Fortran which seems wrong
 			Hotsun.chsave[0] = Hotsun.zerocr; // Unnecessary
@@ -436,11 +393,11 @@ public class ManxcatCentral
 			}
 
 			// Print Initial Trial
-			SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName, " Initial Chisq " + String.format("%0.3f", ChisqPrintConstant * Hotsun.zerocr));
+			SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName, " Initial Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.zerocr));
 
 			if ((SALSAUtility.DebugPrintOption > 0) && (SALSAUtility.MPI_Rank == 0))
 			{
-				SALSAUtility.SALSAPrint(1, "\n-----------------------------------------------\n" + SALSAUtility.startTime.ToLocalTime() + " Iterations " + (new Integer(Hotsun.numit)).toString() + " Chisq " + String.format("%0.3f", ChisqPrintConstant * Hotsun.zerocr) + " Parameters " + (new Integer(Hotsun.npar)).toString() + " Data Points " + (new Long(Hotsun.ndata)).toString());
+				SALSAUtility.SALSAPrint(1, "\n-----------------------------------------------\n" + SALSAUtility.startTime.ToLocalTime() + " Iterations " + (new Integer(Hotsun.numit)).toString() + " Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.zerocr) + " Parameters " + (new Integer(Hotsun.npar)).toString() + " Data Points " + (new Long(Hotsun.ndata)).toString());
 			}
 
 			Hotsun.DecisionMethod = 0; //   Initial Conditions on Decisions
@@ -621,7 +578,7 @@ public class ManxcatCentral
 				{
 					if (SALSAUtility.MPI_Rank == 0)
 					{
-						SALSAUtility.SALSAPrint(2, "\nIllegal pred2 " + String.format("%0.3f", Hotsun.pred2 * ChisqPrintConstant) + " CurrentChisq " + String.format("%0.3f", Hotsun.CurrentSolution.Chisquared * ChisqPrintConstant));
+						SALSAUtility.SALSAPrint(2, "\nIllegal pred2 " + String.format("%.3f", Hotsun.pred2 * ChisqPrintConstant) + " CurrentChisq " + String.format("%.3f", Hotsun.CurrentSolution.Chisquared * ChisqPrintConstant));
 					}
 				}
 
@@ -800,7 +757,7 @@ public class ManxcatCentral
 				Hotsun.TotalTimeUsed = SALSAUtility.HPDuration;
 
 				//  Print Summary of this solution
-				SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName, "In Loop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " Iteration " + (new Integer(Hotsun.numit)).toString() + " Chisq " + String.format("%0.3f", ChisqPrintConstant * Hotsun.zerocr) + " Best Chisq " + String.format("%0.3f", ChisqPrintConstant * Hotsun.BestSolution.Chisquared));
+				SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName, "In Loop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " Iteration " + (new Integer(Hotsun.numit)).toString() + " Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.zerocr) + " Best Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.BestSolution.Chisquared));
 
 				if ((SALSAUtility.DebugPrintOption > 1) && (SALSAUtility.MPI_Rank == 0))
 				{
@@ -808,10 +765,10 @@ public class ManxcatCentral
 					String shift2 = "unset";
 					if (shiftchangeset)
 					{
-						shift1 = String.format("%0.4f", Changeinxshift);
-						shift2 = String.format("%0.4f", xshiftRatio);
+						shift1 = String.format("%.4f", Changeinxshift);
+						shift2 = String.format("%.4f", xshiftRatio);
 					}
-					SALSAUtility.SALSAPrint(2, "\nLoop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " Iteration " + (new Integer(Hotsun.numit)).toString() + " Q " + String.format("%0.4E", Hotsun.Q) + " Qlow " + String.format("%0.3f", Hotsun.Qlow) + " (" + (new Integer(Hotsun.EigenvalueIndicator2)).toString() + ") Qhigh " + String.format("%0.3f", Hotsun.Qhigh) + " (" + (new Integer(Hotsun.EigenvalueIndicator1)).toString() + ") Qgood " + String.format("%0.4E", Hotsun.Qgood) + " Trace Q " + String.format("%0.3f", Hotsun.ChisqMatrixTrace) + " Norm Q " + String.format("%0.3f", Hotsun.ChisqMatrixNorm) + "\nDecision " + (new Integer(Hotsun.DecisionMethod)).toString() + " 1:" + (new Integer(Hotsun.DecisionMethod_1)).toString() + " 2:" + (new Integer(Hotsun.DecisionMethod_2)).toString() + " 3:" + (new Integer(Hotsun.DecisionMethod_3)).toString() + " 4:" + (new Integer(Hotsun.DecisionMethod_4)).toString() + " 5:" + (new Integer(Hotsun.DecisionMethod_5)).toString() + " Counts Q Low " + (new Integer(Hotsun.CountQSmall)).toString() + " Q High " + (new Integer(Hotsun.CountQLarge)).toString() + " SD Count " + (new Integer(Hotsun.CountToSD)).toString() + " Randoms " + (new Integer(Hotsun.CountToRandom)).toString() + " Exercusions " + (new Integer(Hotsun.CountExercusion)).toString() + " SD Opt " + (new Integer(Hotsun.isdtry)).toString() + " Solver Errs " + (new Integer(Hotsun.materr)).toString() + " CG Iters " + (new Integer(Hotsun.NumberofCGIterations)).toString() + "\nScalProd Shift.First " + String.format("%0.4f", Changexshiftfirst) + " Change Shift from Prev DotProd " + shift1 + " and Change Shift in norm " + shift2 + "\nChange in first deriv from Prev DotProd " + String.format("%0.4f", Changeinfirst) + " and in first deriv norm " + String.format("%0.4f", firstRatio));
+					SALSAUtility.SALSAPrint(2, "\nLoop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " Iteration " + (new Integer(Hotsun.numit)).toString() + " Q " + String.format("%.4E", Hotsun.Q) + " Qlow " + String.format("%.3f", Hotsun.Qlow) + " (" + (new Integer(Hotsun.EigenvalueIndicator2)).toString() + ") Qhigh " + String.format("%.3f", Hotsun.Qhigh) + " (" + (new Integer(Hotsun.EigenvalueIndicator1)).toString() + ") Qgood " + String.format("%.4E", Hotsun.Qgood) + " Trace Q " + String.format("%.3f", Hotsun.ChisqMatrixTrace) + " Norm Q " + String.format("%.3f", Hotsun.ChisqMatrixNorm) + "\nDecision " + (new Integer(Hotsun.DecisionMethod)).toString() + " 1:" + (new Integer(Hotsun.DecisionMethod_1)).toString() + " 2:" + (new Integer(Hotsun.DecisionMethod_2)).toString() + " 3:" + (new Integer(Hotsun.DecisionMethod_3)).toString() + " 4:" + (new Integer(Hotsun.DecisionMethod_4)).toString() + " 5:" + (new Integer(Hotsun.DecisionMethod_5)).toString() + " Counts Q Low " + (new Integer(Hotsun.CountQSmall)).toString() + " Q High " + (new Integer(Hotsun.CountQLarge)).toString() + " SD Count " + (new Integer(Hotsun.CountToSD)).toString() + " Randoms " + (new Integer(Hotsun.CountToRandom)).toString() + " Exercusions " + (new Integer(Hotsun.CountExercusion)).toString() + " SD Opt " + (new Integer(Hotsun.isdtry)).toString() + " Solver Errs " + (new Integer(Hotsun.materr)).toString() + " CG Iters " + (new Integer(Hotsun.NumberofCGIterations)).toString() + "\nScalProd Shift.First " + String.format("%.4f", Changexshiftfirst) + " Change Shift from Prev DotProd " + shift1 + " and Change Shift in norm " + shift2 + "\nChange in first deriv from Prev DotProd " + String.format("%.4f", Changeinfirst) + " and in first deriv norm " + String.format("%.4f", firstRatio));
 
 					String chisqmethod = "Marquardt's Algorithm";
 
@@ -846,7 +803,7 @@ public class ManxcatCentral
 
 					if (LineSearchUsed)
 					{
-						SALSAUtility.SALSAPrint(2, "Linesearch Chisq gains " + String.format("%0.3f", ChisqPrintConstant * ExtraDecrease) + " Shift Factor " + String.format("%0.3f", LineFactor) + " with guess " + String.format("%0.3f", LineFactorGuess) + " Iterations " + (new Integer(LineIterations)).toString() + " Method " + (new Integer(Hotsun.DecisionMethod_LineSearch)).toString());
+						SALSAUtility.SALSAPrint(2, "Linesearch Chisq gains " + String.format("%.3f", ChisqPrintConstant * ExtraDecrease) + " Shift Factor " + String.format("%.3f", LineFactor) + " with guess " + String.format("%.3f", LineFactorGuess) + " Iterations " + (new Integer(LineIterations)).toString() + " Method " + (new Integer(Hotsun.DecisionMethod_LineSearch)).toString());
 					}
 
 					// Output parameter values if not too many
@@ -861,7 +818,7 @@ public class ManxcatCentral
 							for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
 							{
 								double tmp = Hotsun.CurrentSolution.param[LongIndex][LocalVectorIndex];
-								parametervalues += " " + String.format("%0.4E", tmp);
+								parametervalues += " " + String.format("%.4E", tmp);
 							}
 						}
 					}
@@ -879,7 +836,7 @@ public class ManxcatCentral
 						Hotsun.teigen = Hotsun.teigen / (Hotsun.EigenvalueIndicator1 + Hotsun.EigenvalueIndicator2);
 					}
 
-					SALSAUtility.SALSAPrint(2, "Chisq " + String.format("%0.3f", ChisqPrintConstant * Hotsun.zerocr) + " Best Chisq " + String.format("%0.3f", ChisqPrintConstant * Hotsun.BestSolution.Chisquared) + " " + chisqmethod + " " + chisqstatus + " Calcfg Time " + String.format("%0.0f", Hotsun.tcalcfg) + " Matrix Solve " + labelCG + String.format("%0.1f", Hotsun.tsolve) + " Eigen " + labeleigen + String.format("%0.1f", Hotsun.teigen) + " Total " + String.format("%0.0f", Hotsun.TotalTimeUsed) + "\n1st Deriv Reduction " + String.format("%0.4f", dchi1) + " Exp 2nd " + String.format("%0.4f", dchi2) + " Other 2nd " + String.format("%0.4f", dchi3) + " Actual Reduction " + String.format("%0.4f", dchi4) + parametervalues);
+					SALSAUtility.SALSAPrint(2, "Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.zerocr) + " Best Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.BestSolution.Chisquared) + " " + chisqmethod + " " + chisqstatus + " Calcfg Time " + String.format("%.0f", Hotsun.tcalcfg) + " Matrix Solve " + labelCG + String.format("%.1f", Hotsun.tsolve) + " Eigen " + labeleigen + String.format("%.1f", Hotsun.teigen) + " Total " + String.format("%.0f", Hotsun.TotalTimeUsed) + "\n1st Deriv Reduction " + String.format("%.4f", dchi1) + " Exp 2nd " + String.format("%.4f", dchi2) + " Other 2nd " + String.format("%.4f", dchi3) + " Actual Reduction " + String.format("%.4f", dchi4) + parametervalues);
 
 					Hotsun.tsolve = 0.0;
 					Hotsun.teigen = 0.0;
@@ -1359,12 +1316,12 @@ public class ManxcatCentral
 		SALSAUtility.EndTiming();
 		Hotsun.TotalTimeUsed = SALSAUtility.HPDuration;
 
-		SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName, "End Loop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " Chisq " + String.format("%0.3f", ChisqPrintConstant * Hotsun.zerocr));
+		SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName, "End Loop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.zerocr));
 
 		if ((SALSAUtility.DebugPrintOption > 0) && (SALSAUtility.MPI_Rank == 0))
 		{
 
-			SALSAUtility.SALSAPrint(1, "\n-------------------" + SALSAUtility.endTime.ToLocalTime() + "\nIterations " + (new Integer(Hotsun.numit)).toString() + " Chisq " + String.format("%0.3f", ChisqPrintConstant * Hotsun.zerocr) + " Q " + String.format("%0.3f", Hotsun.Q) + " Qlow " + String.format("%0.3f", Hotsun.Qlow) + " Qhigh " + String.format("%0.3f", Hotsun.Qhigh) + " Qgood " + String.format("%0.3f", Hotsun.Qgood) + " Trace Q " + String.format("%0.3f", Hotsun.ChisqMatrixTrace) + " Norm Q " + String.format("%0.3f", Hotsun.ChisqMatrixNorm));
+			SALSAUtility.SALSAPrint(1, "\n-------------------" + SALSAUtility.endTime.ToLocalTime() + "\nIterations " + (new Integer(Hotsun.numit)).toString() + " Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.zerocr) + " Q " + String.format("%.3f", Hotsun.Q) + " Qlow " + String.format("%.3f", Hotsun.Qlow) + " Qhigh " + String.format("%.3f", Hotsun.Qhigh) + " Qgood " + String.format("%.3f", Hotsun.Qgood) + " Trace Q " + String.format("%.3f", Hotsun.ChisqMatrixTrace) + " Norm Q " + String.format("%.3f", Hotsun.ChisqMatrixNorm));
 			String bnderrlabel = "";
 
 			if (Hotsun.bnderr != 0)
@@ -1415,12 +1372,12 @@ public class ManxcatCentral
 					for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
 					{
 						double tmp = Hotsun.CurrentSolution.param[LongIndex][LocalVectorIndex];
-						parametervalues += " " + String.format("%0.4E", tmp);
+						parametervalues += " " + String.format("%.4E", tmp);
 					}
 				}
 			}
 
-			SALSAUtility.SALSAPrint(1, "Loop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " " + bnderrlabel + EndReason + " CG Failures " + Hotsun.TotalCGFailures + " Iterations " + Hotsun.TotalCGIterations + " Eigenvalue Failures " + Hotsun.TotalPowerFailures + " Iterations " + Hotsun.TotalPowerIterations + " Search Iterations " + Hotsun.TotalSearchIterations + " Total Time " + String.format("%0.1f", Hotsun.TotalTimeUsed) + " Calcfg Time " + String.format("%0.1f", Hotsun.tcalcfg) + " Per Iter Solve " + String.format("%0.1f", SALSAUtility.SubDurations[0] / Hotsun.TotalCGIterations) + " Per Iter Eigen " + String.format("%0.1f", SALSAUtility.SubDurations[1] / Hotsun.TotalPowerIterations) + parametervalues);
+			SALSAUtility.SALSAPrint(1, "Loop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " " + bnderrlabel + EndReason + " CG Failures " + Hotsun.TotalCGFailures + " Iterations " + Hotsun.TotalCGIterations + " Eigenvalue Failures " + Hotsun.TotalPowerFailures + " Iterations " + Hotsun.TotalPowerIterations + " Search Iterations " + Hotsun.TotalSearchIterations + " Total Time " + String.format("%.1f", Hotsun.TotalTimeUsed) + " Calcfg Time " + String.format("%.1f", Hotsun.tcalcfg) + " Per Iter Solve " + String.format("%.1f", SALSAUtility.SubDurations[0] / Hotsun.TotalCGIterations) + " Per Iter Eigen " + String.format("%.1f", SALSAUtility.SubDurations[1] / Hotsun.TotalPowerIterations) + parametervalues);
 			Hotsun.tsolve = 0.0;
 			Hotsun.teigen = 0.0;
 			Hotsun.tcalcfg = 0.0;
@@ -1491,7 +1448,7 @@ public class ManxcatCentral
 
 				for (int localloop = 0; localloop < Hotsun.InitializationLoops; localloop++)
 				{
-					ChisqList += " " + String.format("%0.3f", ChisqPrintConstant * Hotsun.InitLoopChisq[localloop]);
+					ChisqList += " " + String.format("%.3f", ChisqPrintConstant * Hotsun.InitLoopChisq[localloop]);
 				}
 				firstcomment += "\n" + ChisqList;
 				if (SALSAUtility.MPI_Rank == 0)
@@ -1502,7 +1459,7 @@ public class ManxcatCentral
 			}
 			else
 			{
-				Hotsun.HotsunComment = String.format("%0.3f", Hotsun.CurrentSolution.Chisquared * ChisqPrintConstant);
+				Hotsun.HotsunComment = String.format("%.3f", Hotsun.CurrentSolution.Chisquared * ChisqPrintConstant);
 			}
 			// Output Chisqcomponent
 			if (SALSAUtility.NumberFixedPoints > 0)
@@ -1551,7 +1508,7 @@ public class ManxcatCentral
 
 			// Todo. removing this as it's unnecessary and buggy in Linux (when run with Mono)
 //                if (!labelfilename.Contains(":") && !labelfilename.Contains("$"))
-//                    ActualOutputFileName = ManxcatCentral.ResultDirectoryName + "\\" + labelfilename;
+//                    ActualOutputFileName = ManxcatCentral.ResultDirectoryName + File.separatorChar + labelfilename;
 //                else
 				ActualOutputFileName = labelfilename;
 
@@ -1621,7 +1578,7 @@ public class ManxcatCentral
 		double chisq3 = MultiplicationFactor * StandaAloneChisq(new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct), FromSolution);
 		SALSAUtility.chisqcomponent = 4;
 		double chisq4 = MultiplicationFactor * StandaAloneChisq(new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct), FromSolution);
-		String componentcomment = " V-V " + String.format("%0.3f", chisq1) + " V-F " + String.format("%0.3f", chisq2) + " F-V " + String.format("%0.3f", chisq3) + " F-F " + String.format("%0.3f", chisq4);
+		String componentcomment = " V-V " + String.format("%.3f", chisq1) + " V-F " + String.format("%.3f", chisq2) + " F-V " + String.format("%.3f", chisq3) + " F-F " + String.format("%.3f", chisq4);
 		if (SALSAUtility.MPI_Rank == 0)
 		{
 			SALSAUtility.SALSAPrint(1, componentcomment);
@@ -1782,14 +1739,14 @@ public class ManxcatCentral
 					{
 						a = 2.0 * Hotsun.SearchSolution1.ExactDiagonalofMatrix[i1][IndextoVary1][IndextoVary1];
 					}
-					linetoprint += String.format("%0.4E", a) + " * ";
+					linetoprint += String.format("%.4E", a) + " * ";
 				}
 				SALSAUtility.SALSAPrint(1, linetoprint);
 			}
 		}
 
 		double variablestep = 0.0;
-		SALSAUtility.SALSAPrint(1, " Variable " + PointtoVary1 + " " + IndextoVary1 + " Value " + String.format("%0.4E", Hotsun.SearchSolution1.param[PointtoVary1][IndextoVary1]) + " Increment " + String.format("%0.4E", variableincrement));
+		SALSAUtility.SALSAPrint(1, " Variable " + PointtoVary1 + " " + IndextoVary1 + " Value " + String.format("%.4E", Hotsun.SearchSolution1.param[PointtoVary1][IndextoVary1]) + " Increment " + String.format("%.4E", variableincrement));
 		for (int step = 0; step < 2; step++)
 		{
 			Hotsun.SearchSolution1.param[PointtoVary1][IndextoVary1] += variableincrement;
@@ -1805,7 +1762,7 @@ public class ManxcatCentral
 			double NumericalSecondDerivative11 = (NewFirstDerivative1 - FirstDerivative1) / variablestep; // Diagonal Derivative
 			double NumericalSecondDerivative21 = (2.0 * Hotsun.SearchSolution1.first[PointtoVary2][IndextoVary2] - FirstDerivative2) / variablestep; // Off-Diagonal Derivative
 			double FuncChangeestimate = FirstDerivative1 * variablestep + 0.5 * SecondDerivative11 * variablestep * variablestep;
-			SALSAUtility.SALSAPrint(1, step + " step " + String.format("%0.4E", variablestep) + " chi " + String.format("%0.4E", newzerocr) + " Fact " + String.format("%0.4E", change) + " Fest " + String.format("%0.4E", FuncChangeestimate) + " D1est " + String.format("%0.4E", NumericalFirstDerivative1) + " D1act " + String.format("%0.4E", FirstDerivative1) + " S11est " + String.format("%0.4E", NumericalSecondDerivative11) + " S11act " + String.format("%0.4E", SecondDerivative11) + " S11actA " + String.format("%0.4E", SecondDerivative11A) + " S21est " + String.format("%0.4E", NumericalSecondDerivative21) + " S21act " + String.format("%0.4E", SecondDerivative21) + " S12act " + String.format("%0.4E", SecondDerivative12));
+			SALSAUtility.SALSAPrint(1, step + " step " + String.format("%.4E", variablestep) + " chi " + String.format("%.4E", newzerocr) + " Fact " + String.format("%.4E", change) + " Fest " + String.format("%.4E", FuncChangeestimate) + " D1est " + String.format("%.4E", NumericalFirstDerivative1) + " D1act " + String.format("%.4E", FirstDerivative1) + " S11est " + String.format("%.4E", NumericalSecondDerivative11) + " S11act " + String.format("%.4E", SecondDerivative11) + " S11actA " + String.format("%.4E", SecondDerivative11A) + " S21est " + String.format("%.4E", NumericalSecondDerivative21) + " S21act " + String.format("%.4E", SecondDerivative21) + " S12act " + String.format("%.4E", SecondDerivative12));
 		}
 
 		Hotsun.FullSecondDerivative = SaveFullSecondDerivative;
@@ -1819,36 +1776,31 @@ public class ManxcatCentral
 
 
 	//  Set up 2D Double MPI Packet
-	public static void SetupMPIPacket(tangible.RefObject<MPI2DDoubleVectorPacket> TogoVector)
-	{
-		TogoVector.argValue = new MPI2DDoubleVectorPacket(SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
-		TogoVector.argValue.FirstPoint = SALSAUtility.PointStart_Process;
-		TogoVector.argValue.NumberofPoints = SALSAUtility.PointCount_Process;
+    public static MPI2DDoubleVectorPacket setup2DDoubleMPIPacket() {
+        MPI2DDoubleVectorPacket togoVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
+        togoVector.FirstPoint = SALSAUtility.PointStart_Process;
+        togoVector.NumberofPoints = SALSAUtility.PointCount_Process;
 
-		if (SALSAUtility.PointCount_Process == SALSAUtility.PointCount_Largest)
-		{
-			return;
-		}
 
-		for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
-		{
-			TogoVector.argValue.Marray[SALSAUtility.PointCount_Largest - 1][LocalVectorIndex] = 0.0;
-		}
-	} // End Setup2DDoubleMPIPacket
+        if (SALSAUtility.PointCount_Process != SALSAUtility.PointCount_Largest) {
+            for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++) {
+                togoVector.Marray[SALSAUtility.PointCount_Largest - 1][LocalVectorIndex] = 0.0;
+            }
+        }
+        return togoVector;
+    }
 
-	//  Set up 1D String MPI Packet
-	public static void SetupMPIPacket(tangible.RefObject<MPI1DStringVectorPacket> TogoVector)
-	{
-		TogoVector.argValue = new MPI1DStringVectorPacket(SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
-		TogoVector.argValue.FirstPoint = SALSAUtility.PointStart_Process;
-		TogoVector.argValue.NumberofPoints = SALSAUtility.PointCount_Process;
+    //  Set up 1D String MPI Packet
+    public static MPI1DStringVectorPacket setup1DStringMPIPacket() {
+        MPI1DStringVectorPacket togoVector = new MPI1DStringVectorPacket(SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
+        togoVector.FirstPoint = SALSAUtility.PointStart_Process;
+        togoVector.NumberofPoints = SALSAUtility.PointCount_Process;
 
-		if (SALSAUtility.PointCount_Process == SALSAUtility.PointCount_Largest)
-		{
-			return;
-		}
-		TogoVector.argValue.Marray[SALSAUtility.PointCount_Largest - 1] = "";
-	} // End Setup1DStringMPIPacket
+        if (SALSAUtility.PointCount_Process != SALSAUtility.PointCount_Largest) {
+            togoVector.Marray[SALSAUtility.PointCount_Largest - 1] = "";
+        }
+        return togoVector;
+    }
 
 
 	// Globalize distributed local copies with 2D Double

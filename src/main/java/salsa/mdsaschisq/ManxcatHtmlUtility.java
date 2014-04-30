@@ -307,7 +307,7 @@ public class ManxcatHtmlUtility
 
 				for (int localVectorIndex = 0; localVectorIndex < 3; localVectorIndex++)
 				{
-					coordinates += String.format("%0.4E", Hotsun.GlobalParameter[usedPointIndex][localVectorIndex]) + "\t";
+					coordinates += String.format("%.4E", Hotsun.GlobalParameter[usedPointIndex][localVectorIndex]) + "\t";
 				}
 
 				writer.WriteLine(String.format(globalPointIndex + "\t" + coordinates + singleCluster));

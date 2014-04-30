@@ -426,10 +426,10 @@ public class SALSA_Properties
 						String Coordinates = "";
 						if (OutputValues)
 						{
-							Coordinates = String.format("%0.4E", ThesePointProperties.x) + "\t" + String.format("%0.4E", ThesePointProperties.y) + "\t";
+							Coordinates = String.format("%.4E", ThesePointProperties.x) + "\t" + String.format("%.4E", ThesePointProperties.y) + "\t";
 							if ((LocalVectorDimension == 3) || write2Das3D)
 							{
-								Coordinates += String.format("%0.4E", ThesePointProperties.z) + "\t";
+								Coordinates += String.format("%.4E", ThesePointProperties.z) + "\t";
 							}
 						}
 						sw.WriteLine(String.format((GlobalDataPoint + LocalPointIncrement).toString() + "\t" + Coordinates + (new Integer(IntegerIndex)).toString()));
@@ -684,15 +684,15 @@ public class SALSA_Properties
 		if (DataPointProps.valuesset == true)
 		{ // x y z are set
 
-			InputLine.argValue += "\tvaluesset:true\tsource:" + DataPointProps.source + "\tx:" + String.format("%0.4E", DataPointProps.x);
-			InputLine.argValue += "\ty:" + String.format("%0.4E", DataPointProps.y);
-			InputLine.argValue += "\tz:" + String.format("%0.4E", DataPointProps.z);
+			InputLine.argValue += "\tvaluesset:true\tsource:" + DataPointProps.source + "\tx:" + String.format("%.4E", DataPointProps.x);
+			InputLine.argValue += "\ty:" + String.format("%.4E", DataPointProps.y);
+			InputLine.argValue += "\tz:" + String.format("%.4E", DataPointProps.z);
 		}
 		if (DataPointProps.errorsset == true)
 		{ // x y z errors are set
-			InputLine.argValue += "\terrorsset:true\txerr:" + String.format("%0.4E", DataPointProps.xerr);
-			InputLine.argValue += "\tyerr:" + String.format("%0.4E", DataPointProps.yerr);
-			InputLine.argValue += "\tzerr:" + String.format("%0.4E", DataPointProps.zerr);
+			InputLine.argValue += "\terrorsset:true\txerr:" + String.format("%.4E", DataPointProps.xerr);
+			InputLine.argValue += "\tyerr:" + String.format("%.4E", DataPointProps.yerr);
+			InputLine.argValue += "\tzerr:" + String.format("%.4E", DataPointProps.zerr);
 		}
 		if (DataPointProps.family1 >= 0)
 		{

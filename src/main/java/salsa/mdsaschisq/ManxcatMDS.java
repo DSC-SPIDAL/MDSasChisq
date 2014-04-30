@@ -51,7 +51,7 @@ public class ManxcatMDS
 
 		// Read in distance data
 		SALSAUtility.DistanceProcessingOption = ManxcatCentral.config.DistanceProcessingOption;
-		SALSAParallelism.ReadDataFromFile(ManxcatCentral.ActualDataFileName);
+		SALSAParallelism.ReadDataFromFile(ManxcatCentral.config.DistanceMatrixFile);
 
 		// If FindPointstoFix true, all fixed parameters are set to 0 UNLESS initialized differently
 		FindPointstoFix = true;
@@ -90,7 +90,7 @@ public class ManxcatMDS
 
 
 		// Loop over initial analysis until no more deleted points
-		SALSAUtility.SALSAPrint(1, "\nInitial Processing Parameters\nDistance Cut " + String.format("%0.3f", SALSAUtility.DistanceCut) + " Link Cut " + (new Integer(SALSAUtility.LinkCut)).toString() + " Allowed Deleted Fraction " + String.format("%0.3f", SALSAUtility.AllowedDeletedFraction) + " Undefined Distance Value " + String.format("%0.3f", SALSAUtility.UndefinedDistanceValue) + "\nDistance Transformation Method " + (new Integer(SALSAUtility.TransformMethod)).toString() + " with Parameter " + String.format("%0.4f", SALSAUtility.TransformParameter));
+		SALSAUtility.SALSAPrint(1, "\nInitial Processing Parameters\nDistance Cut " + String.format("%.3f", SALSAUtility.DistanceCut) + " Link Cut " + (new Integer(SALSAUtility.LinkCut)).toString() + " Allowed Deleted Fraction " + String.format("%.3f", SALSAUtility.AllowedDeletedFraction) + " Undefined Distance Value " + String.format("%.3f", SALSAUtility.UndefinedDistanceValue) + "\nDistance Transformation Method " + (new Integer(SALSAUtility.TransformMethod)).toString() + " with Parameter " + String.format("%.4f", SALSAUtility.TransformParameter));
 		double MissingDistances = 0.0;
 		int DisconnectedPoints = 0;
 		int DisconnectedLoopCount = 1;
@@ -283,15 +283,15 @@ public class ManxcatMDS
 			double tmp = SALSAUtility.NumberVariedPoints;
 			double fraction = MissingDistances / (tmp * (tmp - 1.0));
 			double EstimatedDimension = 2.0 * SystemAverage * SystemAverage / (SystemSigma * SystemSigma);
-			SALSAUtility.SALSAPrint(1, "\nAFTER CLEAN Disconnected Points " + (new Integer(DisconnectedPoints)).toString() + " Missing Distances " + String.format("%0.0f", MissingDistances) + " Fraction " + String.format("%0.4f", fraction));
-			SALSAUtility.SALSAPrint(1, "AFTER TRANSFORM Max " + String.format("%0.4E", SystemMax) + " Average " + String.format("%0.4E", SystemAverage) + " Sigma " + String.format("%0.4E", SystemSigma) + " Estimated Dimension " + String.format("%0.2f", EstimatedDimension) + "\n Center " + (new Integer(Center)).toString() + " With Link Cut " + (new Integer(LinkCutforCenter)).toString() + " Radius " + String.format("%0.4E", SystemRadius) + " xAxis " + (new Integer(xAxis)).toString() + " " + String.format("%0.4E", xAxisExtent) + " xyPlane " + (new Integer(xyPlane)).toString() + " " + String.format("%0.4E", xyPlaneExtent) + "\n Minimum Distance " + String.format("%0.4E", MinimumDistance) + " Distances Less than this " + String.format("%0.0f", DistancesNearEachOther) + " Points Affected " + (new Integer(NotLonelyPoints)).toString());
+			SALSAUtility.SALSAPrint(1, "\nAFTER CLEAN Disconnected Points " + (new Integer(DisconnectedPoints)).toString() + " Missing Distances " + String.format("%.0f", MissingDistances) + " Fraction " + String.format("%.4f", fraction));
+			SALSAUtility.SALSAPrint(1, "AFTER TRANSFORM Max " + String.format("%.4E", SystemMax) + " Average " + String.format("%.4E", SystemAverage) + " Sigma " + String.format("%.4E", SystemSigma) + " Estimated Dimension " + String.format("%.2f", EstimatedDimension) + "\n Center " + (new Integer(Center)).toString() + " With Link Cut " + (new Integer(LinkCutforCenter)).toString() + " Radius " + String.format("%.4E", SystemRadius) + " xAxis " + (new Integer(xAxis)).toString() + " " + String.format("%.4E", xAxisExtent) + " xyPlane " + (new Integer(xyPlane)).toString() + " " + String.format("%.4E", xyPlaneExtent) + "\n Minimum Distance " + String.format("%.4E", MinimumDistance) + " Distances Less than this " + String.format("%.0f", DistancesNearEachOther) + " Points Affected " + (new Integer(NotLonelyPoints)).toString());
 			String histogramcounts = "";
 			for (int binloop = 0; binloop < (2 + PointsinDistanceHistogram); binloop++)
 			{
-				histogramcounts += String.format("%0.0f", Bincounts[binloop]) + ", ";
+				histogramcounts += String.format("%.0f", Bincounts[binloop]) + ", ";
 			}
 			double BinSize = (Histmax - Histmin) / PointsinDistanceHistogram;
-			SALSAUtility.SALSAPrint(1, "\nDistance Histogram Min " + String.format("%0.4E", Histmin) + " Max " + String.format("%0.4E", Histmax) + " Binsize " + String.format("%0.4E", BinSize) + " #Counts with under/overflow\n" + histogramcounts);
+			SALSAUtility.SALSAPrint(1, "\nDistance Histogram Min " + String.format("%.4E", Histmin) + " Max " + String.format("%.4E", Histmax) + " Binsize " + String.format("%.4E", BinSize) + " #Counts with under/overflow\n" + histogramcounts);
 		}
 		return;
 
@@ -1008,7 +1008,7 @@ public class ManxcatMDS
 
 		if (!OriginalMDSFileName.contains(":") && !OriginalMDSFileName.contains("$"))
 		{
-			OriginalMDSFileName = ManxcatCentral.config.ControlDirectoryName + "\\" + OriginalMDSFileName;
+			OriginalMDSFileName = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + OriginalMDSFileName;
 		}
 		int InitializationNumberofPoints = 0;
 
@@ -1179,7 +1179,7 @@ public class ManxcatMDS
 
 		if (!WeightFileName.contains(":"))
 		{
-			WeightFileName = ManxcatCentral.config.ControlDirectoryName + "\\" + WeightFileName;
+			WeightFileName = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + WeightFileName;
 		}
 
 		double sumofweights = 0.0;
@@ -1245,7 +1245,7 @@ public class ManxcatMDS
 			minweight = Math.min(minweight, WeightsasRead[Globalindex]);
 			maxweight = Math.max(maxweight, WeightsasRead[Globalindex]);
 		}
-		SALSAUtility.SALSAPrint(1, "File " + WeightFileName + " Non trivial Point Weights Maximum " + String.format("%0.3f", maxweight) + " Minimum " + String.format("%0.4E", minweight));
+		SALSAUtility.SALSAPrint(1, "File " + WeightFileName + " Non trivial Point Weights Maximum " + String.format("%.3f", maxweight) + " Minimum " + String.format("%.4E", minweight));
 	} // End SetupWeightings()
 
 	//  Calculate Matrix Global Vector product storing as a distributed vector

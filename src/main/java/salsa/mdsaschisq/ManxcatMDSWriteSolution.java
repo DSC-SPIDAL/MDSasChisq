@@ -149,7 +149,7 @@ public class ManxcatMDSWriteSolution
 					int UsedPointIndex = SALSAUtility.NaivetoActualUsedOrder[GlobalPointIndex];
 					for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++)
 					{
-						Coordinates += String.format("%0.4E", param[UsedPointIndex][LocalVectorIndex]) + "\t";
+						Coordinates += String.format("%.4E", param[UsedPointIndex][LocalVectorIndex]) + "\t";
 					}
 
 					sw.WriteLine(String.format((GlobalPointIndex).toString() + "\t" + Coordinates + (new Integer(SingleCluster)).toString()));

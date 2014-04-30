@@ -34,7 +34,7 @@ public class SALSA_ProcessVariedandFixed
 		String OriginalPropertiesfilename = ManxcatCentral.config.DataLabelsFileName;
 		if (!OriginalPropertiesfilename.contains(":"))
 		{
-			OriginalPropertiesfilename = ManxcatCentral.config.ControlDirectoryName + "\\" + OriginalPropertiesfilename;
+			OriginalPropertiesfilename = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + OriginalPropertiesfilename;
 		}
 		SALSAUtility.OriginalDataLabels = new String[SALSAUtility.NumberOriginalPoints];
 		int OriginalPropertiesFileType = -1;
@@ -176,7 +176,7 @@ public class SALSA_ProcessVariedandFixed
 				SALSAFileProperties VariedFileProperties = new SALSAFileProperties();
 				if (!VariedFilename.contains(":"))
 				{
-					VariedFilename = ManxcatCentral.config.ControlDirectoryName + "\\" + VariedFilename;
+					VariedFilename = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + VariedFilename;
 				}
 
 				int VariedFileType = -1;
@@ -322,7 +322,7 @@ public class SALSA_ProcessVariedandFixed
 			{ // Process case that file exists. For case of original point file, file read for fixed positions; for other cases read for collection numbers and fixed positions
 				if (!FixedFilename.contains(":") && !FixedFilename.contains("$"))
 				{
-					FixedFilename = ManxcatCentral.config.ControlDirectoryName + "\\" + FixedFilename;
+					FixedFilename = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + FixedFilename;
 				}
 
 				// There is a FixedFilename 

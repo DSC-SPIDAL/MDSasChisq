@@ -264,7 +264,6 @@ public class Hotsun
 		{
 			diag[LongIndex] = new double[ParameterVectorDimension];
 			sqdginv[LongIndex] = new double[ParameterVectorDimension];
-			;
 			GlobalParameter[LongIndex] = new double[ParameterVectorDimension];
 			UtilityGlobalVector1[LongIndex] = new double[ParameterVectorDimension];
 			FixedParameter[LongIndex] = new boolean[ParameterVectorDimension];

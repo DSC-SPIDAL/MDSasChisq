@@ -2,6 +2,7 @@
 
 import mpi.MPI;
 import mpi.MPIException;
+import salsa.mpi.MpiOps;
 
 import static edu.rice.hj.HJ.finalizeHabanero;
 import static edu.rice.hj.HJ.initializeHabanero;
@@ -21,7 +22,7 @@ public class SALSAParallelism
         SALSAUtility.MPI_communicator = MPI.COMM_WORLD; //initializing MPI world communicator
         SALSAUtility.MPI_Rank = SALSAUtility.MPI_communicator.Rank(); // Rank of this process
         SALSAUtility.MPI_Size = SALSAUtility.MPI_communicator.Size(); // Number of MPI Processes
-
+        SALSAUtility.mpiOps = new MpiOps(SALSAUtility.MPI_communicator);
         // Set up MPI
         SALSAUtility.MPIperNodeCount = SALSAUtility.MPI_Size / SALSAUtility.NodeCount;
         ManxcatCentral.config.MPIperNodeCount = SALSAUtility.MPIperNodeCount;
@@ -97,7 +98,7 @@ public class SALSAParallelism
 	{
 		if ((SALSAUtility.DebugPrintOption > 0) && (SALSAUtility.MPI_Rank == 0))
 		{
-			SALSAUtility.SALSAPrint(1, "Starting to read data: " + " Distance Cut " + String.format("%0.3f", SALSAUtility.DistanceCut));
+			SALSAUtility.SALSAPrint(1, "Starting to read data: " + " Distance Cut " + String.format("%.3f", SALSAUtility.DistanceCut));
 		}
 		double countremoveddistances = 0.0;
 		double counttotaldistances = 0.0;
@@ -293,7 +294,7 @@ public class SALSAParallelism
 		double fractionleft = 1.0 - countremoveddistances / counttotaldistances;
 		if ((SALSAUtility.DebugPrintOption > 0) && (SALSAUtility.MPI_Rank == 0))
 		{
-			SALSAUtility.SALSAPrint(1, "Total Distances " + String.format("%0.0f", counttotaldistances) + " Distances Removed on Input " + String.format("%0.0f", countremoveddistances) + " Fraction Left " + String.format("%0.5f", fractionleft));
+			SALSAUtility.SALSAPrint(1, "Total Distances " + String.format("%.0f", counttotaldistances) + " Distances Removed on Input " + String.format("%.0f", countremoveddistances) + " Fraction Left " + String.format("%.5f", fractionleft));
 		}
 	} // End ReadDataFromFile(string fname)
 
@@ -412,19 +413,19 @@ public class SALSAParallelism
 //#if USE_UINT16 || USE_INT16
 		if (value > 1.0)
 		{
-			RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance value Put Request Used Point " + String.format("%0.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
+			RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance value Put Request Used Point " + String.format("%.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
 			throw (e);
 		}
 		if ((value == 1.0) && (SALSAUtility.DistanceCut > 0.0) && (SALSAUtility.UndefinedDistanceValue < 0.0))
 		{ // Inconsistent value
-			RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance value 1.0 Put Request Used Point " + String.format("%0.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
+			RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance value 1.0 Put Request Used Point " + String.format("%.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
 			throw (e);
 		}
 		if (value < 0.0)
 		{
 			if (SALSAUtility.DistanceCut < 0.0)
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance value < 0.0 Put Request Used Point " + String.format("%0.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
+				RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance value < 0.0 Put Request Used Point " + String.format("%.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
 				throw (e);
 			}
 

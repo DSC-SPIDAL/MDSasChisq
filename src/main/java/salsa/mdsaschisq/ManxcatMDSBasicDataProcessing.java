@@ -126,7 +126,7 @@ public class ManxcatMDSBasicDataProcessing
 		double localtotalpoints = FindSystemMeanSigma.TotalNumberofPoints;
 		if (Math.abs(localtotalpoints - pointsused) > 2.0)
 		{
-			RuntimeException e = SALSAUtility.SALSAError("System Error and Must stop as Illegal Point Counts " + String.format("%0.0f", pointsused) + " " + String.format("%0.0f", localtotalpoints));
+			RuntimeException e = SALSAUtility.SALSAError("System Error and Must stop as Illegal Point Counts " + String.format("%.0f", pointsused) + " " + String.format("%.0f", localtotalpoints));
 			throw (e);
 		}
 
@@ -148,19 +148,19 @@ public class ManxcatMDSBasicDataProcessing
 		{
 			double fraction = TotalMissingDistances.argValue / (tmp * (tmp - 1.0));
 			double EstimatedDimension = 2.0 * AverageDistance.argValue * AverageDistance.argValue / (SigmaDistance.argValue * SigmaDistance.argValue);
-			SALSAUtility.SALSAPrint(1, "\nAs INPUT Disconnected Points " + (new Integer(TotalDisconnectedPoints.argValue)).toString() + " Missing Distances " + String.format("%0.0f", TotalMissingDistances.argValue) + " Fraction " + String.format("%0.4f", fraction));
-			SALSAUtility.SALSAPrint(1, "As INPUT Max " + String.format("%0.4E", MaxDistance.argValue) + " Average " + String.format("%0.4E", AverageDistance.argValue) + " Sigma " + String.format("%0.4E", SigmaDistance.argValue) + " Estimated Dimension " + String.format("%0.2f", EstimatedDimension));
-			SALSAUtility.SALSAPrint(1, " Overall Average Links " + String.format("%0.2f", AverageLinksperpoint) + " from " + String.format("%0.0f", TotalPointsbeforeLinkCut) + " Points and After cut " + String.format("%0.2f", AverageLinksperpointaftercut) + " From Points " + String.format("%0.0f", TotalPointsafterLinkCut));
+			SALSAUtility.SALSAPrint(1, "\nAs INPUT Disconnected Points " + (new Integer(TotalDisconnectedPoints.argValue)).toString() + " Missing Distances " + String.format("%.0f", TotalMissingDistances.argValue) + " Fraction " + String.format("%.4f", fraction));
+			SALSAUtility.SALSAPrint(1, "As INPUT Max " + String.format("%.4E", MaxDistance.argValue) + " Average " + String.format("%.4E", AverageDistance.argValue) + " Sigma " + String.format("%.4E", SigmaDistance.argValue) + " Estimated Dimension " + String.format("%.2f", EstimatedDimension));
+			SALSAUtility.SALSAPrint(1, " Overall Average Links " + String.format("%.2f", AverageLinksperpoint) + " from " + String.format("%.0f", TotalPointsbeforeLinkCut) + " Points and After cut " + String.format("%.2f", AverageLinksperpointaftercut) + " From Points " + String.format("%.0f", TotalPointsafterLinkCut));
 
 			//  Output Link Histogram
 			String histogramcounts = "";
 			double total = 0.0;
 			for (int binloop = 0; binloop < ManxcatMDS.NumLinksHistogramBins; binloop++)
 			{
-				histogramcounts += String.format("%0.0f", FindLinkHistogramBinCounts.TotalSum[binloop]) + ", ";
+				histogramcounts += String.format("%.0f", FindLinkHistogramBinCounts.TotalSum[binloop]) + ", ";
 				total += FindLinkHistogramBinCounts.TotalSum[binloop];
 			}
-			SALSAUtility.SALSAPrint(1, "\nLink Histogram Total " + String.format("%0.0f", total) + " upto links " + (new Integer(ManxcatMDS.NumLinksHistogramBins)).toString() + " #Counts starting at zero\n" + histogramcounts);
+			SALSAUtility.SALSAPrint(1, "\nLink Histogram Total " + String.format("%.0f", total) + " upto links " + (new Integer(ManxcatMDS.NumLinksHistogramBins)).toString() + " #Counts starting at zero\n" + histogramcounts);
 
 			String deletedpoints = "\nNumber Deleted Points " + (new Integer(countdeleted)).toString() + " Deleted Points ";
 			for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++)
@@ -337,7 +337,7 @@ public class ManxcatMDSBasicDataProcessing
 		double localtotalpoints = FindSystemMeanSigma.TotalNumberofPoints;
 		if (Math.abs(localtotalpoints - pointsused) > 2.0)
 		{
-			RuntimeException e = SALSAUtility.SALSAError("System Error and Must stop as Illegal Point Counts " + String.format("%0.0f", pointsused) + " " + String.format("%0.0f", localtotalpoints));
+			RuntimeException e = SALSAUtility.SALSAError("System Error and Must stop as Illegal Point Counts " + String.format("%.0f", pointsused) + " " + String.format("%.0f", localtotalpoints));
 			throw (e);
 		}
 
@@ -345,10 +345,10 @@ public class ManxcatMDSBasicDataProcessing
 		String label = "";
 		if (SALSAUtility.TransformMethod != 0)
 		{
-			label = "\nTransform Method " + (new Integer(SALSAUtility.TransformMethod)).toString() + " Parameter " + String.format("%0.4f", SALSAUtility.TransformParameter) + " ";
+			label = "\nTransform Method " + (new Integer(SALSAUtility.TransformMethod)).toString() + " Parameter " + String.format("%.4f", SALSAUtility.TransformParameter) + " ";
 		}
 
-		FindNewoldDistancestatistics.print(label + "\nOld and Transformed Distances\n", "F4");
+		FindNewoldDistancestatistics.print(label + "\nOld and Transformed Distances\n", "%.4f");
 		if (TotalDisconnectedPoints.argValue > 0)
 		{
 			RuntimeException e = SALSAUtility.SALSAError("System Error and Must stop as Disconnected Points with ZERO links after first round " + (new Integer(TotalDisconnectedPoints.argValue)).toString());
@@ -372,9 +372,9 @@ public class ManxcatMDSBasicDataProcessing
 			String labelreason = " Rest";
 			if (weightbin < SALSAUtility.NumberDistanceWeightCuts)
 			{
-				labelreason = " Distce < " + String.format("%0.3f", SALSAUtility.DistanceWeightCuts[weightbin]);
+				labelreason = " Distce < " + String.format("%.3f", SALSAUtility.DistanceWeightCuts[weightbin]);
 			}
-			distanceresults += String.format("%0.0f", FindDistanceWeightBinCounts.TotalSum[weightbin]) + " Pts weight " + String.format("%0.3f", weightforbin) + labelreason + " * ";
+			distanceresults += String.format("%.0f", FindDistanceWeightBinCounts.TotalSum[weightbin]) + " Pts weight " + String.format("%.3f", weightforbin) + labelreason + " * ";
 			SALSAUtility.ActualWeightCuts[weightbin] = Math.sqrt(weightforbin);
 		}
 		SALSAUtility.SALSAPrint(1, "\nDistance Counts and Cuts " + distanceresults);

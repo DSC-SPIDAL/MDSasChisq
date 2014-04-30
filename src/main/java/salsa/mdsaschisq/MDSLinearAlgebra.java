@@ -225,7 +225,7 @@ public class MDSLinearAlgebra
 					int Normindex = CountSteps;
 					for (int inorm = 0; inorm < 10; inorm++)
 					{
-						ListofNorms += " " + String.format("%0.4E", SaveRNorm[Normindex]);
+						ListofNorms += " " + String.format("%.4E", SaveRNorm[Normindex]);
 						--Normindex;
 						if (Normindex < 0)
 						{
@@ -246,11 +246,11 @@ public class MDSLinearAlgebra
 							double pointsize = 0.0;
 							for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
 							{
-								Coordinates += String.format("%0.4E", GlobalCGVector_R[UsedPointIndex][LocalVectorIndex]) + "\t";
+								Coordinates += String.format("%.4E", GlobalCGVector_R[UsedPointIndex][LocalVectorIndex]) + "\t";
 								pointsize += GlobalCGVector_R[UsedPointIndex][LocalVectorIndex] * GlobalCGVector_R[UsedPointIndex][LocalVectorIndex];
 							}
 							pointsize = Math.sqrt(pointsize) * fractionnorm;
-							sw.WriteLine(String.format((GlobalPointIndex).toString() + "\t" + Coordinates + " " + String.format("%0.4E", pointsize)));
+							sw.WriteLine(String.format((GlobalPointIndex).toString() + "\t" + Coordinates + " " + String.format("%.4E", pointsize)));
 						}
 
 						sw.Flush();

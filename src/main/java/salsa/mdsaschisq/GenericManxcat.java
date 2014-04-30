@@ -1,14 +1,10 @@
 ﻿package salsa.mdsaschisq;
 
-import MPI.*;
-import SALSALibrary.*;
-import MathNet.Numerics.LinearAlgebra.*;
-
-//C# TO JAVA CONVERTER NOTE: There is no Java equivalent to C# namespace aliases:
-//using LMatrix = MathNet.Numerics.LinearAlgebra.Matrix;
-//C# TO JAVA CONVERTER NOTE: There is no Java equivalent to C# namespace aliases:
-//using LU = MathNet.Numerics.LinearAlgebra.LUDecomposition;
-
+import mpi.MPI;
+import org.jblas.ComplexDouble;
+import org.jblas.ComplexDoubleMatrix;
+import org.jblas.DoubleMatrix;
+import org.jblas.Eigen;
 
 //  Routines for Generic Manxcat with parallel computation of components for small number of parameters
 public class GenericManxcat
@@ -61,24 +57,15 @@ public class GenericManxcat
 	}
 
 
-	public static void ReInitializeAccum()
-	{
-		for (int ThreadNo = 0; ThreadNo < SALSAUtility.ThreadCount; ThreadNo++)
-		{
-			tangible.RefObject<ChisqFirstandSecond> tempRef_Object = new tangible.RefObject<ChisqFirstandSecond>(LocalAccum[ThreadNo]);
-			ChisqFirstandSecond.Zeromember(tempRef_Object);
-			LocalAccum[ThreadNo] = tempRef_Object.argValue;
-		}
-		tangible.RefObject<ChisqFirstandSecond> tempRef_SummedoverThreadsAccum = new tangible.RefObject<ChisqFirstandSecond>(SummedoverThreadsAccum);
-		ChisqFirstandSecond.Zeromember(tempRef_SummedoverThreadsAccum);
-		SummedoverThreadsAccum = tempRef_SummedoverThreadsAccum.argValue;
-		tangible.RefObject<ChisqFirstandSecond> tempRef_SummedoverProcessesAccum = new tangible.RefObject<ChisqFirstandSecond>(SummedoverProcessesAccum);
-		ChisqFirstandSecond.Zeromember(tempRef_SummedoverProcessesAccum);
-		SummedoverProcessesAccum = tempRef_SummedoverProcessesAccum.argValue;
+    public static void ReInitializeAccum() {
+        for (int ThreadNo = 0; ThreadNo < SALSAUtility.ThreadCount; ThreadNo++) {
+            ChisqFirstandSecond.initializeToZero(LocalAccum[ThreadNo]);
+        }
+        ChisqFirstandSecond.initializeToZero(SummedoverThreadsAccum);
+        ChisqFirstandSecond.initializeToZero(SummedoverProcessesAccum);
+    }
 
-	} // End ReInitializeAccum()
-
-	public static void AddupChisqContributions(Desertwind TotalSolution)
+    public static void AddupChisqContributions(Desertwind TotalSolution)
 	{
 		// Sum over Threads
 
@@ -102,9 +89,12 @@ public class GenericManxcat
 		if (SALSAUtility.MPI_Size > 1)
 		{
 			UsethisAccum = SummedoverProcessesAccum;
-			SummedoverProcessesAccum.chisq = SALSAUtility.MPI_communicator.<Double>Allreduce(SummedoverThreadsAccum.chisq, Operation<Double>.Add);
-			SummedoverProcessesAccum.first = SALSAUtility.MPI_communicator.<Double>Allreduce(SummedoverThreadsAccum.first, Operation<Double>.Add);
-			SummedoverProcessesAccum.second = SALSAUtility.MPI_communicator.<Double>Allreduce(SummedoverThreadsAccum.second, Operation<Double>.Add);
+            // Note - MPI Call - Allreduce - double - sum
+			SummedoverProcessesAccum.chisq = SALSAUtility.mpiOps.allReduce(SummedoverThreadsAccum.chisq, MPI.SUM);
+            // Note - MPI Call - Allreduce - double[] - sum
+			SALSAUtility.mpiOps.allReduce(SummedoverThreadsAccum.first, MPI.SUM);
+            // Note - MPI Call - Allreduce - double[] - sum
+			SALSAUtility.mpiOps.allReduce(SummedoverThreadsAccum.second, MPI.SUM);
 		}
 
 		//  Put into Hotsun Form
@@ -177,30 +167,28 @@ public class GenericManxcat
 		} // End GlobalIndex1
 		// Find Minimum and Maximum eigenvalue of ConventionalMatrix
 
-
-		// Begin Added by smbeason 5/17/2009
-		MathNet.Numerics.LinearAlgebra.Matrix lmatrix = MathNet.Numerics.LinearAlgebra.Matrix.Create(ConventionalMatrix);
-		EigenvalueDecomposition eigenValueDecomp = lmatrix.getEigenvalueDecomposition();
+        // Note - jblas - eigen values
+        DoubleMatrix lmatrix = new DoubleMatrix(ConventionalMatrix);
+		ComplexDoubleMatrix eigenValueDecomp = Eigen.eigenvalues(lmatrix);
 
 		double minEigenValue = Double.MAX_VALUE;
-		double maxEigenValue = -Double.MAX_VALUE;
+		double maxEigenValue = Double.MIN_VALUE;
 
 		//Assuming you want on the real part...
-		for (int i = 0; i < eigenValueDecomp.getRealEigenvalues().getLength(); i++)
+		for (int i = 0; i < eigenValueDecomp.length; i++)
 		{
-			minEigenValue = Math.min(minEigenValue, eigenValueDecomp.getRealEigenvalues().getItem(i));
-			maxEigenValue = Math.max(maxEigenValue, eigenValueDecomp.getRealEigenvalues().getItem(i));
+            ComplexDouble eigenValue = eigenValueDecomp.get(i);
+            if (eigenValue.isReal()){
+                double realValue = eigenValue.real();
+                minEigenValue = Math.min(minEigenValue, realValue);
+                maxEigenValue = Math.max(maxEigenValue, realValue);
+            }
 		}
-		// End Added by smbeason 5/17/2009
-
 		ReasontoStop1.argValue = 1;
 		ReasontoStop2.argValue = 1;
 		Qlow.argValue = minEigenValue;
 		Qhigh.argValue = maxEigenValue;
-		return;
-
-
-	} // End FindQlimits(Desertwind Solution, ref double Qhigh, ref double Qlow,ref int ReasontoStop1, ref int ReasontoStop2)
+	}
 
 	public static void FindTraceandNorm(double[][][][] Matrix, tangible.RefObject<Double> Trace, tangible.RefObject<Double> Norm)
 	{
@@ -300,6 +288,7 @@ public class GenericManxcat
 
 		// Form ConventionalMatrix-1 * ConventionalFirst
 
+        // TODO - continue from here
 		MathNet.Numerics.LinearAlgebra.Matrix cMatrix = MathNet.Numerics.LinearAlgebra.Matrix.Create(ConventionalMatrix);
 		MathNet.Numerics.LinearAlgebra.Matrix RightHandSide = MathNet.Numerics.LinearAlgebra.Matrix.Create(ConventionalFirst);
 		MathNet.Numerics.LinearAlgebra.LUDecomposition Fred = new MathNet.Numerics.LinearAlgebra.LUDecomposition(cMatrix);

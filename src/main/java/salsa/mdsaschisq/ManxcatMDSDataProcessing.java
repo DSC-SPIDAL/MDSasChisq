@@ -3,6 +3,8 @@
 import Manxcat.*;
 import SALSALibrary.*;
 
+import java.io.File;
+
 //C# TO JAVA CONVERTER NOTE: There is no Java equivalent to C# namespace aliases:
 //using LMatrix = MathNet.Numerics.LinearAlgebra.Matrix;
 //C# TO JAVA CONVERTER NOTE: There is no Java equivalent to C# namespace aliases:
@@ -124,7 +126,7 @@ public class ManxcatMDSDataProcessing
 
 		if (!FunctionFileName.contains(":"))
 		{
-			FunctionFileName = ManxcatCentral.config.ControlDirectoryName + "\\" + FunctionFileName;
+			FunctionFileName = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + FunctionFileName;
 		}
 
 		double[] functionkeys = new double[SALSAUtility.PointCount_Global];
@@ -313,7 +315,7 @@ public class ManxcatMDSDataProcessing
 				}
 				System.out.println(varalphaxyz + " " + Fullcorrelation + " " + vargamma);
 				Fullcorrelation = Fullcorrelation / (Math.sqrt(vargamma * varalphaxyz));
-				SALSAUtility.SALSAPrint(0, "Column " + (new Integer(pickout)).toString() + " File " + FunctionFileName + " MDS File " + TypicalMDSFileName + " Total Weight " + (new Double(totalweight)).toString() + " Correlation " + String.format("%0.4f", Fullcorrelation) + " Direction " + String.format("%0.4f", alpha[0]) + " " + String.format("%0.4f", alpha[1]) + " " + String.format("%0.4f", alpha[2]));
+				SALSAUtility.SALSAPrint(0, "Column " + (new Integer(pickout)).toString() + " File " + FunctionFileName + " MDS File " + TypicalMDSFileName + " Total Weight " + (new Double(totalweight)).toString() + " Correlation " + String.format("%.4f", Fullcorrelation) + " Direction " + String.format("%.4f", alpha[0]) + " " + String.format("%.4f", alpha[1]) + " " + String.format("%.4f", alpha[2]));
 			}
 
 			// Set Divisions
@@ -330,7 +332,7 @@ public class ManxcatMDSDataProcessing
 			OutputFileExtension = OutputFileExtension.replace(".txt", "");
 			OutputFileExtension = OutputFileExtension + "-" + (new Integer(pickout)).toString() + ".txt";
 			String labelFileDirectory = ManxcatCentral.config.ClusterDirectory; // Directory for Colors attached to Points
-			String OutputFileName = labelFileDirectory + "\\" + OutputFileExtension;
+			String OutputFileName = labelFileDirectory + File.separatorChar + OutputFileExtension;
 			WritePointCluster(OutputFileName, PointColors, SALSAUtility.PointCount_Global);
 
 			double test = 0.1 * sumabs / NumberofLines;
@@ -357,7 +359,7 @@ public class ManxcatMDSDataProcessing
 
 		if (!CutFileName.contains(":"))
 		{
-			CutFileName = ManxcatCentral.config.ControlDirectoryName + "\\" + CutFileName;
+			CutFileName = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + CutFileName;
 		}
 
 		String[] inputdata = new String[SALSAUtility.PointCount_Global];
@@ -481,7 +483,7 @@ public class ManxcatMDSDataProcessing
 
 		if (!labelfilename.contains(":"))
 		{
-			labelfilename = ManxcatCentral.config.ControlDirectoryName + "\\" + labelfilename;
+			labelfilename = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + labelfilename;
 		}
 		SALSALibrary.SALSA_Properties.WriteDataPointFile(labelfilename, ManxcatCentral.config.Write2Das3D, "colon,SameFileName ", SALSAUtility.GlobalFileProperties, SALSAUtility.GlobalPointProperties, SALSAUtility.NumberOriginalPoints);
 		SALSAUtility.SALSAPrint(0, "Family" + (new Integer(FamilyNumber)).toString() + " " + FamilyLabel + " Info Added to " + labelfilename + " from " + CutFileName);
@@ -563,7 +565,7 @@ public class ManxcatMDSDataProcessing
 
 		if (!labelfilename.contains(":") && !labelfilename.contains("$"))
 		{
-			labelfilename = ManxcatCentral.config.ControlDirectoryName + "\\" + labelfilename;
+			labelfilename = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + labelfilename;
 		}
 		SALSALibrary.SALSA_Properties.WriteDataPointFile(labelfilename, ManxcatCentral.config.Write2Das3D, "colon,SameFileName ", SALSAUtility.GlobalFileProperties, SALSAUtility.GlobalPointProperties, SALSAUtility.NumberOriginalPoints);
 		SALSAUtility.SALSAPrint(0, "Cluster Info Added to " + labelfilename + " from " + ClusterFileName);
@@ -573,7 +575,7 @@ public class ManxcatMDSDataProcessing
 	public static void UpdateManxcatMDS_Option12_TraditionalDirectory()
 	{
 		String labelFileDirectory = ManxcatCentral.config.ClusterDirectory; // Input Directory
-		String MDSandClusterDirectory = labelFileDirectory + "\\" + ManxcatCentral.config.RunSetLabel + "-R" + ManxcatCentral.config.RunNumber.toString() + "-ManxcatMDS"; // Output Directory
+		String MDSandClusterDirectory = labelFileDirectory + File.separatorChar + ManxcatCentral.config.RunSetLabel + "-R" + ManxcatCentral.config.RunNumber.toString() + "-ManxcatMDS"; // Output Directory
 
 		if ((new java.io.File(MDSandClusterDirectory)).isDirectory())
 		{
@@ -631,7 +633,7 @@ public class ManxcatMDSDataProcessing
 				continue;
 			}
 			String LabelFileName1 = LabelFileName.replace(labelFileDirectory + "\\", "");
-			String coreFileName = MDSandClusterDirectory + "\\" + "MDSManxcat-" + LabelFileName1;
+			String coreFileName = MDSandClusterDirectory + File.separatorChar + "MDSManxcat-" + LabelFileName1;
 
 			if ((new java.io.File(coreFileName)).isFile())
 			{
