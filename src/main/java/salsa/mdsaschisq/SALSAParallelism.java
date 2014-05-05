@@ -55,7 +55,7 @@ public class SALSAParallelism
 		Range[] processRanges = RangePartitioner.Partition(SALSAUtility.PointCount_Global, SALSAUtility.MPI_Size);
 		Range processRange = processRanges[SALSAUtility.MPI_Rank]; // The answer for this process
 
-		SALSAUtility.PointStart_Process = processRange.StartIndex;
+		SALSAUtility.PointStart_Process = processRange.getStartIndex();
 		SALSAUtility.PointCount_Process = processRange.getLength();
 		SALSAUtility.VariedPointStart_Process = SALSAUtility.PointStart_Process;
 		SALSAUtility.VariedPointCount_Process = SALSAUtility.PointCount_Process;
@@ -89,7 +89,7 @@ public class SALSAParallelism
 		for (int j = 0; j < SALSAUtility.ThreadCount; j++)
 		{
 			SALSAUtility.PointsperThread[j] = threadRanges[j].getLength();
-			SALSAUtility.StartPointperThread[j] = threadRanges[j].StartIndex;
+			SALSAUtility.StartPointperThread[j] = threadRanges[j].getStartIndex();
 		}
 	}
 

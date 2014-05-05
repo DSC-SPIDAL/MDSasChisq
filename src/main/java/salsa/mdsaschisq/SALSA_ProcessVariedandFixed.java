@@ -1,6 +1,6 @@
 ﻿package salsa.mdsaschisq;
 
-import Manxcat.*;
+import java.io.File;
 
 public class SALSA_ProcessVariedandFixed
 {

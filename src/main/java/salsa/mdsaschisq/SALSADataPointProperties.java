@@ -1,5 +1,7 @@
 ﻿package salsa.mdsaschisq;
 
+import java.io.Serializable;
+
 public class SALSADataPointProperties implements Serializable
 {
 	public double x = 0.0; // x value
