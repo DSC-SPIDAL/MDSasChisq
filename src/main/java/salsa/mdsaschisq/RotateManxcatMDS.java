@@ -61,7 +61,7 @@ public class RotateManxcatMDS
 		}
 		else
 		{
-			RuntimeException e = SALSAUtility.SALSAError("Unsupported Dimension " + (new Integer(PointVectorDimension)).toString());
+			SALSAUtility.printAndThrowRuntimeException("Unsupported Dimension " + (new Integer(PointVectorDimension)).toString());
 		}
 		Hotsun.ndata = SALSAUtility.PointCount_Global * PointVectorDimension;
 		Hotsun.ParameterVectorDimension = 1;
@@ -83,8 +83,8 @@ public class RotateManxcatMDS
 
 		if (SALSAUtility.NumberFixedPoints > 0)
 		{
-			RuntimeException e = SALSAUtility.SALSAError(" Fixed Points not Allowed in Rotations");
-			throw (e);
+			SALSAUtility.printAndThrowRuntimeException(" Fixed Points not Allowed in Rotations");
+
 		}
 		RotationOption = ManxcatCentral.config.RotationOption; // set Rotation Option
 		RotationOption_GenerateTestInput = RotationOption / 100; // Control special test inputs = 0 normal -- don't generate points to rotate;
@@ -104,8 +104,8 @@ public class RotateManxcatMDS
 		PointVectorDimension = SALSAUtility.GlobalFileProperties.LocalVectorDimension;
 		if (PointVectorDimension != SALSAUtility.GlobalFileProperties.LocalVectorDimension)
 		{
-			RuntimeException e = SALSAUtility.SALSAError(" Inconsistent Small Dimension in Rotations " + (new Integer(PointVectorDimension)).toString());
-			throw (e);
+			SALSAUtility.printAndThrowRuntimeException(" Inconsistent Small Dimension in Rotations " + (new Integer(PointVectorDimension)).toString());
+
 		}
 
 		int InitializationFileType = -1;
@@ -144,8 +144,8 @@ public class RotateManxcatMDS
 			InitializationNumberofPoints = tempRef_InitializationNumberofPoints.argValue;
 			if ((SALSAUtility.NumberOriginalPoints < InitializationNumberofPoints) || (InitializationFileProperties.NumberOriginalPoints != SALSAUtility.NumberOriginalPoints))
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Inconsistent Initialization File Point Counts " + (new Integer(InitializationNumberofPoints)).toString() + " or " + (new Integer(InitializationFileProperties.NumberOriginalPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException(" Inconsistent Initialization File Point Counts " + (new Integer(InitializationNumberofPoints)).toString() + " or " + (new Integer(InitializationFileProperties.NumberOriginalPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
+
 			}
 
 			for (int InitialIndex = 0; InitialIndex < InitializationNumberofPoints; InitialIndex++)
@@ -165,8 +165,8 @@ public class RotateManxcatMDS
 
 			if (!SALSA_ProcessVariedandFixed.AreValuesSet(SALSAUtility.GlobalPointProperties))
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Reference Points Not set");
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException(" Reference Points Not set");
+
 			}
 		}
 
@@ -195,13 +195,13 @@ public class RotateManxcatMDS
 			RotationNumberofPoints = tempRef_RotationNumberofPoints.argValue;
 			if ((SALSAUtility.NumberOriginalPoints < RotationNumberofPoints) || (RotationFileProperties.NumberOriginalPoints != SALSAUtility.NumberOriginalPoints))
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Inconsistent Rotation File Point Counts " + (new Integer(RotationNumberofPoints)).toString() + " or " + (new Integer(RotationFileProperties.NumberOriginalPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException(" Inconsistent Rotation File Point Counts " + (new Integer(RotationNumberofPoints)).toString() + " or " + (new Integer(RotationFileProperties.NumberOriginalPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
+
 			}
 			if (!SALSA_ProcessVariedandFixed.AreValuesSet(RotationPointProperties))
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Points to rotate Not set");
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException(" Points to rotate Not set");
+
 			}
 		} // End normal case when we read file of points to be rotated
 		else
@@ -729,7 +729,7 @@ public class RotateManxcatMDS
 		int LocalVectorDimension = param[0].GetLength(0);
 		if (LocalVectorDimension != perr[0].GetLength(0))
 		{
-			SALSAUtility.SALSAError("Inconsistent Dimensions Labels " + (new Integer(LocalVectorDimension)).toString() + " Perr " + perr[0].GetLength(0).toString());
+			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions Labels " + (new Integer(LocalVectorDimension)).toString() + " Perr " + perr[0].GetLength(0).toString());
 		}
 
 		ManxcatSection Configuration = ManxcatCentral.config;

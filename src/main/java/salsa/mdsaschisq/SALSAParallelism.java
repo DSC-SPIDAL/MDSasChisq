@@ -170,8 +170,8 @@ public class SALSAParallelism
 					int variedpoint = SALSAUtility.OriginalPointDisposition[originalpoint] - SALSAUtility.SALSASHIFT;
 					if (variedpoint < 0)
 					{
-						RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance Request Used Point " + (new Integer(rowindex)).toString() + " Original " + (new Integer(originalpoint)).toString());
-						throw (e);
+						SALSAUtility.printAndThrowRuntimeException(" Illegal Distance Request Used Point " + (new Integer(rowindex)).toString() + " Original " + (new Integer(originalpoint)).toString());
+
 					}
 					rowindex = variedpoint - SALSAUtility.VariedPointStart_Process;
 				}
@@ -312,8 +312,8 @@ public class SALSAParallelism
 			int variedpoint = SALSAUtility.OriginalPointDisposition[originalpoint] - SALSAUtility.SALSASHIFT;
 			if (variedpoint < 0)
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance Request Used Point " + (new Integer(row)).toString() + " Original " + (new Integer(originalpoint)).toString());
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException(" Illegal Distance Request Used Point " + (new Integer(row)).toString() + " Original " + (new Integer(originalpoint)).toString());
+
 			}
 			row = variedpoint - SALSAUtility.VariedPointStart_Process;
 		}
@@ -401,8 +401,8 @@ public class SALSAParallelism
 			int variedpoint = SALSAUtility.OriginalPointDisposition[originalpoint] - SALSAUtility.SALSASHIFT;
 			if (variedpoint < 0)
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance Put Request Used Point " + (new Integer(row)).toString() + " Original " + (new Integer(originalpoint)).toString());
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException(" Illegal Distance Put Request Used Point " + (new Integer(row)).toString() + " Original " + (new Integer(originalpoint)).toString());
+
 			}
 			row = variedpoint - SALSAUtility.VariedPointStart_Process;
 		}
@@ -413,20 +413,20 @@ public class SALSAParallelism
 //#if USE_UINT16 || USE_INT16
 		if (value > 1.0)
 		{
-			RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance value Put Request Used Point " + String.format("%.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
-			throw (e);
+			SALSAUtility.printAndThrowRuntimeException(" Illegal Distance value Put Request Used Point " + String.format("%.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
+
 		}
 		if ((value == 1.0) && (SALSAUtility.DistanceCut > 0.0) && (SALSAUtility.UndefinedDistanceValue < 0.0))
 		{ // Inconsistent value
-			RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance value 1.0 Put Request Used Point " + String.format("%.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
-			throw (e);
+			SALSAUtility.printAndThrowRuntimeException(" Illegal Distance value 1.0 Put Request Used Point " + String.format("%.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
+
 		}
 		if (value < 0.0)
 		{
 			if (SALSAUtility.DistanceCut < 0.0)
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Illegal Distance value < 0.0 Put Request Used Point " + String.format("%.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException(" Illegal Distance value < 0.0 Put Request Used Point " + String.format("%.4f", value) + " Coordinates " + (new Integer(row)).toString() + " " + (new Integer(col)).toString());
+
 			}
 
 			Temp = Double.MAX_VALUE;

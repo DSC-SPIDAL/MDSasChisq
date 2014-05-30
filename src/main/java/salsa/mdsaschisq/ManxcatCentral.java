@@ -972,22 +972,17 @@ public class ManxcatCentral
 				}
 
 				//  Decide if to give up ghost and call this the last Iteration
-				int readinstruction = -1;
-				tangible.RefObject<Integer> tempRef_readinstruction = new tangible.RefObject<Integer>(readinstruction);
-				SALSAUtility.SALSAGracefulend(ManxcatCentral.ResultDirectoryName, tempRef_readinstruction);
-				readinstruction = tempRef_readinstruction.argValue;
-				tangible.RefObject<Boolean> tempRef_readinstruction2 = new tangible.RefObject<Boolean>(readinstruction);
-				SALSAUtility.SynchronizeMPIvariable(tempRef_readinstruction2);
-				readinstruction = tempRef_readinstruction2.argValue;
-				if (readinstruction == 0)
+				int readInstruction = SALSAUtility.SALSAGracefulend(ManxcatCentral.ResultDirectoryName);
+				readInstruction = SALSAUtility.synchronizeMPIVariable(readInstruction);
+				if (readInstruction == 0)
 				{
 					Hotsun.InitializationLoops = Hotsun.InitializationLoopCount + 1;
-					EndupManxcat(7, new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution), new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+					EndupManxcat(7, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
 					break;
 				}
-				else if (readinstruction > 0)
+				else if (readInstruction > 0)
 				{
-					Hotsun.maxit = readinstruction;
+					Hotsun.maxit = readInstruction;
 				}
 
 				boolean TimeExceeded = (Hotsun.timmax > 0.0) && (Hotsun.TotalTimeUsed > Hotsun.timmax);
@@ -2857,9 +2852,9 @@ public class ManxcatCentral
 				return Possibles[i];
 			}
 		}
-		RuntimeException e = SALSAUtility.SALSAError("Invalid Solution Set");
+		SALSAUtility.printAndThrowRuntimeException("Invalid Solution Set");
 
-		throw (e);
+
 	} // End matchingSolution
 
 	//  Find which of pre allocated Solutions correspondds to a particular one stored in trial
@@ -2875,9 +2870,7 @@ public class ManxcatCentral
 			}
 		}
 
-		RuntimeException e = SALSAUtility.SALSAError("Invalid Solution Index");
-
-		throw (e);
+        SALSAUtility.printAndThrowRuntimeException("Invalid Solution Index");
 	} // End findsolutionindex
 
 	public static void ExistingCalcDeriv_LineSearch(double alpha, Desertwind SearchSolution, tangible.RefObject<SearchStuff> SearchPoint)
@@ -2887,8 +2880,6 @@ public class ManxcatCentral
 		SearchPoint.argValue.value = SearchSolution.Chisquared;
 		SearchPoint.argValue.Solution = SearchSolution;
 		SearchPoint.argValue.deriv = -2.0 * SALSABLAS.VectorScalarProduct(SearchPoint.argValue.Solution.first, Hotsun.EndingLinePositionSolution.xshift);
-		return;
-
 	} // End CalcDeriv_LineSearch at a point where Calcfg has been called
 
 	public static void NewCalcDeriv_LineSearch(double alpha, Desertwind NewSolution, tangible.RefObject<SearchStuff> SearchPoint, Hotsun.CalcfgSignature Calcfg)

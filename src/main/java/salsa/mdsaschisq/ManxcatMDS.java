@@ -117,8 +117,8 @@ public class ManxcatMDS
 			int AllowedDisconnectedNumber = (int) SALSAUtility.AllowedDeletedFraction + SALSAUtility.PointCount_Global;
 			if (DisconnectedPoints > AllowedDisconnectedNumber)
 			{
-				RuntimeException e = SALSAUtility.SALSAError("Must stop as Number of Disconnected Points " + (new Integer(DisconnectedPoints)).toString() + " Exceeds Cut " + (new Integer(AllowedDisconnectedNumber)).toString());
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException("Must stop as Number of Disconnected Points " + (new Integer(DisconnectedPoints)).toString() + " Exceeds Cut " + (new Integer(AllowedDisconnectedNumber)).toString());
+
 			}
 			++DisconnectedLoopCount;
 		}
@@ -244,8 +244,8 @@ public class ManxcatMDS
 		{
 			if (SALSAUtility.NumberFixedPoints < (Hotsun.ParameterVectorDimension - 1))
 			{
-				RuntimeException e = SALSAUtility.SALSAError("Not enough fixed points " + (new Integer(SALSAUtility.NumberFixedPoints)).toString());
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException("Not enough fixed points " + (new Integer(SALSAUtility.NumberFixedPoints)).toString());
+
 			}
 		}
 
@@ -258,8 +258,8 @@ public class ManxcatMDS
 					// This is Used point number
 				if (ParameterIndex < 0)
 				{
-					RuntimeException e = SALSAUtility.SALSAError("Illegal Fixed Point " + (new Integer(FixedIndex)).toString());
-					throw (e);
+					SALSAUtility.printAndThrowRuntimeException("Illegal Fixed Point " + (new Integer(FixedIndex)).toString());
+
 				}
 				for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
 				{
@@ -1025,8 +1025,8 @@ public class ManxcatMDS
 			}
 			if (SALSAUtility.PointCount_Global != InitializationNumberofPoints)
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Inconsistent Initialization File Point Counts " + (new Integer(InitializationNumberofPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.PointCount_Global)).toString());
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException(" Inconsistent Initialization File Point Counts " + (new Integer(InitializationNumberofPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.PointCount_Global)).toString());
+
 			}
 		}
 
@@ -1045,8 +1045,8 @@ public class ManxcatMDS
 
 			if ((SALSAUtility.NumberOriginalPoints < InitializationNumberofPoints) || (InitializationFileProperties.NumberOriginalPoints != SALSAUtility.NumberOriginalPoints))
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Inconsistent Initialization File Point Counts " + (new Integer(InitializationNumberofPoints)).toString() + " or " + (new Integer(InitializationFileProperties.NumberOriginalPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException(" Inconsistent Initialization File Point Counts " + (new Integer(InitializationNumberofPoints)).toString() + " or " + (new Integer(InitializationFileProperties.NumberOriginalPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
+
 			}
 
 			for (int InitialIndex = 0; InitialIndex < InitializationNumberofPoints; InitialIndex++)
@@ -1112,7 +1112,7 @@ public class ManxcatMDS
 				{
 					if (!SALSAUtility.GlobalPointProperties[GlobalIndex].valuesset)
 					{
-						RuntimeException e = SALSAUtility.SALSAError("Error in Initialized Points -- Unset point " + (new Integer(GlobalIndex)).toString());
+						SALSAUtility.printAndThrowRuntimeException("Error in Initialized Points -- Unset point " + (new Integer(GlobalIndex)).toString());
 					}
 					Solution.param[LongIndex][0] = SALSAUtility.GlobalPointProperties[GlobalIndex].x;
 					Solution.param[LongIndex][1] = SALSAUtility.GlobalPointProperties[GlobalIndex].y;
@@ -1136,7 +1136,7 @@ public class ManxcatMDS
 							{
 								if (!SALSAUtility.GlobalPointProperties[GlobalIndex].valuesset)
 								{
-									RuntimeException e = SALSAUtility.SALSAError("Error in Fixed Points -- Unset point " + (new Integer(GlobalIndex)).toString());
+									SALSAUtility.printAndThrowRuntimeException("Error in Fixed Points -- Unset point " + (new Integer(GlobalIndex)).toString());
 								}
 								if (LocalVectorIndex == 0)
 								{
@@ -1190,9 +1190,9 @@ public class ManxcatMDS
 			// Check if file exists
 			if (!(new java.io.File(WeightFileName)).isFile())
 			{
-				RuntimeException e = SALSAUtility.SALSAError("File " + WeightFileName + " does not exists.");
+				SALSAUtility.printAndThrowRuntimeException("File " + WeightFileName + " does not exists.");
 
-				throw (e);
+
 			}
 
 			// Create a new stream to read from a file
@@ -1226,14 +1226,14 @@ public class ManxcatMDS
 		}
 		catch (RuntimeException e)
 		{
-			SALSAUtility.SALSAError("Failed to read data from " + WeightFileName + " " + e.toString());
+			SALSAUtility.printAndThrowRuntimeException("Failed to read data from " + WeightFileName + " " + e.toString());
 
 			throw (e);
 		}
 
 		if (NumberofLines != SALSAUtility.PointCount_Global)
 		{
-			SALSAUtility.SALSAError("Incorrect Weight count read " + NumberofLines + " Expected " + SALSAUtility.PointCount_Global);
+			SALSAUtility.printAndThrowRuntimeException("Incorrect Weight count read " + NumberofLines + " Expected " + SALSAUtility.PointCount_Global);
 		}
 		double AveragetoOne = NumberofLines / sumofweights;
 		double minweight = sumofweights;

@@ -14,7 +14,7 @@ public class ManxcatMDSWriteSolution
 
 		if (LocalVectorDimension != perr[0].GetLength(0))
 		{
-			SALSAUtility.SALSAError("Inconsistent Dimensions Labels " + (new Integer(LocalVectorDimension)).toString() + " Perr " + perr[0].GetLength(0).toString());
+			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions Labels " + (new Integer(LocalVectorDimension)).toString() + " Perr " + perr[0].GetLength(0).toString());
 		}
 
 		ManxcatSection Configuration = ManxcatCentral.config;

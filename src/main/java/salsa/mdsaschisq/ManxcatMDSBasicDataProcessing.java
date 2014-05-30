@@ -111,8 +111,8 @@ public class ManxcatMDSBasicDataProcessing
 			}
 			if (DeletedPoint[GlobalPointIndex] != 1)
 			{
-				RuntimeException e = SALSAUtility.SALSAError("System Error Inconsistent Deleted point " + (new Integer(GlobalPointIndex)).toString() + " Status " + (new Integer(DeletedPoint[GlobalPointIndex])).toString());
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException("System Error Inconsistent Deleted point " + (new Integer(GlobalPointIndex)).toString() + " Status " + (new Integer(DeletedPoint[GlobalPointIndex])).toString());
+
 			}
 			ManxcatMDS.PointStatus[GlobalPointIndex] = -1;
 			++countdeleted;
@@ -126,8 +126,8 @@ public class ManxcatMDSBasicDataProcessing
 		double localtotalpoints = FindSystemMeanSigma.TotalNumberofPoints;
 		if (Math.abs(localtotalpoints - pointsused) > 2.0)
 		{
-			RuntimeException e = SALSAUtility.SALSAError("System Error and Must stop as Illegal Point Counts " + String.format("%.0f", pointsused) + " " + String.format("%.0f", localtotalpoints));
-			throw (e);
+			SALSAUtility.printAndThrowRuntimeException("System Error and Must stop as Illegal Point Counts " + String.format("%.0f", pointsused) + " " + String.format("%.0f", localtotalpoints));
+
 		}
 
 		AverageDistance.argValue = FindSystemMeanSigma.Totalmean;
@@ -337,8 +337,8 @@ public class ManxcatMDSBasicDataProcessing
 		double localtotalpoints = FindSystemMeanSigma.TotalNumberofPoints;
 		if (Math.abs(localtotalpoints - pointsused) > 2.0)
 		{
-			RuntimeException e = SALSAUtility.SALSAError("System Error and Must stop as Illegal Point Counts " + String.format("%.0f", pointsused) + " " + String.format("%.0f", localtotalpoints));
-			throw (e);
+			SALSAUtility.printAndThrowRuntimeException("System Error and Must stop as Illegal Point Counts " + String.format("%.0f", pointsused) + " " + String.format("%.0f", localtotalpoints));
+
 		}
 
 		// Print correlations
@@ -351,8 +351,8 @@ public class ManxcatMDSBasicDataProcessing
 		FindNewoldDistancestatistics.print(label + "\nOld and Transformed Distances\n", "%.4f");
 		if (TotalDisconnectedPoints.argValue > 0)
 		{
-			RuntimeException e = SALSAUtility.SALSAError("System Error and Must stop as Disconnected Points with ZERO links after first round " + (new Integer(TotalDisconnectedPoints.argValue)).toString());
-			throw (e);
+			SALSAUtility.printAndThrowRuntimeException("System Error and Must stop as Disconnected Points with ZERO links after first round " + (new Integer(TotalDisconnectedPoints.argValue)).toString());
+
 		}
 
 		// Set Distance Weightings

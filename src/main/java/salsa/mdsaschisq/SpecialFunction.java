@@ -1,5 +1,9 @@
 package salsa.mdsaschisq;
 
+/**
+ * Converted class from C# to Java
+ */
+
 /*
 	**************************************************************************
 	**
@@ -1623,7 +1627,7 @@ public final class SpecialFunction
 	 
 	 @return Relative Epsilon (positive double or NaN).
 	 Evaluates the <b>negative</b> epsilon. The more common positive epsilon is equal to two times this negative epsilon.
-	 {@link PositiveEpsilonOf(double)}
+	 {@link #PositiveEpsilonOf(double)}
 	*/
 	public static double EpsilonOf(double value)
 	{
@@ -1632,28 +1636,27 @@ public final class SpecialFunction
 			return Double.NaN;
 		}
 
-		long signed64 = BitConverter.DoubleToInt64Bits(value);
+		long signed64 = Double.doubleToLongBits(value);
 
 		if (signed64 == 0)
 		{
 			signed64++;
-			return BitConverter.Int64BitsToDouble(signed64) - value;
+			return Double.longBitsToDouble(signed64) - value;
 		}
 
 		if (signed64-- < 0)
 		{
-			return BitConverter.Int64BitsToDouble(signed64) - value;
+			return Double.longBitsToDouble(signed64) - value;
 		}
 
-		return value - BitConverter.Int64BitsToDouble(signed64);
+		return value - Double.longBitsToDouble(signed64);
 	}
 
 	/** 
 	 Evaluates the minimum distance to the next distinguishable number near the argument value.
 	 
 	 @return Relative Epsilon (positive double or NaN)
-	 Evaluates the <b>positive</b> epsilon. See also <see cref="EpsilonOf"/>
-	 {@link EpsilonOf(double)}
+	 Evaluates the <b>positive</b> epsilon. See also {@link #EpsilonOf(double)}
 	*/
 	public static double PositiveEpsilonOf(double value)
 	{
@@ -1680,15 +1683,11 @@ public final class SpecialFunction
 		return 0d;
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: Extension methods are not available in Java:
-//ORIGINAL LINE: public static bool IsOdd(this int value)
 	public static boolean IsOdd(int value)
 	{
 		return (value & 1) == 1;
 	}
 
-//C# TO JAVA CONVERTER TODO TASK: Extension methods are not available in Java:
-//ORIGINAL LINE: public static bool IsEven(this int value)
 	public static boolean IsEven(int value)
 	{
 		return (value & 1) != 1;

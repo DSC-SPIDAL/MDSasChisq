@@ -63,9 +63,9 @@ public class ManxcatMDSDataProcessing
 
 			if (!(new java.io.File(TypicalMDSFileName)).isFile())
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" File " + TypicalMDSFileName + " Does Not Exist");
+				SALSAUtility.printAndThrowRuntimeException(" File " + TypicalMDSFileName + " Does Not Exist");
 
-				throw (e);
+
 			}
 
 			int NumberMDSPoints = 0;
@@ -87,9 +87,9 @@ public class ManxcatMDSDataProcessing
 
 				if (split.length < Hotsun.ParameterVectorDimension)
 				{
-					RuntimeException e = SALSAUtility.SALSAError(" Point " + (new Integer(PointIndex)).toString() + " has wrong number of Entries " + inputLineStr + " Entries" + split.length);
+					SALSAUtility.printAndThrowRuntimeException(" Point " + (new Integer(PointIndex)).toString() + " has wrong number of Entries " + inputLineStr + " Entries" + split.length);
 
-					throw (e);
+
 				}
 
 				for (int VectorIndex = 0; VectorIndex < Hotsun.ParameterVectorDimension; VectorIndex++)
@@ -166,9 +166,9 @@ public class ManxcatMDSDataProcessing
 				// Check if file exists
 				if (!(new java.io.File(FunctionFileName)).isFile())
 				{
-					RuntimeException e = SALSAUtility.SALSAError("File " + FunctionFileName + " does not exists.");
+					SALSAUtility.printAndThrowRuntimeException("File " + FunctionFileName + " does not exists.");
 
-					throw (e);
+
 				}
 
 				// Create a new stream to read from a file
@@ -230,7 +230,7 @@ public class ManxcatMDSDataProcessing
 			}
 			catch (RuntimeException e)
 			{
-				SALSAUtility.SALSAError("Failed to read data from " + FunctionFileName + " " + e.toString());
+				SALSAUtility.printAndThrowRuntimeException("Failed to read data from " + FunctionFileName + " " + e.toString());
 
 				throw (e);
 			}
@@ -242,7 +242,7 @@ public class ManxcatMDSDataProcessing
 
 			if (NumberofLines != SALSAUtility.PointCount_Global)
 			{
-				SALSAUtility.SALSAError("Incorrect Function count read " + NumberofLines + " Expected " + SALSAUtility.PointCount_Global);
+				SALSAUtility.printAndThrowRuntimeException("Incorrect Function count read " + NumberofLines + " Expected " + SALSAUtility.PointCount_Global);
 			}
 
 			// Set Statistics
@@ -379,9 +379,9 @@ public class ManxcatMDSDataProcessing
 
 		if (NumberofCuts <= 0)
 		{
-			RuntimeException e = SALSAUtility.SALSAError("Too few points " + (new Integer(NumberofCuts)).toString() + " in Cut File " + CutFileName);
+			SALSAUtility.printAndThrowRuntimeException("Too few points " + (new Integer(NumberofCuts)).toString() + " in Cut File " + CutFileName);
 
-			throw (e);
+
 		}
 
 		int[] CutStart = new int[NumberofCuts];
@@ -502,9 +502,9 @@ public class ManxcatMDSDataProcessing
 
 		if (NumberOfClusterLines != SALSAUtility.PointCount_Global)
 		{
-			RuntimeException e = SALSAUtility.SALSAError(" Illegal Count " + (new Integer(NumberOfClusterLines)).toString() + " in File " + ClusterFileName);
+			SALSAUtility.printAndThrowRuntimeException(" Illegal Count " + (new Integer(NumberOfClusterLines)).toString() + " in File " + ClusterFileName);
 
-			throw (e);
+
 		}
 
 		int[] CategoryIndex = new int[SALSAUtility.PointCount_Global];
@@ -597,9 +597,9 @@ public class ManxcatMDSDataProcessing
 
 		if (!(new java.io.File(TypicalMDSFileName)).isFile())
 		{
-			RuntimeException e = SALSAUtility.SALSAError(" File " + TypicalMDSFileName + " Does Not Exist");
+			SALSAUtility.printAndThrowRuntimeException(" File " + TypicalMDSFileName + " Does Not Exist");
 
-			throw (e);
+
 		}
 
 		int NumberMDSPoints = 0;
@@ -647,9 +647,9 @@ public class ManxcatMDSDataProcessing
 
 			if (NumberOfLabels != SALSAUtility.PointCount_Global)
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Illegal Count " + (new Integer(NumberOfLabels)).toString() + " in File " + LabelFileName);
+				SALSAUtility.printAndThrowRuntimeException(" Illegal Count " + (new Integer(NumberOfLabels)).toString() + " in File " + LabelFileName);
 
-				throw (e);
+
 			}
 
 			int[] CategoryIndex = new int[SALSAUtility.PointCount_Global];
@@ -672,9 +672,9 @@ public class ManxcatMDSDataProcessing
 			// Check if file exists
 			if (!(new java.io.File(MDSClusterFileName)).isFile())
 			{
-				RuntimeException e = SALSAUtility.SALSAError("File " + MDSClusterFileName + " does not exists");
+				SALSAUtility.printAndThrowRuntimeException("File " + MDSClusterFileName + " does not exists");
 
-				throw (e);
+
 			}
 
 			// Create a new stream to read from a file
@@ -711,7 +711,7 @@ public class ManxcatMDSDataProcessing
 						// Note. This seems unnecessary. Let's agree on zero based indices
 //                            if ((NumberofPoints + 1) != newlabelnumber)
 //                            {
-//                                Exception e = SALSAUtility.SALSAError("Unexpected Label Number "
+//                                Exception e = SALSAUtility.printAndThrowRuntimeException("Unexpected Label Number "
 //                                    + newlabelnumber + " Expected " + NumberofPoints + "+1");
 //
 //                                throw (e);
@@ -731,7 +731,7 @@ public class ManxcatMDSDataProcessing
 					}
 					catch (RuntimeException e)
 					{
-						SALSAUtility.SALSAError("Failed to load data array " + inputLineStr + " " + " " + (new Integer(NumberofPoints.argValue)).toString() + " " + (new Integer(newlabelnumber)).toString() + " " + e.toString());
+						SALSAUtility.printAndThrowRuntimeException("Failed to load data array " + inputLineStr + " " + " " + (new Integer(NumberofPoints.argValue)).toString() + " " + (new Integer(newlabelnumber)).toString() + " " + e.toString());
 
 						throw (e);
 					}
@@ -746,16 +746,16 @@ public class ManxcatMDSDataProcessing
 		}
 		catch (RuntimeException e)
 		{
-			SALSAUtility.SALSAError("Failed to read data from " + MDSClusterFileName + " " + e.toString());
+			SALSAUtility.printAndThrowRuntimeException("Failed to read data from " + MDSClusterFileName + " " + e.toString());
 
 			throw (e);
 		}
 
 		if (NumberofPoints.argValue != SALSAUtility.PointCount_Global)
 		{
-			RuntimeException e = SALSAUtility.SALSAError("Incorrect #Points in File " + NumberofPoints.argValue + " Expected " + SALSAUtility.PointCount_Global);
+			SALSAUtility.printAndThrowRuntimeException("Incorrect #Points in File " + NumberofPoints.argValue + " Expected " + SALSAUtility.PointCount_Global);
 
-			throw (e);
+
 		}
 
 		return true;
@@ -771,9 +771,9 @@ public class ManxcatMDSDataProcessing
 			// Check if file exists
 			if (!(new java.io.File(LabelFileName)).isFile())
 			{
-				RuntimeException e = SALSAUtility.SALSAError("File " + LabelFileName + " does not exists.");
+				SALSAUtility.printAndThrowRuntimeException("File " + LabelFileName + " does not exists.");
 
-				throw (e);
+
 			}
 
 			// Create a new stream to read from a file
@@ -806,24 +806,24 @@ public class ManxcatMDSDataProcessing
 
 							if ((startnumber < 0) || (startnumber > 1))
 							{
-								RuntimeException e = SALSAUtility.SALSAError("Unexpected Start Number " + (new Integer(startnumber)).toString());
+								SALSAUtility.printAndThrowRuntimeException("Unexpected Start Number " + (new Integer(startnumber)).toString());
 
-								throw (e);
+
 							}
 						}
 
 						if (NumberofLabels.argValue != (newlabelnumber + startnumber))
 						{
-							RuntimeException e = SALSAUtility.SALSAError("Unexpected Label Number " + (new Integer(newlabelnumber)).toString() + " Expected " + (new Integer(NumberofLabels.argValue)).toString() + " + " + (new Integer(startnumber)).toString());
+							SALSAUtility.printAndThrowRuntimeException("Unexpected Label Number " + (new Integer(newlabelnumber)).toString() + " Expected " + (new Integer(NumberofLabels.argValue)).toString() + " + " + (new Integer(startnumber)).toString());
 
-							throw (e);
+
 						}
 
 						if (split[1].length() <= 0)
 						{
-							RuntimeException e = SALSAUtility.SALSAError("Zero length label for point " + (new Integer(NumberofLabels.argValue)).toString());
+							SALSAUtility.printAndThrowRuntimeException("Zero length label for point " + (new Integer(NumberofLabels.argValue)).toString());
 
-							throw (e);
+
 						}
 
 						LabelArray[NumberofLabels.argValue] = split[1];
@@ -831,7 +831,7 @@ public class ManxcatMDSDataProcessing
 					}
 					catch (RuntimeException e)
 					{
-						SALSAUtility.SALSAError("Failed to load data from " + LabelFileName + " " + e.toString());
+						SALSAUtility.printAndThrowRuntimeException("Failed to load data from " + LabelFileName + " " + e.toString());
 
 						throw (e);
 					}
@@ -846,7 +846,7 @@ public class ManxcatMDSDataProcessing
 		}
 		catch (RuntimeException e)
 		{
-			SALSAUtility.SALSAError("Failed to read data from " + LabelFileName + " " + e.toString());
+			SALSAUtility.printAndThrowRuntimeException("Failed to read data from " + LabelFileName + " " + e.toString());
 
 			throw (e);
 		}
@@ -881,7 +881,7 @@ public class ManxcatMDSDataProcessing
 		}
 		catch (RuntimeException e)
 		{
-			SALSAUtility.SALSAError("Failed writing data on " + fname + " " + e.toString());
+			SALSAUtility.printAndThrowRuntimeException("Failed writing data on " + fname + " " + e.toString());
 
 			throw (e);
 		}
@@ -911,7 +911,7 @@ public class ManxcatMDSDataProcessing
 		}
 		catch (RuntimeException e)
 		{
-			SALSAUtility.SALSAError("Failed writing data on " + fname + " " + e.toString());
+			SALSAUtility.printAndThrowRuntimeException("Failed writing data on " + fname + " " + e.toString());
 
 			throw (e);
 		}
@@ -926,9 +926,9 @@ public class ManxcatMDSDataProcessing
 			// Check if file exists
 			if (!(new java.io.File(StringFileName)).isFile())
 			{
-				RuntimeException e = SALSAUtility.SALSAError("File " + StringFileName + " does not exists.");
+				SALSAUtility.printAndThrowRuntimeException("File " + StringFileName + " does not exists.");
 
-				throw (e);
+
 			}
 
 			// Create a new stream to read from a file
@@ -959,7 +959,7 @@ public class ManxcatMDSDataProcessing
 		}
 		catch (RuntimeException e)
 		{
-			SALSAUtility.SALSAError("Failed to read data from " + StringFileName + " " + e.toString());
+			SALSAUtility.printAndThrowRuntimeException("Failed to read data from " + StringFileName + " " + e.toString());
 
 			throw (e);
 		}

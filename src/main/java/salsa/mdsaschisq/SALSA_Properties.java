@@ -34,8 +34,8 @@ public class SALSA_Properties
 			// Check if file exists
 			if (!(new java.io.File(MDSClusterFileName)).isFile())
 			{
-				RuntimeException e = SALSAUtility.SALSAError("File " + MDSClusterFileName + " does not exists");
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException("File " + MDSClusterFileName + " does not exists");
+
 			}
 
 			// Create a new stream to read from a file
@@ -107,22 +107,22 @@ public class SALSA_Properties
 
 									if ((split.length != 5) && (split.length != 2) && (split.length != 4))
 									{
-										RuntimeException e = SALSAUtility.SALSAError(" Bad Line " + split.length.toString() + " " + (new Integer(NumberofPoints.argValue)).toString() + " " + inputLineStr);
-										throw (e);
+										SALSAUtility.printAndThrowRuntimeException(" Bad Line " + split.length.toString() + " " + (new Integer(NumberofPoints.argValue)).toString() + " " + inputLineStr);
+
 									}
 									newlabelnumber = Integer.parseInt(split[0]);
 
 									if ((NumberofPoints.argValue + LocalStart) != newlabelnumber)
 									{
-										RuntimeException e = SALSAUtility.SALSAError("Unexpected Label Number " + newlabelnumber + " Expected " + (new Integer(NumberofPoints.argValue)).toString() + " + " + (new Integer(LocalStart)).toString());
-										throw (e);
+										SALSAUtility.printAndThrowRuntimeException("Unexpected Label Number " + newlabelnumber + " Expected " + (new Integer(NumberofPoints.argValue)).toString() + " + " + (new Integer(LocalStart)).toString());
+
 									}
 									if (DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber >= 0)
 									{
 										if ((DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber - LocalStart) != NumberofPoints.argValue)
 										{
-											RuntimeException e = SALSAUtility.SALSAError("Unexpected Local Number " + DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber + " Expected " + (new Integer(NumberofPoints.argValue)).toString() + " + " + (new Integer(LocalStart)).toString());
-											throw (e);
+											SALSAUtility.printAndThrowRuntimeException("Unexpected Local Number " + DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber + " Expected " + (new Integer(NumberofPoints.argValue)).toString() + " + " + (new Integer(LocalStart)).toString());
+
 										}
 									}
 									DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber = NumberofPoints.argValue;
@@ -130,8 +130,8 @@ public class SALSA_Properties
 									{
 										if ((DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber - OriginalStart) < 0)
 										{
-											RuntimeException e = SALSAUtility.SALSAError("Unexpected Original Number " + DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber + " Local Point " + (new Integer(NumberofPoints.argValue)).toString() + " Original Increment " + (new Integer(OriginalStart)).toString());
-											throw (e);
+											SALSAUtility.printAndThrowRuntimeException("Unexpected Original Number " + DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber + " Local Point " + (new Integer(NumberofPoints.argValue)).toString() + " Original Increment " + (new Integer(OriginalStart)).toString());
+
 										}
 										DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber -= OriginalStart;
 									}
@@ -172,7 +172,7 @@ public class SALSA_Properties
 					}
 					catch (RuntimeException e)
 					{
-						SALSAUtility.SALSAError("Failed to load data array " + inputLineStr + " " + " " + (new Integer(NumberofPoints.argValue)).toString() + " " + (new Integer(newlabelnumber)).toString() + " " + e.toString());
+						SALSAUtility.printAndThrowRuntimeException("Failed to load data array " + inputLineStr + " " + " " + (new Integer(NumberofPoints.argValue)).toString() + " " + (new Integer(newlabelnumber)).toString() + " " + e.toString());
 						throw (e);
 					}
 				}
@@ -209,8 +209,8 @@ public class SALSA_Properties
 
 				if (FileProperties.NumberPointsinFile != NumberofPoints.argValue)
 				{
-					RuntimeException e = SALSAUtility.SALSAError("Unexpected Number of Points in File " + (new Integer(NumberofPoints.argValue)).toString() + " Read but Expected " + (new Integer(FileProperties.NumberPointsinFile)).toString());
-					throw (e);
+					SALSAUtility.printAndThrowRuntimeException("Unexpected Number of Points in File " + (new Integer(NumberofPoints.argValue)).toString() + " Read but Expected " + (new Integer(FileProperties.NumberPointsinFile)).toString());
+
 				}
 				sr.Close();
 			}
@@ -221,7 +221,7 @@ public class SALSA_Properties
 		}
 		catch (RuntimeException e)
 		{
-			SALSAUtility.SALSAError("Failed to read data from " + MDSClusterFileName + " " + e.toString());
+			SALSAUtility.printAndThrowRuntimeException("Failed to read data from " + MDSClusterFileName + " " + e.toString());
 			throw (e);
 		}
 		return true;
@@ -234,8 +234,8 @@ public class SALSA_Properties
 		{
 			if (DataArray.argValue.length < sizereadin)
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Data Array too small for file Length " + DataArray.argValue.length.toString() + " Needs " + (new Integer(sizereadin)).toString());
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException(" Data Array too small for file Length " + DataArray.argValue.length.toString() + " Needs " + (new Integer(sizereadin)).toString());
+
 			}
 			return;
 		}
@@ -324,15 +324,15 @@ public class SALSA_Properties
 		}
 		if (numberoffiles == 0)
 		{
-			SALSAUtility.SALSAError("No files output for core name " + CoreOutputFileName);
+			SALSAUtility.printAndThrowRuntimeException("No files output for core name " + CoreOutputFileName);
 			return;
 		}
 		if (numberoffiles > 1)
 		{
 			if (OutputStyles.contains("SameFileName"))
 			{
-				RuntimeException e = SALSAUtility.SALSAError("Attempt to generate multiple outputs to same file " + CoreOutputFileName);
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException("Attempt to generate multiple outputs to same file " + CoreOutputFileName);
+
 			}
 		}
 		for (int StyleIndex = 0; StyleIndex < 5; StyleIndex++)
@@ -441,8 +441,8 @@ public class SALSA_Properties
 			}
 			catch (java.lang.Exception e)
 			{
-				RuntimeException e = SALSAUtility.SALSAError(" Failed to Write Properties File " + CoreOutputFileName);
-				throw (e);
+				SALSAUtility.printAndThrowRuntimeException(" Failed to Write Properties File " + CoreOutputFileName);
+
 			}
 
 		} // End Loop over File Types
