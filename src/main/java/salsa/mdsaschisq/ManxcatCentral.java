@@ -10,6 +10,7 @@ import salsa.configuration.sections.MDSasChisqSection;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -323,6 +324,8 @@ public class ManxcatCentral
 		SALSAUtility.ManxcatRunDescription = !tangible.DotNetToJavaStringHelper.isNullOrEmpty(config.ManxcatRunDescription) ? config.ManxcatRunDescription : "Description not specified";
         SALSAUtility.ConsoleDebugOutput = config.ConsoleDebugOutput;
         SALSAUtility.DebugPrintOption = config.DebugPrintOption;
+        SALSAUtility.dataTypeSize = config.getDataTypeSize();
+        SALSAUtility.endianness = config.isBigEndian() ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
 	}
 
     public static void ManxcatControl(Hotsun.CalcfgSignature Calcfg, Hotsun.IntializeSignature InitializeApplication,

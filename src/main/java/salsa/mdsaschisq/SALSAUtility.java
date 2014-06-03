@@ -7,6 +7,7 @@ import mpi.MPIException;
 import salsa.mpi.MpiOps;
 
 import java.io.*;
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -82,7 +83,7 @@ public class SALSAUtility {
     public static int MPIIOStrategy = 0; // MPI I/O Strategy
     public static boolean sequentialBLAS = false; // If true calculate BLAS sequentially using imput lengths; if false use SALSAParallelism and do using Threads/MPI
 
-    public static double[][] PointDistances; // Point Distances
+    public static Matrix PointDistances; // Point Distances
     public static int MatrixBreakFactor = 1;
     public static int[] ArrayDivision;
     public static int[] Indexsubtraction;
@@ -128,6 +129,8 @@ public class SALSAUtility {
 
     public static MpiOps mpiOps;
     public static boolean timingCompleted = false;
+    public static int dataTypeSize;
+    public static ByteOrder endianness;
 
 
     public static void SetupDistanceWeights() {

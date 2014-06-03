@@ -119,7 +119,7 @@ public class SALSAParallelism
 			SALSAUtility.CalcFixedCrossFixed = false;
 		}
 
-// Set sizes of matrix on disk
+        // Set sizes of matrix on disk
 		int rowcount = SALSAUtility.PointCount_Global;
 		int colcount = SALSAUtility.PointCount_Global;
 		if (SALSAUtility.DiskDistanceOption == 1)
@@ -131,10 +131,6 @@ public class SALSAParallelism
 		{
 			rowcount = SALSAUtility.NumberVariedPoints;
 		}
-
-		//          MatrixTextReader reader = new MatrixTextReader(rowcount,colcount);
-		MatrixBinaryReader reader = new MatrixBinaryReader(rowcount,colcount);
-
 
 		boolean Oneread = true;
 		if (SALSAUtility.StoredDistanceOption != SALSAUtility.DiskDistanceOption)
@@ -148,14 +144,11 @@ public class SALSAParallelism
 
 		if (Oneread)
 		{
-//C# TO JAVA CONVERTER TODO TASK: There is no preprocessor in Java:
-//#if USE_UINT16
-		SALSAUtility.PointDistances = reader.ReadUInt16(fname, SALSAUtility.PointStart_Process, SALSAUtility.PointCount_Process);
-//#elif USE_INT16
-			SALSAUtility.PointDistances = reader.ReadInt16(fname, SALSAUtility.PointStart_Process, SALSAUtility.PointCount_Process);
-//#else
-		SALSAUtility.PointDistances = reader.ReadDouble(fname, SALSAUtility.PointStart_Process, SALSAUtility.PointCount_Process);
-//#endif
+            Range processRange = new Range(SALSAUtility.PointStart_Process,
+                    SALSAUtility.PointStart_Process + SALSAUtility.PointCount_Process - 1);
+
+            SALSAUtility.PointDistances = Matrix.readRowRange(fname, processRange, SALSAUtility.PointCount_Global,
+                    SALSAUtility.dataTypeSize, SALSAUtility.endianness);
 			int numberofcolumns = SALSAUtility.PointCount_Global;
 			for (int GlobalPointIndex = SALSAUtility.PointStart_Process; GlobalPointIndex < SALSAUtility.PointStart_Process + SALSAUtility.PointCount_Process; GlobalPointIndex++)
 			{
@@ -177,15 +170,17 @@ public class SALSAParallelism
 				}
 				for (int columnindex = 0; columnindex < numberofcolumns; columnindex++)
 				{
-					double Temp = SALSAUtility.PointDistances[rowindex][columnindex];
+					double Temp = SALSAUtility.PointDistances.getDistance(rowindex,columnindex);
 					counttotaldistances = counttotaldistances + 1.0;
 
 					if (SALSAUtility.DistanceCut > 0.0)
 					{
-						double distancevalue = (SALSAUtility.PointDistances[rowindex][columnindex] / (Double.MAX_VALUE * 1.0));
+						double distancevalue = (SALSAUtility.PointDistances.getDistance(rowindex,
+                                columnindex) / (Double.MAX_VALUE * 1.0));
 						if (distancevalue > SALSAUtility.DistanceCut)
 						{
-							SALSAUtility.PointDistances[rowindex][columnindex] = Double.MAX_VALUE;
+                            // TODO - COHTINUE FROM HERE
+                            SALSAUtility.PointDistances.setDistance(rowindex, columnindex) = Double.MAX_VALUE;
 							countremoveddistances = countremoveddistances + 1.0;
 						}
 					}
@@ -272,15 +267,16 @@ public class SALSAParallelism
 					{
 						coltostore = SALSAUtility.NaivetoActualUsedOrder[colIndex];
 					}
-					SALSAUtility.PointDistances[rowtostore][coltostore] = buffer[0][colIndex];
+                    SALSAUtility.PointDistances.getDistance(rowtostore, coltostore) = buffer[0][colIndex];
 					counttotaldistances = counttotaldistances + 1.0;
 
 					if (SALSAUtility.DistanceCut > 0.0)
 					{
-						double distancevalue = (SALSAUtility.PointDistances[rowtostore][coltostore] / (Double.MAX_VALUE * 1.0));
+						double distancevalue = (SALSAUtility.PointDistances.getDistance(rowtostore,
+                                coltostore) / (Double.MAX_VALUE * 1.0));
 						if (distancevalue > SALSAUtility.DistanceCut)
 						{
-							SALSAUtility.PointDistances[rowtostore][coltostore] = Double.MAX_VALUE;
+                            SALSAUtility.PointDistances.getDistance(rowtostore, coltostore) = Double.MAX_VALUE;
 							countremoveddistances = countremoveddistances + 1.0;
 						}
 					}
@@ -318,7 +314,7 @@ public class SALSAParallelism
 			row = variedpoint - SALSAUtility.VariedPointStart_Process;
 		}
 
-		double Temp = SALSAUtility.PointDistances[row][col];
+        double Temp = SALSAUtility.PointDistances.getDistance(row, col);
 
 		// Return -1.0 if input distance < 0 or if equals TDistance.MaxValue
 		if (Temp == Double.MAX_VALUE)
@@ -447,7 +443,7 @@ public class SALSAParallelism
 //#else
 		Temp = value;
 //#endif
-		SALSAUtility.PointDistances[row][col] = Temp;
+        SALSAUtility.PointDistances.getDistance(row, col) = Temp;
 		return;
 	} // End putDistanceValue
 

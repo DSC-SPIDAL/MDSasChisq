@@ -326,4 +326,12 @@ public class MDSasChisqSection {
     public void setThreadCount(int threadCount) {
         this.threadCount = threadCount;
     }
+
+    public int getDataTypeSize() {
+        return dataTypeSize;
+    }
+
+    public boolean isBigEndian() {
+        return isBigEndian;
+    }
 }
