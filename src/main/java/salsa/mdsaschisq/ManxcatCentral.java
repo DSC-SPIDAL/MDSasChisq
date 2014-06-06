@@ -1504,24 +1504,14 @@ public class ManxcatCentral
 			// Set Output File Name and write file with errors
 			String labelfilename = ManxcatCentral.config.ReducedVectorOutputFileName;
 
-			// Todo. removing this as it's unnecessary and buggy in Linux (when run with Mono)
-//                if (!labelfilename.Contains(":") && !labelfilename.Contains("$"))
-//                    ActualOutputFileName = ManxcatCentral.ResultDirectoryName + File.separatorChar + labelfilename;
-//                else
-				ActualOutputFileName = labelfilename;
+            ActualOutputFileName = labelfilename;
 
 			WriteSolution.invoke(ActualOutputFileName + outputfiletype, 0, Hotsun.GlobalParameter, Hotsun.UtilityGlobalVector1);
 
-			// Todo. removing this as it's unnecessary and buggy in Linux (when run with Mono)
-//                if (!labelfilename.Contains(":") && !labelfilename.Contains("$"))
-//                    ActualOutputFileName = ManxcatCentral.ResultDirectoryName + "\\SIMPLE" + labelfilename;
-//                else
-			{
-				int slashpos = labelfilename.lastIndexOf(java.io.File.separatorChar);
-				String endpart = labelfilename.substring(slashpos + 1);
-				labelfilename = labelfilename.substring(0, slashpos + 1);
-				ActualOutputFileName = labelfilename + "SIMPLE" + endpart;
-			}
+            int slashpos = labelfilename.lastIndexOf(java.io.File.separatorChar);
+            String endpart = labelfilename.substring(slashpos + 1);
+            labelfilename = labelfilename.substring(0, slashpos + 1);
+            ActualOutputFileName = labelfilename + "SIMPLE" + endpart;
 			WriteSolution.invoke(ActualOutputFileName + outputfiletype, 1, Hotsun.GlobalParameter, Hotsun.UtilityGlobalVector1);
 		}
 		return;

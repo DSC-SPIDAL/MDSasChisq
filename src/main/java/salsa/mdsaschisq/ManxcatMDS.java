@@ -1177,11 +1177,6 @@ public class ManxcatMDS
 
 		String WeightFileName = ManxcatCentral.config.WeightingFileName;
 
-		if (!WeightFileName.contains(":"))
-		{
-			WeightFileName = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + WeightFileName;
-		}
-
 		double sumofweights = 0.0;
 		int NumberofLines = 0;
 

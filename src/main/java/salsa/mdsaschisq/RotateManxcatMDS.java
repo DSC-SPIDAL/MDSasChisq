@@ -123,8 +123,6 @@ public class RotateManxcatMDS
 			SALSADataPointProperties[] InitializationPointProperties = new SALSADataPointProperties[SALSAUtility.NumberOriginalPoints];
 
 			String OriginalMDSFileName = ManxcatCentral.config.InitializationFileName;
-//                if (!OriginalMDSFileName.Contains(":") || !OriginalMDSFileName.Contains("$"))
-//                    OriginalMDSFileName = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + OriginalMDSFileName;
 			SALSAUtility.SALSAPrint(2, " Reference Points Taken from Initialization File " + OriginalMDSFileName);
 
 			// Begin Changes saliya 03/25/11
@@ -179,8 +177,6 @@ public class RotateManxcatMDS
 		{
 			int RotationNumberofPoints = -1;
 			String RotationFileName = ManxcatCentral.config.RotationLabelsFileName;
-//                if (!RotationFileName.Contains(":"))
-//                    RotationFileName = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + RotationFileName;
 			if (RotationFileName.contains("SIMPLE"))
 			{
 				RotationFileProperties.LocalPointStartIndex = 1;
