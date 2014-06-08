@@ -108,7 +108,7 @@ public class MDSasChisqSection {
             Normalize = Boolean.parseBoolean(p.getProperty("Normalize","false"));
             ServerUrlPrefix = p.getProperty("ServerUrlPrefix","");
             dataTypeSize = Integer.parseInt(p.getProperty("DataTypeSize", "2"));
-            isBigEndian = Boolean.parseBoolean(p.getProperty("IsBigEndian", "fasle"));
+            isBigEndian = Boolean.parseBoolean(p.getProperty("IsBigEndian", "false"));
         }catch (IOException e){
             e.printStackTrace();
         }

@@ -36,7 +36,7 @@ public class Matrix {
             endianness){
         try (FileChannel fc = (FileChannel) Files.newByteChannel(Paths.get(fname), StandardOpenOption.READ)) {
             long pos = ((long)rows.getStartIndex())*globalColCount* dataTypeSize;
-            MappedByteBuffer mappedBytes = fc.map(FileChannel.MapMode.READ_ONLY, pos,
+            MappedByteBuffer mappedBytes = fc.map(FileChannel.MapMode.PRIVATE, pos,
                     rows.getLength() * globalColCount * dataTypeSize);
             mappedBytes.order(endianness);
             return  new Matrix(globalColCount,rows, mappedBytes);
