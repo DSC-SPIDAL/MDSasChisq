@@ -111,7 +111,9 @@ public class ManxcatMDSBasicDataProcessing
 			}
 			if (DeletedPoint[GlobalPointIndex] != 1)
 			{
-				SALSAUtility.printAndThrowRuntimeException("System Error Inconsistent Deleted point " + (new Integer(GlobalPointIndex)).toString() + " Status " + (new Integer(DeletedPoint[GlobalPointIndex])).toString());
+				SALSAUtility.printAndThrowRuntimeException(
+                        "System Error Inconsistent Deleted point " + GlobalPointIndex + " Status " +
+                                DeletedPoint[GlobalPointIndex]);
 
 			}
 			ManxcatMDS.PointStatus[GlobalPointIndex] = -1;
@@ -148,7 +150,11 @@ public class ManxcatMDSBasicDataProcessing
 		{
 			double fraction = TotalMissingDistances.argValue / (tmp * (tmp - 1.0));
 			double EstimatedDimension = 2.0 * AverageDistance.argValue * AverageDistance.argValue / (SigmaDistance.argValue * SigmaDistance.argValue);
-			SALSAUtility.SALSAPrint(1, "\nAs INPUT Disconnected Points " + (new Integer(TotalDisconnectedPoints.argValue)).toString() + " Missing Distances " + String.format("%.0f", TotalMissingDistances.argValue) + " Fraction " + String.format("%.4f", fraction));
+			SALSAUtility.SALSAPrint(1,
+                                    "\nAs INPUT Disconnected Points " + TotalDisconnectedPoints.argValue + " Missing Distances " + String
+
+                                            .format("%.0f", TotalMissingDistances.argValue) + " Fraction " + String
+                                            .format("%.4f", fraction));
 			SALSAUtility.SALSAPrint(1, "As INPUT Max " + String.format("%.4E", MaxDistance.argValue) + " Average " + String.format("%.4E", AverageDistance.argValue) + " Sigma " + String.format("%.4E", SigmaDistance.argValue) + " Estimated Dimension " + String.format("%.2f", EstimatedDimension));
 			SALSAUtility.SALSAPrint(1, " Overall Average Links " + String.format("%.2f", AverageLinksperpoint) + " from " + String.format("%.0f", TotalPointsbeforeLinkCut) + " Points and After cut " + String.format("%.2f", AverageLinksperpointaftercut) + " From Points " + String.format("%.0f", TotalPointsafterLinkCut));
 
@@ -160,16 +166,17 @@ public class ManxcatMDSBasicDataProcessing
 				histogramcounts += String.format("%.0f", FindLinkHistogramBinCounts.TotalSum[binloop]) + ", ";
 				total += FindLinkHistogramBinCounts.TotalSum[binloop];
 			}
-			SALSAUtility.SALSAPrint(1, "\nLink Histogram Total " + String.format("%.0f", total) + " upto links " + (new Integer(ManxcatMDS.NumLinksHistogramBins)).toString() + " #Counts starting at zero\n" + histogramcounts);
+			SALSAUtility.SALSAPrint(1, "\nLink Histogram Total " + String.format("%.0f",
+                                                                                 total) + " upto links " + ManxcatMDS.NumLinksHistogramBins + " #Counts starting at zero\n" + histogramcounts);
 
-			String deletedpoints = "\nNumber Deleted Points " + (new Integer(countdeleted)).toString() + " Deleted Points ";
+			String deletedpoints = "\nNumber Deleted Points " + countdeleted + " Deleted Points ";
 			for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++)
 			{
 				if (ManxcatMDS.PointStatus[GlobalPointIndex] != -1)
 				{
 					continue;
 				}
-				deletedpoints += (new Integer(GlobalPointIndex)).toString() + ", ";
+				deletedpoints += GlobalPointIndex + ", ";
 			}
 			SALSAUtility.SALSAPrint(1, deletedpoints);
 		}
@@ -345,13 +352,15 @@ public class ManxcatMDSBasicDataProcessing
 		String label = "";
 		if (SALSAUtility.TransformMethod != 0)
 		{
-			label = "\nTransform Method " + (new Integer(SALSAUtility.TransformMethod)).toString() + " Parameter " + String.format("%.4f", SALSAUtility.TransformParameter) + " ";
+			label = "\nTransform Method " + SALSAUtility.TransformMethod + " Parameter " + String
+                    .format("%.4f", SALSAUtility.TransformParameter) + " ";
 		}
 
 		FindNewoldDistancestatistics.print(label + "\nOld and Transformed Distances\n", "%.4f");
 		if (TotalDisconnectedPoints.argValue > 0)
 		{
-			SALSAUtility.printAndThrowRuntimeException("System Error and Must stop as Disconnected Points with ZERO links after first round " + (new Integer(TotalDisconnectedPoints.argValue)).toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "System Error and Must stop as Disconnected Points with ZERO links after first round " + TotalDisconnectedPoints.argValue);
 
 		}
 

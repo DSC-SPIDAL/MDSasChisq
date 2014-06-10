@@ -74,6 +74,9 @@
 //    public int DebugPrintOption = 1; // Control Debug Printing (= 0 None, = 1 Full, ==2 Summary)
 //    public bool ConsoleDebugOutput = false; // If true send debug output to Console
 
+import java.io.Serializable;
+
+// TODO - CONTINUE FROM HERE
 public class SALSAFileProperties implements Serializable
 {
 	public int LocalVectorDimension = 3; // Vector dimension of Mapped Points

@@ -107,21 +107,27 @@ public class SALSA_Properties
 
 									if ((split.length != 5) && (split.length != 2) && (split.length != 4))
 									{
-										SALSAUtility.printAndThrowRuntimeException(" Bad Line " + split.length.toString() + " " + (new Integer(NumberofPoints.argValue)).toString() + " " + inputLineStr);
+										SALSAUtility.printAndThrowRuntimeException(" Bad Line " + split.length
+                                                                                                       .toString() + " " + NumberofPoints.argValue + " " + inputLineStr);
 
 									}
 									newlabelnumber = Integer.parseInt(split[0]);
 
 									if ((NumberofPoints.argValue + LocalStart) != newlabelnumber)
 									{
-										SALSAUtility.printAndThrowRuntimeException("Unexpected Label Number " + newlabelnumber + " Expected " + (new Integer(NumberofPoints.argValue)).toString() + " + " + (new Integer(LocalStart)).toString());
+										SALSAUtility.printAndThrowRuntimeException(
+                                                "Unexpected Label Number " + newlabelnumber + " Expected " +
+                                                        NumberofPoints.argValue + " + " + LocalStart);
 
 									}
 									if (DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber >= 0)
 									{
 										if ((DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber - LocalStart) != NumberofPoints.argValue)
 										{
-											SALSAUtility.printAndThrowRuntimeException("Unexpected Local Number " + DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber + " Expected " + (new Integer(NumberofPoints.argValue)).toString() + " + " + (new Integer(LocalStart)).toString());
+											SALSAUtility.printAndThrowRuntimeException(
+                                                    "Unexpected Local Number " + DataPoints.argValue[NumberofPoints
+                                                            .argValue].LocalPointNumber + " Expected " +
+                                                            NumberofPoints.argValue + " + " + LocalStart);
 
 										}
 									}
@@ -130,7 +136,11 @@ public class SALSA_Properties
 									{
 										if ((DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber - OriginalStart) < 0)
 										{
-											SALSAUtility.printAndThrowRuntimeException("Unexpected Original Number " + DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber + " Local Point " + (new Integer(NumberofPoints.argValue)).toString() + " Original Increment " + (new Integer(OriginalStart)).toString());
+											SALSAUtility.printAndThrowRuntimeException(
+                                                    "Unexpected Original Number " + DataPoints
+                                                            .argValue[NumberofPoints.argValue].OriginalPointNumber +
+                                                            " Local Point " + NumberofPoints.argValue + " Original " +
+                                                            "Increment " + OriginalStart);
 
 										}
 										DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber -= OriginalStart;
@@ -172,7 +182,10 @@ public class SALSA_Properties
 					}
 					catch (RuntimeException e)
 					{
-						SALSAUtility.printAndThrowRuntimeException("Failed to load data array " + inputLineStr + " " + " " + (new Integer(NumberofPoints.argValue)).toString() + " " + (new Integer(newlabelnumber)).toString() + " " + e.toString());
+						SALSAUtility.printAndThrowRuntimeException(
+                                "Failed to load data array " + inputLineStr + " " + " " + NumberofPoints.argValue + " " + newlabelnumber + " " + e
+
+                                        .toString());
 						throw (e);
 					}
 				}
@@ -209,7 +222,9 @@ public class SALSA_Properties
 
 				if (FileProperties.NumberPointsinFile != NumberofPoints.argValue)
 				{
-					SALSAUtility.printAndThrowRuntimeException("Unexpected Number of Points in File " + (new Integer(NumberofPoints.argValue)).toString() + " Read but Expected " + (new Integer(FileProperties.NumberPointsinFile)).toString());
+					SALSAUtility.printAndThrowRuntimeException(
+                            "Unexpected Number of Points in File " + NumberofPoints.argValue + " Read but Expected "
+                                    + FileProperties.NumberPointsinFile);
 
 				}
 				sr.Close();
@@ -234,7 +249,9 @@ public class SALSA_Properties
 		{
 			if (DataArray.argValue.length < sizereadin)
 			{
-				SALSAUtility.printAndThrowRuntimeException(" Data Array too small for file Length " + DataArray.argValue.length.toString() + " Needs " + (new Integer(sizereadin)).toString());
+				SALSAUtility.printAndThrowRuntimeException(
+                        " Data Array too small for file Length " + DataArray.argValue.length
+                                                                                     .toString() + " Needs " + sizereadin);
 
 			}
 			return;
@@ -432,7 +449,8 @@ public class SALSA_Properties
 								Coordinates += String.format("%.4E", ThesePointProperties.z) + "\t";
 							}
 						}
-						sw.WriteLine(String.format((GlobalDataPoint + LocalPointIncrement).toString() + "\t" + Coordinates + (new Integer(IntegerIndex)).toString()));
+						sw.WriteLine(String.format(
+                                (GlobalDataPoint + LocalPointIncrement).toString() + "\t" + Coordinates + IntegerIndex));
 					}
 
 					sw.Flush();
@@ -696,7 +714,7 @@ public class SALSA_Properties
 		}
 		if (DataPointProps.family1 >= 0)
 		{
-			InputLine.argValue += "\tfamily1:" + (new Integer(DataPointProps.family1)).toString();
+			InputLine.argValue += "\tfamily1:" + DataPointProps.family1;
 			if (DataPointProps.familylabel1.length() > 0)
 			{
 				InputLine.argValue += "\tfamilylabel1:" + DataPointProps.familylabel1;
@@ -704,7 +722,7 @@ public class SALSA_Properties
 		}
 		if (DataPointProps.family2 >= 0)
 		{
-			InputLine.argValue += "\tfamily2:" + (new Integer(DataPointProps.family2)).toString();
+			InputLine.argValue += "\tfamily2:" + DataPointProps.family2;
 			if (DataPointProps.familylabel2.length() > 0)
 			{
 				InputLine.argValue += "\tfamilylabel2:" + DataPointProps.familylabel2;
@@ -712,7 +730,7 @@ public class SALSA_Properties
 		}
 		if (DataPointProps.cluster >= 0)
 		{
-			InputLine.argValue += "\tcluster:" + (new Integer(DataPointProps.cluster)).toString();
+			InputLine.argValue += "\tcluster:" + DataPointProps.cluster;
 			if (DataPointProps.clusterlabel.length() > 0)
 			{
 				InputLine.argValue += "\tclusterlabel:" + DataPointProps.clusterlabel;
@@ -720,7 +738,7 @@ public class SALSA_Properties
 		}
 		if (DataPointProps.group >= 0)
 		{
-			InputLine.argValue += "\tgroup:" + (new Integer(DataPointProps.group)).toString();
+			InputLine.argValue += "\tgroup:" + DataPointProps.group;
 			if (DataPointProps.grouplabel.length() > 0)
 			{
 				InputLine.argValue += "\tgrouplabel:" + DataPointProps.grouplabel;
@@ -730,15 +748,15 @@ public class SALSA_Properties
 		{
 			InputLine.argValue += "\tpointlabel:" + DataPointProps.pointlabel;
 		}
-		InputLine.argValue += "\tFixedorVaried:" + (new Integer(DataPointProps.FixedorVaried)).toString();
-		InputLine.argValue += "\tPointType:" + (new Integer(DataPointProps.PointType)).toString();
+		InputLine.argValue += "\tFixedorVaried:" + DataPointProps.FixedorVaried;
+		InputLine.argValue += "\tPointType:" + DataPointProps.PointType;
 		if (DataPointProps.LocalPointNumber >= 0)
 		{
-			InputLine.argValue += "\tLocalPointNumber:" + (new Integer(DataPointProps.LocalPointNumber)).toString();
+			InputLine.argValue += "\tLocalPointNumber:" + DataPointProps.LocalPointNumber;
 		}
 		if (DataPointProps.OriginalPointNumber >= 0)
 		{
-			InputLine.argValue += "\tOriginalPointNumber:" + (new Integer(DataPointProps.OriginalPointNumber)).toString();
+			InputLine.argValue += "\tOriginalPointNumber:" + DataPointProps.OriginalPointNumber;
 		}
 
 	} // End AppendDataPointProperties

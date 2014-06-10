@@ -90,14 +90,23 @@ public class ManxcatMDS
 
 
 		// Loop over initial analysis until no more deleted points
-		SALSAUtility.SALSAPrint(1, "\nInitial Processing Parameters\nDistance Cut " + String.format("%.3f", SALSAUtility.DistanceCut) + " Link Cut " + (new Integer(SALSAUtility.LinkCut)).toString() + " Allowed Deleted Fraction " + String.format("%.3f", SALSAUtility.AllowedDeletedFraction) + " Undefined Distance Value " + String.format("%.3f", SALSAUtility.UndefinedDistanceValue) + "\nDistance Transformation Method " + (new Integer(SALSAUtility.TransformMethod)).toString() + " with Parameter " + String.format("%.4f", SALSAUtility.TransformParameter));
+		SALSAUtility.SALSAPrint(1, "\nInitial Processing Parameters\nDistance Cut " + String
+                .format("%.3f",
+                        SALSAUtility.DistanceCut) + " Link Cut " + SALSAUtility.LinkCut + " Allowed Deleted Fraction " + String
+                .format("%.3f", SALSAUtility.AllowedDeletedFraction) + " Undefined Distance Value " + String
+                .format("%.3f",
+                        SALSAUtility.UndefinedDistanceValue) + "\nDistance Transformation Method " + SALSAUtility.TransformMethod + " with Parameter " + String
+
+
+                .format("%.4f", SALSAUtility.TransformParameter));
 		double MissingDistances = 0.0;
 		int DisconnectedPoints = 0;
 		int DisconnectedLoopCount = 1;
 		while (true)
 		{
 			int oldDisconnectedPoints = DisconnectedPoints;
-			SALSAUtility.SALSAPrint(1, "\n ******* Loop over Identification of Disconnected Points " + (new Integer(DisconnectedLoopCount)).toString());
+			SALSAUtility.SALSAPrint(1,
+                                    "\n ******* Loop over Identification of Disconnected Points " + DisconnectedLoopCount);
 			tangible.RefObject<Double> tempRef_SystemAverage = new tangible.RefObject<Double>(SystemAverage);
 			tangible.RefObject<Double> tempRef_SystemMax = new tangible.RefObject<Double>(SystemMax);
 			tangible.RefObject<Double> tempRef_SystemSigma = new tangible.RefObject<Double>(SystemSigma);
@@ -117,7 +126,9 @@ public class ManxcatMDS
 			int AllowedDisconnectedNumber = (int) SALSAUtility.AllowedDeletedFraction + SALSAUtility.PointCount_Global;
 			if (DisconnectedPoints > AllowedDisconnectedNumber)
 			{
-				SALSAUtility.printAndThrowRuntimeException("Must stop as Number of Disconnected Points " + (new Integer(DisconnectedPoints)).toString() + " Exceeds Cut " + (new Integer(AllowedDisconnectedNumber)).toString());
+				SALSAUtility.printAndThrowRuntimeException(
+                        "Must stop as Number of Disconnected Points " + DisconnectedPoints + " Exceeds Cut " +
+                                AllowedDisconnectedNumber);
 
 			}
 			++DisconnectedLoopCount;
@@ -136,7 +147,7 @@ public class ManxcatMDS
 		}
 		if ((SALSAUtility.DebugPrintOption > 0) && (SALSAUtility.MPI_Rank == 0))
 		{
-			SALSAUtility.SALSAPrint(1, "Deleted Points due to bad link count " + (new Integer(deletedpoints)).toString());
+			SALSAUtility.SALSAPrint(1, "Deleted Points due to bad link count " + deletedpoints);
 		}
 
 		// If necessary Clean up and Transform Distances overriding previous averages
@@ -244,7 +255,7 @@ public class ManxcatMDS
 		{
 			if (SALSAUtility.NumberFixedPoints < (Hotsun.ParameterVectorDimension - 1))
 			{
-				SALSAUtility.printAndThrowRuntimeException("Not enough fixed points " + (new Integer(SALSAUtility.NumberFixedPoints)).toString());
+				SALSAUtility.printAndThrowRuntimeException("Not enough fixed points " + SALSAUtility.NumberFixedPoints);
 
 			}
 		}
@@ -258,7 +269,7 @@ public class ManxcatMDS
 					// This is Used point number
 				if (ParameterIndex < 0)
 				{
-					SALSAUtility.printAndThrowRuntimeException("Illegal Fixed Point " + (new Integer(FixedIndex)).toString());
+					SALSAUtility.printAndThrowRuntimeException("Illegal Fixed Point " + FixedIndex);
 
 				}
 				for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
@@ -283,8 +294,22 @@ public class ManxcatMDS
 			double tmp = SALSAUtility.NumberVariedPoints;
 			double fraction = MissingDistances / (tmp * (tmp - 1.0));
 			double EstimatedDimension = 2.0 * SystemAverage * SystemAverage / (SystemSigma * SystemSigma);
-			SALSAUtility.SALSAPrint(1, "\nAFTER CLEAN Disconnected Points " + (new Integer(DisconnectedPoints)).toString() + " Missing Distances " + String.format("%.0f", MissingDistances) + " Fraction " + String.format("%.4f", fraction));
-			SALSAUtility.SALSAPrint(1, "AFTER TRANSFORM Max " + String.format("%.4E", SystemMax) + " Average " + String.format("%.4E", SystemAverage) + " Sigma " + String.format("%.4E", SystemSigma) + " Estimated Dimension " + String.format("%.2f", EstimatedDimension) + "\n Center " + (new Integer(Center)).toString() + " With Link Cut " + (new Integer(LinkCutforCenter)).toString() + " Radius " + String.format("%.4E", SystemRadius) + " xAxis " + (new Integer(xAxis)).toString() + " " + String.format("%.4E", xAxisExtent) + " xyPlane " + (new Integer(xyPlane)).toString() + " " + String.format("%.4E", xyPlaneExtent) + "\n Minimum Distance " + String.format("%.4E", MinimumDistance) + " Distances Less than this " + String.format("%.0f", DistancesNearEachOther) + " Points Affected " + (new Integer(NotLonelyPoints)).toString());
+			SALSAUtility.SALSAPrint(1,
+                                    "\nAFTER CLEAN Disconnected Points " + DisconnectedPoints + " Missing Distances " + String
+
+                                            .format("%.0f", MissingDistances) + " Fraction " + String
+                                            .format("%.4f", fraction));
+			SALSAUtility.SALSAPrint(1, "AFTER TRANSFORM Max " + String.format("%.4E", SystemMax) + " Average " + String
+                    .format("%.4E", SystemAverage) + " Sigma " + String
+                    .format("%.4E", SystemSigma) + " Estimated Dimension " + String
+                    .format("%.2f",
+                            EstimatedDimension) + "\n Center " + Center + " With Link Cut " + LinkCutforCenter + " " +
+                    "Radius " + String
+                    .format("%.4E", SystemRadius) + " xAxis " + xAxis + " " + String
+                    .format("%.4E", xAxisExtent) + " xyPlane " + xyPlane + " " + String
+                    .format("%.4E", xyPlaneExtent) + "\n Minimum Distance " + String
+                    .format("%.4E", MinimumDistance) + " Distances Less than this " + String
+                    .format("%.0f", DistancesNearEachOther) + " Points Affected " + NotLonelyPoints);
 			String histogramcounts = "";
 			for (int binloop = 0; binloop < (2 + PointsinDistanceHistogram); binloop++)
 			{
@@ -1021,11 +1046,13 @@ public class ManxcatMDS
 				InitializationNumberofPoints = tempRef_InitializationNumberofPoints.argValue;
 			if (tempVar)
 			{
-				System.out.println(OriginalMDSFileName + " Read Successfully Points " + (new Integer(InitializationNumberofPoints)).toString());
+				System.out.println(OriginalMDSFileName + " Read Successfully Points " + InitializationNumberofPoints);
 			}
 			if (SALSAUtility.PointCount_Global != InitializationNumberofPoints)
 			{
-				SALSAUtility.printAndThrowRuntimeException(" Inconsistent Initialization File Point Counts " + (new Integer(InitializationNumberofPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.PointCount_Global)).toString());
+				SALSAUtility.printAndThrowRuntimeException(
+                        " Inconsistent Initialization File Point Counts " + InitializationNumberofPoints + " Expected" +
+                                " is " + SALSAUtility.PointCount_Global);
 
 			}
 		}
@@ -1045,7 +1072,10 @@ public class ManxcatMDS
 
 			if ((SALSAUtility.NumberOriginalPoints < InitializationNumberofPoints) || (InitializationFileProperties.NumberOriginalPoints != SALSAUtility.NumberOriginalPoints))
 			{
-				SALSAUtility.printAndThrowRuntimeException(" Inconsistent Initialization File Point Counts " + (new Integer(InitializationNumberofPoints)).toString() + " or " + (new Integer(InitializationFileProperties.NumberOriginalPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
+				SALSAUtility.printAndThrowRuntimeException(
+                        " Inconsistent Initialization File Point Counts " + InitializationNumberofPoints + " or " +
+                                InitializationFileProperties.NumberOriginalPoints + " Expected is " + SALSAUtility
+                                .NumberOriginalPoints);
 
 			}
 
@@ -1112,7 +1142,8 @@ public class ManxcatMDS
 				{
 					if (!SALSAUtility.GlobalPointProperties[GlobalIndex].valuesset)
 					{
-						SALSAUtility.printAndThrowRuntimeException("Error in Initialized Points -- Unset point " + (new Integer(GlobalIndex)).toString());
+						SALSAUtility.printAndThrowRuntimeException(
+                                "Error in Initialized Points -- Unset point " + GlobalIndex);
 					}
 					Solution.param[LongIndex][0] = SALSAUtility.GlobalPointProperties[GlobalIndex].x;
 					Solution.param[LongIndex][1] = SALSAUtility.GlobalPointProperties[GlobalIndex].y;
@@ -1136,7 +1167,8 @@ public class ManxcatMDS
 							{
 								if (!SALSAUtility.GlobalPointProperties[GlobalIndex].valuesset)
 								{
-									SALSAUtility.printAndThrowRuntimeException("Error in Fixed Points -- Unset point " + (new Integer(GlobalIndex)).toString());
+									SALSAUtility.printAndThrowRuntimeException(
+                                            "Error in Fixed Points -- Unset point " + GlobalIndex);
 								}
 								if (LocalVectorIndex == 0)
 								{

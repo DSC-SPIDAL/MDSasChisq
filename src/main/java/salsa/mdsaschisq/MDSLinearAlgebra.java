@@ -220,7 +220,7 @@ public class MDSLinearAlgebra
 				ManxcatCentral.MakeVectorGlobal(DistributedCGVector_R, GlobalCGVector_R);
 				if (SALSAUtility.MPI_Rank == 0)
 				{
-					SALSAUtility.SALSAPrint(0, " CG Failure after " + (new Integer(RealMatrixSize)).toString() + " Steps");
+					SALSAUtility.SALSAPrint(0, " CG Failure after " + RealMatrixSize + " Steps");
 					String ListofNorms = "";
 					int Normindex = CountSteps;
 					for (int inorm = 0; inorm < 10; inorm++)
@@ -234,7 +234,7 @@ public class MDSLinearAlgebra
 					}
 					SALSAUtility.SALSAPrint(0, "Last 10 Norms " + ListofNorms);
 
-					String fname = ManxcatCentral.ResultDirectoryName + "\\BadCGVector" + (new Integer(Hotsun.TotalCGFailures)).toString();
+					String fname = ManxcatCentral.ResultDirectoryName + "\\BadCGVector" + Hotsun.TotalCGFailures;
 					StreamWriter sw = new StreamWriter(fname, false, Encoding.UTF8);
 					double fractionnorm = 1.0 / Math.sqrt(CurrentRNorm);
 					try

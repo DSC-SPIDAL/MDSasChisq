@@ -14,7 +14,9 @@ public class ManxcatMDSWriteSolution
 
 		if (LocalVectorDimension != perr[0].GetLength(0))
 		{
-			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions Labels " + (new Integer(LocalVectorDimension)).toString() + " Perr " + perr[0].GetLength(0).toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions Labels " + LocalVectorDimension + " Perr " + perr[0].GetLength(0)
+                                                                                                 .toString());
 		}
 
 		ManxcatSection Configuration = ManxcatCentral.config;
@@ -152,7 +154,7 @@ public class ManxcatMDSWriteSolution
 						Coordinates += String.format("%.4E", param[UsedPointIndex][LocalVectorIndex]) + "\t";
 					}
 
-					sw.WriteLine(String.format((GlobalPointIndex).toString() + "\t" + Coordinates + (new Integer(SingleCluster)).toString()));
+					sw.WriteLine(String.format((GlobalPointIndex).toString() + "\t" + Coordinates + SingleCluster));
 				}
 			}
 

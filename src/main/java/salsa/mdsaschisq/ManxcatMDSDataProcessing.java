@@ -87,7 +87,8 @@ public class ManxcatMDSDataProcessing
 
 				if (split.length < Hotsun.ParameterVectorDimension)
 				{
-					SALSAUtility.printAndThrowRuntimeException(" Point " + (new Integer(PointIndex)).toString() + " has wrong number of Entries " + inputLineStr + " Entries" + split.length);
+					SALSAUtility.printAndThrowRuntimeException(
+                            " Point " + PointIndex + " has wrong number of Entries " + inputLineStr + " Entries" + split.length);
 
 
 				}
@@ -315,7 +316,13 @@ public class ManxcatMDSDataProcessing
 				}
 				System.out.println(varalphaxyz + " " + Fullcorrelation + " " + vargamma);
 				Fullcorrelation = Fullcorrelation / (Math.sqrt(vargamma * varalphaxyz));
-				SALSAUtility.SALSAPrint(0, "Column " + (new Integer(pickout)).toString() + " File " + FunctionFileName + " MDS File " + TypicalMDSFileName + " Total Weight " + (new Double(totalweight)).toString() + " Correlation " + String.format("%.4f", Fullcorrelation) + " Direction " + String.format("%.4f", alpha[0]) + " " + String.format("%.4f", alpha[1]) + " " + String.format("%.4f", alpha[2]));
+				SALSAUtility.SALSAPrint(0,
+                                        "Column " + pickout + " File " + FunctionFileName + " MDS File " + TypicalMDSFileName + " Total Weight " + (new Double(
+
+                                                totalweight)).toString() + " Correlation " + String
+                                                .format("%.4f", Fullcorrelation) + " Direction " + String
+                                                .format("%.4f", alpha[0]) + " " + String
+                                                .format("%.4f", alpha[1]) + " " + String.format("%.4f", alpha[2]));
 			}
 
 			// Set Divisions
@@ -330,7 +337,7 @@ public class ManxcatMDSDataProcessing
 			String OutputFileExtension = ManxcatCentral.config.ConversionInformation;
 			OutputFileExtension = OutputFileExtension.replace(".dat", "");
 			OutputFileExtension = OutputFileExtension.replace(".txt", "");
-			OutputFileExtension = OutputFileExtension + "-" + (new Integer(pickout)).toString() + ".txt";
+			OutputFileExtension = OutputFileExtension + "-" + pickout + ".txt";
 			String labelFileDirectory = ManxcatCentral.config.ClusterDirectory; // Directory for Colors attached to Points
 			String OutputFileName = labelFileDirectory + File.separatorChar + OutputFileExtension;
 			WritePointCluster(OutputFileName, PointColors, SALSAUtility.PointCount_Global);
@@ -379,7 +386,7 @@ public class ManxcatMDSDataProcessing
 
 		if (NumberofCuts <= 0)
 		{
-			SALSAUtility.printAndThrowRuntimeException("Too few points " + (new Integer(NumberofCuts)).toString() + " in Cut File " + CutFileName);
+			SALSAUtility.printAndThrowRuntimeException("Too few points " + NumberofCuts + " in Cut File " + CutFileName);
 
 
 		}
@@ -456,13 +463,15 @@ public class ManxcatMDSDataProcessing
 			if (FamilyNumber == 1)
 			{
 				SALSAUtility.GlobalPointProperties[PointIndex].family1 = Icount;
-				SALSAUtility.GlobalPointProperties[PointIndex].familylabel1 = CutLabel[Icount - minlabel] + " " + (new Integer(Icount)).toString() + " out of " + (new Integer(CountFamilies)).toString() + " Count " + (new Integer(FamilyCounts[Icount - minlabel])).toString();
+				SALSAUtility.GlobalPointProperties[PointIndex].familylabel1 = CutLabel[Icount - minlabel] + " " +
+                        Icount + " out of " + CountFamilies + " Count " + FamilyCounts[Icount - minlabel];
 			}
 
 			if (FamilyNumber == 2)
 			{
 				SALSAUtility.GlobalPointProperties[PointIndex].family2 = Icount;
-				SALSAUtility.GlobalPointProperties[PointIndex].familylabel2 = CutLabel[Icount - minlabel] + " " + (new Integer(Icount)).toString() + " out of " + (new Integer(CountFamilies)).toString() + " Count " + (new Integer(FamilyCounts[Icount - minlabel])).toString();
+				SALSAUtility.GlobalPointProperties[PointIndex].familylabel2 = CutLabel[Icount - minlabel] + " " +
+                        Icount + " out of " + CountFamilies + " Count " + FamilyCounts[Icount - minlabel];
 			}
 		}
 
@@ -475,7 +484,8 @@ public class ManxcatMDSDataProcessing
 		{
 			OldComment += "\n";
 		}
-		OldComment += "Family" + (new Integer(FamilyNumber)).toString() + " " + FamilyLabel + " Information added from " + CutFileName + " Time " + cleandate;
+		OldComment += "Family" + FamilyNumber + " " + FamilyLabel + " Information added from " + CutFileName + " Time " +
+                "" + cleandate;
 		SALSAUtility.GlobalFileProperties.Comment = OldComment;
 
 		//  Write new label file
@@ -486,8 +496,10 @@ public class ManxcatMDSDataProcessing
 			labelfilename = ManxcatCentral.config.ControlDirectoryName + File.separatorChar + labelfilename;
 		}
 		SALSALibrary.SALSA_Properties.WriteDataPointFile(labelfilename, ManxcatCentral.config.Write2Das3D, "colon,SameFileName ", SALSAUtility.GlobalFileProperties, SALSAUtility.GlobalPointProperties, SALSAUtility.NumberOriginalPoints);
-		SALSAUtility.SALSAPrint(0, "Family" + (new Integer(FamilyNumber)).toString() + " " + FamilyLabel + " Info Added to " + labelfilename + " from " + CutFileName);
-		ManxcatCentral.config.Comment += "\nFamily" + (new Integer(FamilyNumber)).toString() + " " + FamilyLabel + " Info Added to " + labelfilename + " from " + CutFileName;
+		SALSAUtility.SALSAPrint(0,
+                                "Family" + FamilyNumber + " " + FamilyLabel + " Info Added to " + labelfilename + " from " + CutFileName);
+		ManxcatCentral.config.Comment += "\nFamily" + FamilyNumber + " " + FamilyLabel + " Info Added to " +
+                labelfilename + " from " + CutFileName;
 	} // End UpdateManxcatMDS_Option12_FamilybyCuts
 
 	public static void UpdateManxcatMDS_Option12_Cluster()
@@ -502,7 +514,8 @@ public class ManxcatMDSDataProcessing
 
 		if (NumberOfClusterLines != SALSAUtility.PointCount_Global)
 		{
-			SALSAUtility.printAndThrowRuntimeException(" Illegal Count " + (new Integer(NumberOfClusterLines)).toString() + " in File " + ClusterFileName);
+			SALSAUtility.printAndThrowRuntimeException(
+                    " Illegal Count " + NumberOfClusterLines + " in File " + ClusterFileName);
 
 
 		}
@@ -543,7 +556,8 @@ public class ManxcatMDSDataProcessing
 		{
 			int Icount = CategoryIndex[PointIndex];
 			SALSAUtility.GlobalPointProperties[PointIndex].cluster = Icount;
-			SALSAUtility.GlobalPointProperties[PointIndex].clusterlabel = "Cluster " + (new Integer(Icount)).toString() + " out of " + (new Integer(TotalNumberClusters)).toString() + " Count " + (new Integer(ClusterCounts[Icount - minlabel])).toString();
+			SALSAUtility.GlobalPointProperties[PointIndex].clusterlabel = "Cluster " + Icount + " out of " +
+                    TotalNumberClusters + " Count " + ClusterCounts[Icount - minlabel];
 		}
 		SALSAUtility.GlobalFileProperties.ClusterName = "Clusters from " + ClusterFileName;
 		SALSAUtility.GlobalFileProperties.ClusterStartIndex = minlabel;
@@ -647,7 +661,8 @@ public class ManxcatMDSDataProcessing
 
 			if (NumberOfLabels != SALSAUtility.PointCount_Global)
 			{
-				SALSAUtility.printAndThrowRuntimeException(" Illegal Count " + (new Integer(NumberOfLabels)).toString() + " in File " + LabelFileName);
+				SALSAUtility.printAndThrowRuntimeException(
+                        " Illegal Count " + NumberOfLabels + " in File " + LabelFileName);
 
 
 			}
@@ -731,7 +746,10 @@ public class ManxcatMDSDataProcessing
 					}
 					catch (RuntimeException e)
 					{
-						SALSAUtility.printAndThrowRuntimeException("Failed to load data array " + inputLineStr + " " + " " + (new Integer(NumberofPoints.argValue)).toString() + " " + (new Integer(newlabelnumber)).toString() + " " + e.toString());
+						SALSAUtility.printAndThrowRuntimeException(
+                                "Failed to load data array " + inputLineStr + " " + " " + NumberofPoints.argValue + " " + newlabelnumber + " " + e
+
+                                        .toString());
 
 						throw (e);
 					}
@@ -806,7 +824,7 @@ public class ManxcatMDSDataProcessing
 
 							if ((startnumber < 0) || (startnumber > 1))
 							{
-								SALSAUtility.printAndThrowRuntimeException("Unexpected Start Number " + (new Integer(startnumber)).toString());
+								SALSAUtility.printAndThrowRuntimeException("Unexpected Start Number " + startnumber);
 
 
 							}
@@ -814,14 +832,17 @@ public class ManxcatMDSDataProcessing
 
 						if (NumberofLabels.argValue != (newlabelnumber + startnumber))
 						{
-							SALSAUtility.printAndThrowRuntimeException("Unexpected Label Number " + (new Integer(newlabelnumber)).toString() + " Expected " + (new Integer(NumberofLabels.argValue)).toString() + " + " + (new Integer(startnumber)).toString());
+							SALSAUtility.printAndThrowRuntimeException(
+                                    "Unexpected Label Number " + newlabelnumber + " Expected " + NumberofLabels
+                                            .argValue + " + " + startnumber);
 
 
 						}
 
 						if (split[1].length() <= 0)
 						{
-							SALSAUtility.printAndThrowRuntimeException("Zero length label for point " + (new Integer(NumberofLabels.argValue)).toString());
+							SALSAUtility.printAndThrowRuntimeException(
+                                    "Zero length label for point " + NumberofLabels.argValue);
 
 
 						}
@@ -872,7 +893,7 @@ public class ManxcatMDSDataProcessing
 				for (int i = 0; i < dataPoints; i++)
 				{
 					String stripped = tangible.DotNetToJavaStringHelper.trim(labels[i], new char[] {' ', '\t'});
-					sw.WriteLine(String.format(stripped + "\t" + (new Integer(ColorValues[i])).toString() + ".0000000000"));
+					sw.WriteLine(String.format(stripped + "\t" + ColorValues[i] + ".0000000000"));
 				}
 			}
 
@@ -903,7 +924,7 @@ public class ManxcatMDSDataProcessing
 			{
 				for (int i = 0; i < dataPoints; i++)
 				{
-					sw.WriteLine(String.format((new Integer(i + 1)).toString() + " " + (new Integer(ColorValues[i])).toString()));
+					sw.WriteLine(String.format(i + 1 + " " + ColorValues[i]));
 				}
 			}
 			sw.Flush();

@@ -319,12 +319,14 @@ public class SALSABLAS
 
 		if (LocalVectorDimension != VectorA[0].GetLength(0))
 		{
-			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions C" + (new Integer(LocalVectorDimension)).toString() + " A " + VectorA[0].GetLength(0).toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions C" + LocalVectorDimension + " A " + VectorA[0].GetLength(0).toString());
 		}
 
 		if (LocalVectorDimension != VectorB[0].GetLength(0))
 		{
-			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions C" + (new Integer(LocalVectorDimension)).toString() + " B " + VectorB[0].GetLength(0).toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions C" + LocalVectorDimension + " B " + VectorB[0].GetLength(0).toString());
 		}
 
 		if (SALSAUtility.sequentialBLAS)
@@ -391,7 +393,8 @@ public class SALSABLAS
 
 		if (LocalVectorDimension != VectorA[0].GetLength(0))
 		{
-			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions C" + (new Integer(LocalVectorDimension)).toString() + " A " + VectorA[0].GetLength(0).toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions C" + LocalVectorDimension + " A " + VectorA[0].GetLength(0).toString());
 		}
 
 		if (SALSAUtility.sequentialBLAS)
@@ -474,14 +477,16 @@ public class SALSABLAS
 
 		if (LocalVectorDimension1 != VectorA[0].GetLength(0))
 		{
-			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions C" + (new Integer(LocalVectorDimension1)).toString() + " A " + VectorA[0].GetLength(0).toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions C" + LocalVectorDimension1 + " A " + VectorA[0].GetLength(0).toString());
 		}
 
 		int LocalVectorDimension2 = VectorC[0].GetLength(1);
 
 		if (LocalVectorDimension2 != VectorA[0].GetLength(1))
 		{
-			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions C" + (new Integer(LocalVectorDimension2)).toString() + " A " + VectorA[0].GetLength(1).toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions C" + LocalVectorDimension2 + " A " + VectorA[0].GetLength(1).toString());
 		}
 
 		if (SALSAUtility.sequentialBLAS)
@@ -573,7 +578,8 @@ public class SALSABLAS
 
 		if (LocalVectorDimension != VectorA[0].GetLength(0))
 		{
-			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions B" + (new Integer(LocalVectorDimension)).toString() + " A " + VectorA[0].GetLength(0).toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions B" + LocalVectorDimension + " A " + VectorA[0].GetLength(0).toString());
 		}
 
 		if (SALSAUtility.sequentialBLAS)
@@ -622,26 +628,30 @@ public class SALSABLAS
 
 		if (LocalVectorDimension0 != MatrixA[0][0].GetLength(0))
 		{
-			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions C" + (new Integer(LocalVectorDimension0)).toString() + " A " + MatrixA[0][0].GetLength(0).toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions C" + LocalVectorDimension0 + " A " + MatrixA[0][0].GetLength(0).toString());
 		}
 
 		int LocalVectorDimension1 = MatrixC[0][0].GetLength(1);
 
 		if (LocalVectorDimension1 != MatrixA[0][0].GetLength(1))
 		{
-			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions C" + (new Integer(LocalVectorDimension1)).toString() + " A " + MatrixA[0][0].GetLength(1).toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions C" + LocalVectorDimension1 + " A " + MatrixA[0][0].GetLength(1).toString());
 		}
 		int LongDimension0 = MatrixC.length;
 
 		if (LongDimension0 != MatrixA.length)
 		{
-			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions C" + (new Integer(LongDimension0)).toString() + " A " + MatrixA.length.toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions C" + LongDimension0 + " A " + MatrixA.length.toString());
 		}
 		int LongDimension1 = MatrixC[0].length;
 
 		if (LongDimension1 != MatrixA[0].length)
 		{
-			SALSAUtility.printAndThrowRuntimeException("Inconsistent Dimensions C" + (new Integer(LongDimension1)).toString() + " A " + MatrixA[0].length.toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions C" + LongDimension1 + " A " + MatrixA[0].length.toString());
 		}
 
 		if (!SALSAUtility.sequentialBLAS)

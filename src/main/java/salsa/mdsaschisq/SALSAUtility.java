@@ -83,7 +83,8 @@ public class SALSAUtility {
     public static int MPIIOStrategy = 0; // MPI I/O Strategy
     public static boolean sequentialBLAS = false; // If true calculate BLAS sequentially using imput lengths; if false use SALSAParallelism and do using Threads/MPI
 
-    public static Matrix PointDistances; // Point Distances
+    // TODO - distance type - short
+    public static short[][] PointDistances; // Point Distances
     public static int MatrixBreakFactor = 1;
     public static int[] ArrayDivision;
     public static int[] Indexsubtraction;

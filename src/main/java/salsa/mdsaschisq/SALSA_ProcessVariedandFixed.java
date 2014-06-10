@@ -50,12 +50,16 @@ public class SALSA_ProcessVariedandFixed
 			InputNumberofPoints = tempRef_InputNumberofPoints.argValue;
 			if (SALSAUtility.NumberOriginalPoints != InputNumberofPoints)
 			{
-				SALSAUtility.printAndThrowRuntimeException(" Inconsistent Point Counts " + (new Integer(InputNumberofPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
+				SALSAUtility.printAndThrowRuntimeException(
+                        " Inconsistent Point Counts " + InputNumberofPoints + " Expected is " + SALSAUtility
+                                .NumberOriginalPoints);
 
 			}
 			for (int OriginalPointIndex = 0; OriginalPointIndex < SALSAUtility.NumberOriginalPoints; OriginalPointIndex++)
 			{
-				SALSAUtility.OriginalDataLabels[OriginalPointIndex] = SALSAUtility.OriginalPointProperties[OriginalPointIndex].grouplabel + ":" + (new Integer(SALSAUtility.OriginalPointProperties[OriginalPointIndex].group)).toString();
+				SALSAUtility.OriginalDataLabels[OriginalPointIndex] = SALSAUtility.OriginalPointProperties
+                        [OriginalPointIndex].grouplabel + ":" + SALSAUtility
+                        .OriginalPointProperties[OriginalPointIndex].group;
 			}
 		}
 		else
@@ -81,7 +85,9 @@ public class SALSA_ProcessVariedandFixed
 			int testvalue = SALSAUtility.OriginalPointProperties[OriginalPointIndex].OriginalPointNumber;
 			if ((testvalue != -1) && (testvalue != OriginalPointIndex))
 			{
-				SALSAUtility.printAndThrowRuntimeException(" Position " + (new Integer(OriginalPointIndex)).toString() + " Inconsistent Point Counts " + (new Integer(testvalue)).toString() + " Expected is " + (new Integer(OriginalPointIndex)).toString());
+				SALSAUtility.printAndThrowRuntimeException(
+                        " Position " + OriginalPointIndex + " Inconsistent Point Counts " + testvalue + " Expected is" +
+                                " " + OriginalPointIndex);
 
 			}
 			SALSAUtility.OriginalPointProperties[OriginalPointIndex].OriginalPointNumber = OriginalPointIndex;
@@ -190,14 +196,19 @@ public class SALSA_ProcessVariedandFixed
 				InputVariedNumberofPoints = tempRef_InputVariedNumberofPoints.argValue;
 				if ((SALSAUtility.NumberOriginalPoints < InputVariedNumberofPoints) || (VariedFileProperties.NumberOriginalPoints != SALSAUtility.NumberOriginalPoints))
 				{
-					SALSAUtility.printAndThrowRuntimeException(" Inconsistent Varied File Point Counts " + (new Integer(InputVariedNumberofPoints)).toString() + " or " + (new Integer(VariedFileProperties.NumberOriginalPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
+					SALSAUtility.printAndThrowRuntimeException(
+                            " Inconsistent Varied File Point Counts " + InputVariedNumberofPoints + " or " +
+                                    VariedFileProperties.NumberOriginalPoints + " Expected is " + SALSAUtility
+                                    .NumberOriginalPoints);
 
 				}
 				if (VariedCollection.equals("family1") || VariedCollection.equals("family2") || VariedCollection.equals("group") || VariedCollection.equals("cluster"))
 				{
 					if (SALSAUtility.NumberOriginalPoints != InputVariedNumberofPoints)
 					{
-						SALSAUtility.printAndThrowRuntimeException(" Inconsistent Varied File Point Counts " + (new Integer(InputVariedNumberofPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
+						SALSAUtility.printAndThrowRuntimeException(
+                                " Inconsistent Varied File Point Counts " + InputVariedNumberofPoints + " Expected is" +
+                                        " " + SALSAUtility.NumberOriginalPoints);
 
 					}
 				}
@@ -339,14 +350,19 @@ public class SALSA_ProcessVariedandFixed
 
 				if ((SALSAUtility.NumberOriginalPoints < InputFixedNumberofPoints) || (FixedFileProperties.NumberOriginalPoints != SALSAUtility.NumberOriginalPoints))
 				{
-					SALSAUtility.printAndThrowRuntimeException(" Inconsistent Fixed File Point Counts " + (new Integer(InputFixedNumberofPoints)).toString() + " or " + (new Integer(FixedFileProperties.NumberOriginalPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
+					SALSAUtility.printAndThrowRuntimeException(
+                            " Inconsistent Fixed File Point Counts " + InputFixedNumberofPoints + " or " +
+                                    FixedFileProperties.NumberOriginalPoints + " Expected is "
+                                    + SALSAUtility.NumberOriginalPoints);
 
 				}
 				if (FixedCollection.equals("family1") || FixedCollection.equals("family2") || FixedCollection.equals("group") || FixedCollection.equals("cluster"))
 				{
 					if (SALSAUtility.NumberOriginalPoints != InputFixedNumberofPoints)
 					{
-						SALSAUtility.printAndThrowRuntimeException(" Inconsistent Fixed File Point Counts " + (new Integer(InputFixedNumberofPoints)).toString() + " Expected is " + (new Integer(SALSAUtility.NumberOriginalPoints)).toString());
+						SALSAUtility.printAndThrowRuntimeException(
+                                " Inconsistent Fixed File Point Counts " + InputFixedNumberofPoints + " Expected is "
+                                        + SALSAUtility.NumberOriginalPoints);
 
 					}
 				}
@@ -523,11 +539,14 @@ public class SALSA_ProcessVariedandFixed
 		{
 			if (missingdata > 0)
 			{
-				SALSAUtility.SALSAPrint(0, " At this stage missing initial vales for " + (new Integer(missingdata)).toString() + " Points -- must be in initialization file");
+				SALSAUtility.SALSAPrint(0,
+                                        " At this stage missing initial vales for " + missingdata + " Points -- must be in initialization file");
 			}
 
 			int NotUsed = SALSAUtility.NumberOriginalPoints - SALSAUtility.NumberVariedPoints - SALSAUtility.NumberFixedPoints;
-			SALSAUtility.SALSAPrint(0, " Number of Varied Points " + (new Integer(SALSAUtility.NumberVariedPoints)).toString() + " Fixed Points " + (new Integer(SALSAUtility.NumberFixedPoints)).toString() + " Not Used " + NotUsed);
+			SALSAUtility.SALSAPrint(0,
+                                    " Number of Varied Points " + SALSAUtility.NumberVariedPoints + " Fixed Points "
+                                            + SALSAUtility.NumberFixedPoints + " Not Used " + NotUsed);
 		}
 		return;
 
@@ -561,7 +580,9 @@ public class SALSA_ProcessVariedandFixed
 
 			if ((Processleft > 2) || (Processleft < 0))
 			{
-				SALSAUtility.printAndThrowRuntimeException("Internal Error in LoadBalancing I -- Complain to Programmer MPI " + (new Integer(SALSAUtility.MPI_Rank)).toString() + " Process " + (new Integer(LocalProcessCount)).toString());
+				SALSAUtility.printAndThrowRuntimeException(
+                        "Internal Error in LoadBalancing I -- Complain to Programmer MPI " + SALSAUtility.MPI_Rank +
+                                " Process " + LocalProcessCount);
 
 			}
 			if (Processleft >= 1)
@@ -594,7 +615,11 @@ public class SALSA_ProcessVariedandFixed
 
 				if ((Threadleft > 2) || (Threadleft < 0))
 				{
-					SALSAUtility.printAndThrowRuntimeException("Internal Error in LoadBalancing II -- Complain to Programmer MPI " + (new Integer(SALSAUtility.MPI_Rank)).toString() + " Thread " + (new Integer(ThreadNo)).toString() + " Process " + (new Integer(ProcessIndex)).toString() + " # in Thread " + (new Integer(LocalNumberInThread)).toString() + " # in Process " + (new Integer(LocalProcessCount)).toString());
+					SALSAUtility.printAndThrowRuntimeException(
+                            "Internal Error in LoadBalancing II -- Complain to Programmer MPI " + SALSAUtility
+                                    .MPI_Rank + " Thread " + ThreadNo + " Process " + ProcessIndex + " # in Thread "
+                                    + LocalNumberInThread
+                                    + " # in Process " + LocalProcessCount);
 
 				}
 				if (Threadleft >= 1)
@@ -615,7 +640,10 @@ public class SALSA_ProcessVariedandFixed
 							SALSAUtility.UsedPointtoOriginalPointMap[CountUsed] = VariedPositioninGlobal;
 							if (CountVaried != (SALSAUtility.OriginalPointDisposition[VariedPositioninGlobal] - SALSAUtility.SALSASHIFT))
 							{
-								SALSAUtility.printAndThrowRuntimeException("Error in Varied Point Assignment II -- Complain to Programmer MPI " + (new Integer(SALSAUtility.MPI_Rank)).toString() + " Thread " + (new Integer(ThreadNo)).toString() + " Varied " + (new Integer(VariedPositioninGlobal)).toString());
+								SALSAUtility.printAndThrowRuntimeException(
+                                        "Error in Varied Point Assignment II -- Complain to Programmer MPI " +
+                                                SALSAUtility.MPI_Rank + " Thread " + ThreadNo + " Varied " +
+                                                VariedPositioninGlobal);
 
 							}
 							SALSAUtility.VariedPointOriginal[CountVaried] = VariedPositioninGlobal;
@@ -627,7 +655,10 @@ public class SALSA_ProcessVariedandFixed
 						++VariedPositioninGlobal;
 						if (VariedPositioninGlobal >= SALSAUtility.NumberOriginalPoints)
 						{
-							SALSAUtility.printAndThrowRuntimeException("Error in Varied Point Assignment I -- Complain to Programmer MPI " + (new Integer(SALSAUtility.MPI_Rank)).toString() + " Thread " + (new Integer(ThreadNo)).toString() + " Varied " + (new Integer(VariedPositioninGlobal)).toString());
+							SALSAUtility.printAndThrowRuntimeException(
+                                    "Error in Varied Point Assignment I -- Complain to Programmer MPI " +
+                                            SALSAUtility.MPI_Rank + " Thread " + ThreadNo + " Varied " +
+                                            VariedPositioninGlobal);
 
 						}
 					}
@@ -642,7 +673,10 @@ public class SALSA_ProcessVariedandFixed
 							SALSAUtility.UsedPointtoOriginalPointMap[CountUsed] = FixedPositioninGlobal;
 							if (CountFixed != (-SALSAUtility.OriginalPointDisposition[FixedPositioninGlobal] - SALSAUtility.SALSASHIFT))
 							{
-								SALSAUtility.printAndThrowRuntimeException("Error in Fixed Point Assignment II -- Complain to Programmer MPI " + (new Integer(SALSAUtility.MPI_Rank)).toString() + " Thread " + (new Integer(ThreadNo)).toString() + " Fixed " + (new Integer(FixedPositioninGlobal)).toString());
+								SALSAUtility.printAndThrowRuntimeException(
+                                        "Error in Fixed Point Assignment II -- Complain to Programmer MPI " +
+                                                SALSAUtility.MPI_Rank + " Thread " + ThreadNo + " Fixed " +
+                                                FixedPositioninGlobal);
 
 							}
 							SALSAUtility.FixedPointOriginal[CountFixed] = FixedPositioninGlobal;
@@ -654,7 +688,9 @@ public class SALSA_ProcessVariedandFixed
 						++FixedPositioninGlobal;
 						if (FixedPositioninGlobal >= SALSAUtility.NumberOriginalPoints)
 						{
-							SALSAUtility.printAndThrowRuntimeException("Error in Fixed Point Assignment I -- Complain to Programmer MPI " + (new Integer(SALSAUtility.MPI_Rank)).toString() + " Thread " + (new Integer(ThreadNo)).toString() + " Fixed " + (new Integer(FixedPositioninGlobal)).toString());
+							SALSAUtility.printAndThrowRuntimeException(
+                                    "Error in Fixed Point Assignment I -- Complain to Programmer MPI " + SALSAUtility
+                                            .MPI_Rank + " Thread " + ThreadNo + " Fixed " + FixedPositioninGlobal);
 
 						}
 					}
@@ -665,7 +701,9 @@ public class SALSA_ProcessVariedandFixed
 		} // End loop over Assigning points to processes
 		if (CountUsed != SALSAUtility.PointCount_Global)
 		{
-			SALSAUtility.printAndThrowRuntimeException("Error in Used Point Assignment -- Complain to Programmer " + (new Integer(SALSAUtility.MPI_Rank)).toString() + " Count Used " + (new Integer(CountUsed)).toString());
+			SALSAUtility.printAndThrowRuntimeException(
+                    "Error in Used Point Assignment -- Complain to Programmer " + SALSAUtility.MPI_Rank + " Count " +
+                            "Used " + CountUsed);
 
 		}
 
@@ -691,7 +729,9 @@ public class SALSA_ProcessVariedandFixed
 			}
 			if ((SALSAUtility.OriginalPointDisposition[OriginalPointIndex] <= -SALSAUtility.SALSASHIFT) || (SALSAUtility.OriginalPointDisposition[OriginalPointIndex] >= SALSAUtility.SALSASHIFT))
 			{
-				SALSAUtility.printAndThrowRuntimeException("Error in Redistribution -- Complain to Programmer " + (new Integer(SALSAUtility.MPI_Rank)).toString() + " Original Point " + (new Integer(OriginalPointIndex)).toString());
+				SALSAUtility.printAndThrowRuntimeException(
+                        "Error in Redistribution -- Complain to Programmer " + SALSAUtility.MPI_Rank + " Original " +
+                                "Point " + OriginalPointIndex);
 
 			}
 		}
@@ -811,7 +851,8 @@ public class SALSA_ProcessVariedandFixed
 					{
 						calltype = "Fixed";
 					}
-					SALSAUtility.printAndThrowRuntimeException(" Unspecified Original Point in " + calltype + " File " + (new Integer(VariedorFixedPointIndex)).toString());
+					SALSAUtility.printAndThrowRuntimeException(
+                            " Unspecified Original Point in " + calltype + " File " + VariedorFixedPointIndex);
 
 				}
 				OriginalPointIndex = VariedorFixedPointIndex;
@@ -992,7 +1033,7 @@ public class SALSA_ProcessVariedandFixed
 	{
 		for (int GlobalIndex = 0; GlobalIndex < SALSAUtility.NumberOriginalPoints; GlobalIndex++)
 		{
-			GlobalDataLabels[GlobalIndex] = (new Integer(GlobalIndex)).toString();
+            GlobalDataLabels[GlobalIndex] = GlobalIndex;
 		}
 
 	} // End SetDataLabels

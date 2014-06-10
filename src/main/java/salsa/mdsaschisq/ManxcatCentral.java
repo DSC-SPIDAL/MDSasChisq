@@ -400,7 +400,16 @@ public class ManxcatCentral
 
 			if ((SALSAUtility.DebugPrintOption > 0) && (SALSAUtility.MPI_Rank == 0))
 			{
-				SALSAUtility.SALSAPrint(1, "\n-----------------------------------------------\n" + SALSAUtility.startTime.ToLocalTime() + " Iterations " + (new Integer(Hotsun.numit)).toString() + " Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.zerocr) + " Parameters " + (new Integer(Hotsun.npar)).toString() + " Data Points " + (new Long(Hotsun.ndata)).toString());
+				SALSAUtility.SALSAPrint(1,
+                                        "\n-----------------------------------------------\n" + SALSAUtility.startTime
+                                                                                                            .ToLocalTime() + " Iterations " + Hotsun.numit + " Chisq " + String
+
+
+                                                .format("%.3f",
+                                                        ChisqPrintConstant * Hotsun.zerocr) + " Parameters " + Hotsun
+                                                .npar + " Data Points " + (new Long(
+                                                Hotsun.ndata))
+                                                .toString());
 			}
 
 			Hotsun.DecisionMethod = 0; //   Initial Conditions on Decisions
@@ -760,7 +769,13 @@ public class ManxcatCentral
 				Hotsun.TotalTimeUsed = SALSAUtility.HPDuration;
 
 				//  Print Summary of this solution
-				SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName, "In Loop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " Iteration " + (new Integer(Hotsun.numit)).toString() + " Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.zerocr) + " Best Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.BestSolution.Chisquared));
+				SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName,
+                                         "In Loop " + Hotsun.InitializationLoopCount + " Iteration " + Hotsun.numit + " Chisq " + String
+
+                                                 .format("%.3f",
+                                                         ChisqPrintConstant * Hotsun.zerocr) + " Best Chisq " + String
+
+                                                 .format("%.3f", ChisqPrintConstant * Hotsun.BestSolution.Chisquared));
 
 				if ((SALSAUtility.DebugPrintOption > 1) && (SALSAUtility.MPI_Rank == 0))
 				{
@@ -771,7 +786,39 @@ public class ManxcatCentral
 						shift1 = String.format("%.4f", Changeinxshift);
 						shift2 = String.format("%.4f", xshiftRatio);
 					}
-					SALSAUtility.SALSAPrint(2, "\nLoop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " Iteration " + (new Integer(Hotsun.numit)).toString() + " Q " + String.format("%.4E", Hotsun.Q) + " Qlow " + String.format("%.3f", Hotsun.Qlow) + " (" + (new Integer(Hotsun.EigenvalueIndicator2)).toString() + ") Qhigh " + String.format("%.3f", Hotsun.Qhigh) + " (" + (new Integer(Hotsun.EigenvalueIndicator1)).toString() + ") Qgood " + String.format("%.4E", Hotsun.Qgood) + " Trace Q " + String.format("%.3f", Hotsun.ChisqMatrixTrace) + " Norm Q " + String.format("%.3f", Hotsun.ChisqMatrixNorm) + "\nDecision " + (new Integer(Hotsun.DecisionMethod)).toString() + " 1:" + (new Integer(Hotsun.DecisionMethod_1)).toString() + " 2:" + (new Integer(Hotsun.DecisionMethod_2)).toString() + " 3:" + (new Integer(Hotsun.DecisionMethod_3)).toString() + " 4:" + (new Integer(Hotsun.DecisionMethod_4)).toString() + " 5:" + (new Integer(Hotsun.DecisionMethod_5)).toString() + " Counts Q Low " + (new Integer(Hotsun.CountQSmall)).toString() + " Q High " + (new Integer(Hotsun.CountQLarge)).toString() + " SD Count " + (new Integer(Hotsun.CountToSD)).toString() + " Randoms " + (new Integer(Hotsun.CountToRandom)).toString() + " Exercusions " + (new Integer(Hotsun.CountExercusion)).toString() + " SD Opt " + (new Integer(Hotsun.isdtry)).toString() + " Solver Errs " + (new Integer(Hotsun.materr)).toString() + " CG Iters " + (new Integer(Hotsun.NumberofCGIterations)).toString() + "\nScalProd Shift.First " + String.format("%.4f", Changexshiftfirst) + " Change Shift from Prev DotProd " + shift1 + " and Change Shift in norm " + shift2 + "\nChange in first deriv from Prev DotProd " + String.format("%.4f", Changeinfirst) + " and in first deriv norm " + String.format("%.4f", firstRatio));
+					SALSAUtility.SALSAPrint(2,
+                                            "\nLoop " + Hotsun.InitializationLoopCount + " Iteration " + Hotsun.numit
+                                                    + " Q " + String
+                                                    .format("%.4E", Hotsun.Q) + " Qlow " + String
+                                                    .format("%.3f",
+                                                            Hotsun.Qlow) + " (" + Hotsun.EigenvalueIndicator2 + ") " +
+                                                    "Qhigh " + String
+                                                    .format("%.3f",
+                                                            Hotsun.Qhigh) + " (" + Hotsun.EigenvalueIndicator1 + ") " +
+                                                    "Qgood " + String
+                                                    .format("%.4E", Hotsun.Qgood) + " Trace Q " + String
+                                                    .format("%.3f", Hotsun.ChisqMatrixTrace) + " Norm Q " + String
+                                                    .format("%.3f",
+                                                            Hotsun.ChisqMatrixNorm) + "\nDecision " + Hotsun
+                                                    .DecisionMethod + " 1:" + Hotsun.DecisionMethod_1 + " 2:" +
+                                                    Hotsun.DecisionMethod_2 + " 3:" + Hotsun.DecisionMethod_3 + " 4:"
+                                                    + Hotsun.DecisionMethod_4 + " 5:" + Hotsun.DecisionMethod_5 + " " +
+                                                    "Counts Q Low " + Hotsun.CountQSmall + " Q High "
+                                                    + Hotsun.CountQLarge + " SD Count " + Hotsun.CountToSD + " " +
+                                                    "Randoms " +
+                                                    Hotsun.CountToRandom + " Exercusions " + Hotsun.CountExercusion +
+                                                    " SD Opt " + Hotsun.isdtry + " Solver Errs " + Hotsun.materr + " " +
+                                                    "CG Iters " + Hotsun.NumberofCGIterations + "\nScalProd Shift" +
+                                                    ".First " + String
+                                                    .format("%.4f",
+                                                            Changexshiftfirst) + " Change Shift from Prev DotProd " +
+                                                    shift1 + " and Change Shift in norm " + shift2 + "\nChange in " +
+                                                    "first deriv from Prev DotProd " + String
+
+
+                                                    .format("%.4f",
+                                                            Changeinfirst) + " and in first deriv norm " + String
+                                                    .format("%.4f", firstRatio));
 
 					String chisqmethod = "Marquardt's Algorithm";
 
@@ -806,7 +853,11 @@ public class ManxcatCentral
 
 					if (LineSearchUsed)
 					{
-						SALSAUtility.SALSAPrint(2, "Linesearch Chisq gains " + String.format("%.3f", ChisqPrintConstant * ExtraDecrease) + " Shift Factor " + String.format("%.3f", LineFactor) + " with guess " + String.format("%.3f", LineFactorGuess) + " Iterations " + (new Integer(LineIterations)).toString() + " Method " + (new Integer(Hotsun.DecisionMethod_LineSearch)).toString());
+						SALSAUtility.SALSAPrint(2, "Linesearch Chisq gains " + String
+                                .format("%.3f", ChisqPrintConstant * ExtraDecrease) + " Shift Factor " + String
+                                .format("%.3f", LineFactor) + " with guess " + String
+                                .format("%.3f",
+                                        LineFactorGuess) + " Iterations " + LineIterations + " Method " + Hotsun.DecisionMethod_LineSearch);
 					}
 
 					// Output parameter values if not too many
@@ -1314,17 +1365,27 @@ public class ManxcatCentral
 		SALSAUtility.EndTiming();
 		Hotsun.TotalTimeUsed = SALSAUtility.HPDuration;
 
-		SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName, "End Loop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.zerocr));
+		SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName,
+                                 "End Loop " + Hotsun.InitializationLoopCount + " Chisq " + String
+                                         .format("%.3f", ChisqPrintConstant * Hotsun.zerocr));
 
 		if ((SALSAUtility.DebugPrintOption > 0) && (SALSAUtility.MPI_Rank == 0))
 		{
 
-			SALSAUtility.SALSAPrint(1, "\n-------------------" + SALSAUtility.endTime.ToLocalTime() + "\nIterations " + (new Integer(Hotsun.numit)).toString() + " Chisq " + String.format("%.3f", ChisqPrintConstant * Hotsun.zerocr) + " Q " + String.format("%.3f", Hotsun.Q) + " Qlow " + String.format("%.3f", Hotsun.Qlow) + " Qhigh " + String.format("%.3f", Hotsun.Qhigh) + " Qgood " + String.format("%.3f", Hotsun.Qgood) + " Trace Q " + String.format("%.3f", Hotsun.ChisqMatrixTrace) + " Norm Q " + String.format("%.3f", Hotsun.ChisqMatrixNorm));
+			SALSAUtility.SALSAPrint(1, "\n-------------------" + SALSAUtility.endTime
+                                                                             .ToLocalTime() + "\nIterations " + Hotsun.numit + " Chisq " + String
+
+                    .format("%.3f", ChisqPrintConstant * Hotsun.zerocr) + " Q " + String
+                    .format("%.3f", Hotsun.Q) + " Qlow " + String.format("%.3f", Hotsun.Qlow) + " Qhigh " + String
+                    .format("%.3f", Hotsun.Qhigh) + " Qgood " + String
+                    .format("%.3f", Hotsun.Qgood) + " Trace Q " + String
+                    .format("%.3f", Hotsun.ChisqMatrixTrace) + " Norm Q " + String
+                    .format("%.3f", Hotsun.ChisqMatrixNorm));
 			String bnderrlabel = "";
 
 			if (Hotsun.bnderr != 0)
 			{
-				bnderrlabel = " Boundary Violations " + (new Integer(Hotsun.bnderr)).toString() + " ";
+				bnderrlabel = " Boundary Violations " + Hotsun.bnderr + " ";
 			}
 			String EndReason = "Correct Convergence";
 
@@ -1340,7 +1401,7 @@ public class ManxcatCentral
 
 			if (ReasonToStop == 4)
 			{
-				EndReason = "No Progress in " + (new Integer(Hotsun.nbadgo)).toString() + " Iterations";
+				EndReason = "No Progress in " + Hotsun.nbadgo + " Iterations";
 			}
 
 			if (ReasonToStop == 5)
@@ -1375,7 +1436,14 @@ public class ManxcatCentral
 				}
 			}
 
-			SALSAUtility.SALSAPrint(1, "Loop " + (new Integer(Hotsun.InitializationLoopCount)).toString() + " " + bnderrlabel + EndReason + " CG Failures " + Hotsun.TotalCGFailures + " Iterations " + Hotsun.TotalCGIterations + " Eigenvalue Failures " + Hotsun.TotalPowerFailures + " Iterations " + Hotsun.TotalPowerIterations + " Search Iterations " + Hotsun.TotalSearchIterations + " Total Time " + String.format("%.1f", Hotsun.TotalTimeUsed) + " Calcfg Time " + String.format("%.1f", Hotsun.tcalcfg) + " Per Iter Solve " + String.format("%.1f", SALSAUtility.SubDurations[0] / Hotsun.TotalCGIterations) + " Per Iter Eigen " + String.format("%.1f", SALSAUtility.SubDurations[1] / Hotsun.TotalPowerIterations) + parametervalues);
+			SALSAUtility.SALSAPrint(1,
+                                    "Loop " + Hotsun.InitializationLoopCount + " " + bnderrlabel + EndReason + " CG Failures " + Hotsun.TotalCGFailures + " Iterations " + Hotsun.TotalCGIterations + " Eigenvalue Failures " + Hotsun.TotalPowerFailures + " Iterations " + Hotsun.TotalPowerIterations + " Search Iterations " + Hotsun.TotalSearchIterations + " Total Time " + String
+
+                                            .format("%.1f", Hotsun.TotalTimeUsed) + " Calcfg Time " + String
+                                            .format("%.1f", Hotsun.tcalcfg) + " Per Iter Solve " + String.format("%.1f",
+                                                                                                                 SALSAUtility.SubDurations[0] / Hotsun.TotalCGIterations) + " Per Iter Eigen " + String
+                                            .format("%.1f",
+                                                    SALSAUtility.SubDurations[1] / Hotsun.TotalPowerIterations) + parametervalues);
 			Hotsun.tsolve = 0.0;
 			Hotsun.teigen = 0.0;
 			Hotsun.tcalcfg = 0.0;
@@ -1436,7 +1504,8 @@ public class ManxcatCentral
 		{
 			if (Hotsun.InitializationLoops > 1)
 			{
-				String firstcomment = "Best Initial Condition " + (new Integer(Hotsun.BestChisqLoop)).toString() + " out of " + (new Integer(Hotsun.InitializationLoops)).toString();
+				String firstcomment = "Best Initial Condition " + Hotsun.BestChisqLoop + " out of " + Hotsun
+                        .InitializationLoops;
 				if (SALSAUtility.MPI_Rank == 0)
 				{
 					SALSAUtility.SALSAPrint(1, firstcomment);
@@ -1661,7 +1730,9 @@ public class ManxcatCentral
 		int OriginalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[PointtoVary2];
 		PointtoVary2 = SALSAUtility.OriginalPointtoUsedPointMap[OriginalPointIndex2];
 
-		SALSAUtility.SALSAPrint(1, "Point1 " + (new Integer(PointtoVary1)).toString() + "," + (new Integer(IndextoVary1)).toString() + " Point2 " + (new Integer(PointtoVary2)).toString() + "," + (new Integer(IndextoVary2)).toString());
+		SALSAUtility.SALSAPrint(1,
+                                "Point1 " + PointtoVary1 + "," + IndextoVary1 + " Point2 " + PointtoVary2 + "," +
+                                        "" + IndextoVary2);
 		Hotsun.doingderivtest = true;
 		boolean SaveFullSecondDerivative = Hotsun.FullSecondDerivative;
 		Hotsun.FullSecondDerivative = true;
@@ -1715,7 +1786,7 @@ public class ManxcatCentral
 		{
 			for (int i1 = 0; i1 < Hotsun.npar; i1++)
 			{
-				String linetoprint = "Row " + (new Integer(i1)).toString() + " ";
+				String linetoprint = "Row " + i1 + " ";
 				for (int i2 = 0; i2 < Hotsun.npar; i2++)
 				{
 					double a;
