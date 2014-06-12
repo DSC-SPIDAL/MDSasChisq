@@ -68,12 +68,12 @@ public class GlobalReductions {
             }
         }
 
-        public final void addapoint(int ThreadNo, int value) {
+        public final void addAPoint(int ThreadNo, int value) {
             NumberofPoints[ThreadNo] += 1;
             Intvalue[ThreadNo] += value;
         }
 
-        public final void sumoverthreadsandmpi() {
+        public final void sumOverThreadsAndMPI() {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 TotalInt += Intvalue[ThreadNo];
@@ -115,7 +115,7 @@ public class GlobalReductions {
             }
         }
 
-        public final void startthread(int ThreadNo) {
+        public final void startThread(int ThreadNo) {
             NumberofPoints[ThreadNo] = 0.0;
             Sum[ThreadNo] = new double[NumberinSum];
             for (int loop = 0; loop < NumberinSum; loop++) {
@@ -123,7 +123,7 @@ public class GlobalReductions {
             }
         }
 
-        public final void addapoint(int ThreadNo, int loopvalue) {
+        public final void addAPoint(int ThreadNo, int loopvalue) {
             if ((loopvalue < 0) || (loopvalue >= NumberinSum)) {
                 return;
             }
@@ -131,7 +131,7 @@ public class GlobalReductions {
             Sum[ThreadNo][loopvalue] += 1.0;
         }
 
-        public final void sumoverthreadsandmpi() {
+        public final void sumOverThreadsAndMPI() {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 for (int loop = 0; loop < NumberinSum; loop++) {
@@ -170,12 +170,12 @@ public class GlobalReductions {
             }
         }
 
-        public final void addapoint(int ThreadNo, double value) {
+        public final void addAPoint(int ThreadNo, double value) {
             NumberofPoints[ThreadNo] += 1.0;
             Maxvalue[ThreadNo] = Math.max(Maxvalue[ThreadNo], value);
         }
 
-        public final void sumoverthreadsandmpi() {
+        public final void sumOverThreadsAndMPI() {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 TotalMax = Math.max(TotalMax, Maxvalue[ThreadNo]);
@@ -219,13 +219,13 @@ public class GlobalReductions {
             }
         }
 
-        public final void addapoint(int ThreadNo, double value1) {
+        public final void addAPoint(int ThreadNo, double value1) {
             NumberofPoints[ThreadNo] += 1.0;
             mean[ThreadNo] += value1;
             square[ThreadNo] += value1 * value1;
         }
 
-        public final void sumoverthreadsandmpi() {
+        public final void sumOverThreadsAndMPI() {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 Totalmean += mean[ThreadNo];
@@ -282,12 +282,12 @@ public class GlobalReductions {
             }
         }
 
-        public final void addapoint(int ThreadNo, double value1) {
+        public final void addAPoint(int ThreadNo, double value1) {
             NumberofPoints[ThreadNo] += 1.0;
             TotalinThread[ThreadNo] += value1;
         }
 
-        public final void sumoverthreadsandmpi() {
+        public final void sumOverThreadsAndMPI() {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 Total += TotalinThread[ThreadNo];
@@ -325,12 +325,12 @@ public class GlobalReductions {
             }
         }
 
-        public final void addapoint(int ThreadNo, double value1) {
+        public final void addAPoint(int ThreadNo, double value1) {
             NumberofPoints[ThreadNo] += 1.0;
             mean[ThreadNo] += value1;
         }
 
-        public final void sumoverthreadsandmpi() {
+        public final void sumOverThreadsAndMPI() {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 Totalmean += mean[ThreadNo];
@@ -1138,7 +1138,7 @@ public class GlobalReductions {
             }
         }
 
-        public final void addapoint(int ThreadNo, double value1, double value2) {
+        public final void addAPoint(int ThreadNo, double value1, double value2) {
             NumberofPoints[ThreadNo] += 1.0;
             mean1[ThreadNo] += value1;
             mean2[ThreadNo] += value2;
@@ -1147,7 +1147,7 @@ public class GlobalReductions {
             cross12[ThreadNo] += value1 * value2;
         }
 
-        public final void sumoverthreadsandmpi() {
+        public final void sumOverThreadsAndMPI() {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 Totalmean1 += mean1[ThreadNo];
@@ -1226,7 +1226,7 @@ public class GlobalReductions {
             }
         }
 
-        public final void startthread(int threadNo) {
+        public final void startThread(int threadNo) {
             NumberOfPoints[threadNo] = 0.0;
             Sum[threadNo] = new double[OuterDimension][];
             for (int i = 0; i < OuterDimension; ++i) {
@@ -1237,7 +1237,7 @@ public class GlobalReductions {
             }
         }
 
-        public final void addapoint(int threadNo, int row, int col) {
+        public final void addAPoint(int threadNo, int row, int col) {
             if (row < 0 || row >= OuterDimension || col < 0 || col >= InnerDimension) {
                 return;
             }
@@ -1245,7 +1245,7 @@ public class GlobalReductions {
             Sum[threadNo][row][col] += 1.0;
         }
 
-        public final void sumoverthreadsandmpi() {
+        public final void sumOverThreadsAndMPI() {
             for (int threadNo = 0; threadNo < NumberOfThreads; threadNo++) {
                 TotalNumberofPoints += NumberOfPoints[threadNo];
                 for (int i = 0; i < OuterDimension; ++i) {

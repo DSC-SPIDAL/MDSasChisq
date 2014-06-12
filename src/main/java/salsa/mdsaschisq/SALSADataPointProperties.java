@@ -29,7 +29,31 @@ public class SALSADataPointProperties implements Serializable
 
 	public final SALSADataPointProperties ShallowCopy()
 	{
-		return (SALSADataPointProperties)this.clone();
+        SALSADataPointProperties copy = new SALSADataPointProperties();
+        copy.x = this.x;
+        copy.y = this.y;
+        copy.z = this.z;
+        copy.xerr = this.xerr;
+        copy.yerr = this.yerr;
+        copy.zerr = this.zerr;
+        copy.family1 = this.family1;
+        copy.family2 = this.family2;
+        copy.cluster = this.cluster;
+        copy.group = this.group;
+        copy.familylabel1 = this.familylabel1;
+        copy.familylabel2 = this.familylabel2;
+        copy.clusterlabel = this.clusterlabel;
+        copy.grouplabel = this.grouplabel;
+        copy.pointlabel = this.pointlabel;
+        copy.pointlabel = this.pointlabel;
+        copy.FixedorVaried = this.FixedorVaried;
+        copy.PointType = this.PointType;
+        copy.LocalPointNumber = this.LocalPointNumber;
+        copy.OriginalPointNumber = this.OriginalPointNumber;
+        copy.valuesset = this.valuesset;
+        copy.errorsset = this.errorsset;
+        copy.source = this.source;
+		return copy;
 	}
 
 } // End SALSADataPointProperties

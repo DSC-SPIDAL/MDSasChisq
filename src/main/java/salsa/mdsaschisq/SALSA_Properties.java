@@ -1,270 +1,231 @@
 ﻿package salsa.mdsaschisq;
 
+import com.google.common.base.Strings;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.regex.Pattern;
+
 public class SALSA_Properties
 {
+    /**
+     * Read data point file
+     * @param mdsClusterFileName
+     * @param FileType  FileType = 0 simple integers and positions:  PointNumber x y z LABEL or Group Number (LABEL if file name contains label)
+     *                  FileType = 1 Just integers -- Point Number and Group Number: PointNumber  Group Number
+     *                  FileType = 2 Integer and Label: Point LABEL (LABEL if file name contains label)
+     *                  FileType = 3 Pure colon style -- with positions
+     *                  FileType = 4 Pure Colon Style -- no positions
+     *                  FileType = 5 Pure Colon Style -- Labels
+     *                  FileType = 6 Hybrid Style -- with positions
+     *                  FileType = 7 Hybrid Style -- no positions
+     *                  FileType = 8 Hybrid Style -- Labels
+     * @param FileProperties
+     * @param DataPoints
+     * @param NumberofPoints
+     * @return
+     */
+	public static boolean ReadDataPointFile(String mdsClusterFileName, tangible.RefObject<Integer> FileType, SALSAFileProperties FileProperties, tangible.RefObject<SALSADataPointProperties[]> DataPoints, tangible.RefObject<Integer> NumberofPoints) {
 
+        boolean positionSet = false;
+        boolean colonsInput = false;
+        boolean nonColonsInput = false;
+        boolean labelsFile = false;
+        String lowerFileName = mdsClusterFileName.toLowerCase();
+        if (lowerFileName.contains("label")) {
+            labelsFile = true;
+        }
 
-	public static boolean ReadDataPointFile(String MDSClusterFileName, tangible.RefObject<Integer> FileType, SALSAFileProperties FileProperties, tangible.RefObject<SALSADataPointProperties[]> DataPoints, tangible.RefObject<Integer> NumberofPoints)
-	{
-		// FileType = 0 simple integers and positions:  PointNumber x y z LABEL or Group Number (LABEL if file name contains label)
-		// FileType = 1 Just integers -- Point Number and Group Number: PointNumber  Group Number 
-		// File Type = 2 Integer and Label: Point LABEL (LABEL if file name contains label)
-		// File Type = 3 Pure colon style -- with  positions
-		// File Type = 4 Pure Colon Style -- no    positions
-		// File Type = 5 Pure Colon Style --    Labels
-		// File Type = 6 Hybrid Style --     with positions
-		// File Type = 7 Hybrid Style --     no positions
-		// File Type = 8 Hybrid Style --     Labels
+        NumberofPoints.argValue = 0;
 
+        // Check if file exists
+        Path mdsClusterFilePath = Paths.get(mdsClusterFileName);
+        if (!Files.exists(mdsClusterFilePath)) {
+            SALSAUtility.printAndThrowRuntimeException("File " + mdsClusterFileName + " does not exists");
+        }
 
-		boolean positionsset = false;
-		boolean colonsinput = false;
-		boolean NonColonsInput = false;
-		boolean labelfile = false;
-		String LowerFileName = MDSClusterFileName.toLowerCase();
-		if (LowerFileName.contains("label"))
-		{
-			labelfile = true;
-		}
+        try (BufferedReader br = Files.newBufferedReader(mdsClusterFilePath, Charset.defaultCharset())) {
+            // Read contents of a file
+            String inputLineStr;
+            int newLabelNumber = -1;
+            int localStart = FileProperties.LocalPointStartIndex;
+            int originalStart = FileProperties.OriginalPointStartIndex;
+            Pattern pattern = Pattern.compile("[\t ]");
+            while ((inputLineStr = br.readLine()) != null) {
+                if (inputLineStr.length() < 2) {
+                    continue; //replace empty line
+                }
 
-		NumberofPoints.argValue = 0;
+                inputLineStr = tangible.DotNetToJavaStringHelper.trim(inputLineStr, ' ', '\t');
+                try {
+                    // Parse each record string
+                    inputLineStr = inputLineStr.replace("\t\t", "\t");
 
-		try
-		{
-			// Check if file exists
-			if (!(new java.io.File(MDSClusterFileName)).isFile())
-			{
-				SALSAUtility.printAndThrowRuntimeException("File " + MDSClusterFileName + " does not exists");
+                    if (inputLineStr.contains("FileProperties")) { // Not a Data Point
+                        String endofInput = inputLineStr.replace("FileProperties", "");
+                        ReadFileProperties(FileProperties, endofInput);
+                        colonsInput = true;
+                        localStart = FileProperties.LocalPointStartIndex;
+                        originalStart = FileProperties.OriginalPointStartIndex;
+                    } else { // Must be a Data Point
+                        ArrayInitializer(DataPoints, SALSAUtility.NumberOriginalPoints,
+                                         FileProperties.NumberPointsinFile);
+                        DataPoints.argValue[NumberofPoints.argValue] = new SALSADataPointProperties();
+                        boolean incrementCount = false;
+                        int PointDataStarts = inputLineStr.indexOf("PointProperties");
+                        if (PointDataStarts >= 0) { // Some Colon Information
+                            String EndofInput = inputLineStr.substring(PointDataStarts);
+                            EndofInput = EndofInput.replace("PointProperties", "");
+                            ReadDataPointProperties(DataPoints.argValue[NumberofPoints.argValue], EndofInput);
+                            colonsInput = true;
+                            if (DataPoints.argValue[NumberofPoints.argValue].valuesset) {
+                                positionSet = true;
+                            }
+                            incrementCount = true;
+                            DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber = NumberofPoints.argValue +
+                                    FileProperties.LocalPointStartIndex;
+                        } //  End Processing Colon Point Information
 
-			}
+                        if (PointDataStarts < 0) { // traditional bare line
+                            PointDataStarts = inputLineStr.length();
+                        }
+                        if (PointDataStarts > 0) { // Process number information
+                            String startofString = inputLineStr.substring(0, PointDataStarts);
+                            startofString = tangible.DotNetToJavaStringHelper.trim(startofString, ' ', '\t');
 
-			// Create a new stream to read from a file
-//C# TO JAVA CONVERTER NOTE: The following 'using' block is replaced by its Java equivalent:
-//			using (StreamReader sr = File.OpenText(MDSClusterFileName))
-			StreamReader sr = File.OpenText(MDSClusterFileName);
-			try
-			{
-				// Read contents of a file
-				String inputLineStr;
-				int newlabelnumber = -1;
-				int LocalStart = FileProperties.LocalPointStartIndex;
-				int OriginalStart = FileProperties.OriginalPointStartIndex;
-				while ((inputLineStr = sr.ReadLine()) != null)
-				{
-					if (inputLineStr.length() < 2)
-					{
-						continue; //replace empty line
-					}
+                            if (startofString.length() > 0) {
+                                // You come here only for traditional bare line of x,y,z coordinates.
 
-					inputLineStr = tangible.DotNetToJavaStringHelper.trim(inputLineStr, new char[] {' ', '\t'});
-					try
-					{
-						// Parse each record string
-						inputLineStr = inputLineStr.replace("\t\t", "\t");
+                                String[] split = pattern.split(startofString);
 
-						if (inputLineStr.contains("FileProperties"))
-						{ // Not a Data Point
-							String EndofInput = inputLineStr.replace("FileProperties", "");
-							ReadFileProperties(FileProperties, EndofInput);
-							colonsinput = true;
-							LocalStart = FileProperties.LocalPointStartIndex;
-							OriginalStart = FileProperties.OriginalPointStartIndex;
-						}
-						else
-						{ // Must be a Data Point
-							ArrayInitializer(DataPoints, SALSAUtility.NumberOriginalPoints, FileProperties.NumberPointsinFile);
-							DataPoints.argValue[NumberofPoints.argValue] = new SALSADataPointProperties();
-							boolean incrementcount = false;
-							int PointDataStarts = inputLineStr.indexOf("PointProperties");
-							if (PointDataStarts >= 0)
-							{ // Some Colon Information
-								String EndofInput = inputLineStr.substring(PointDataStarts);
-								EndofInput = EndofInput.replace("PointProperties", "");
-								ReadDataPointProperties(DataPoints.argValue[NumberofPoints.argValue], EndofInput);
-								colonsinput = true;
-								if (DataPoints.argValue[NumberofPoints.argValue].valuesset)
-								{
-									positionsset = true;
-								}
-								incrementcount = true;
-								DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber = NumberofPoints.argValue + FileProperties.LocalPointStartIndex;
-							} //  End Processing Colon Point Information
+                                if ((split.length != 5) && (split.length != 2) && (split.length != 4)) {
+                                    SALSAUtility.printAndThrowRuntimeException(
+                                            " Bad Line " + split.length + " " + NumberofPoints.argValue + " " +
+                                                    inputLineStr);
 
-							if (PointDataStarts < 0)
-							{ // traditional bare line
-								PointDataStarts = inputLineStr.length();
-							}
-							if (PointDataStarts > 0)
-							{ // Process number information
-								String StartofString = inputLineStr.substring(0, PointDataStarts);
-								StartofString = tangible.DotNetToJavaStringHelper.trim(StartofString, new char[] {' ', '\t'});
+                                }
+                                newLabelNumber = Integer.parseInt(split[0]);
 
-								if (StartofString.length() > 0)
-								{
-									// You come here only for traditional bare line of x,y,z coordinates.
+                                if ((NumberofPoints.argValue + localStart) != newLabelNumber) {
+                                    SALSAUtility.printAndThrowRuntimeException(
+                                            "Unexpected Label Number " + newLabelNumber + " Expected " +
+                                                    NumberofPoints.argValue + " + " + localStart);
 
-									String[] split = StartofString.split(new char[] {' ', '\t'}, StringSplitOptions.RemoveEmptyEntries);
+                                }
+                                if (DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber >= 0) {
+                                    if ((DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber - localStart)
+                                            != NumberofPoints.argValue) {
+                                        SALSAUtility.printAndThrowRuntimeException(
+                                                "Unexpected Local Number " + DataPoints.argValue[NumberofPoints
+                                                        .argValue].LocalPointNumber + " Expected " +
+                                                        NumberofPoints.argValue + " + " + localStart);
 
-									if ((split.length != 5) && (split.length != 2) && (split.length != 4))
-									{
-										SALSAUtility.printAndThrowRuntimeException(" Bad Line " + split.length
-                                                                                                       .toString() + " " + NumberofPoints.argValue + " " + inputLineStr);
+                                    }
+                                }
+                                DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber = NumberofPoints.argValue;
+                                if (DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber >= 0) {
+                                    if ((DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber -
+                                            originalStart) < 0) {
+                                        SALSAUtility.printAndThrowRuntimeException(
+                                                "Unexpected Original Number " + DataPoints
+                                                        .argValue[NumberofPoints.argValue].OriginalPointNumber +
+                                                        " Local Point " + NumberofPoints.argValue + " Original " +
+                                                        "Increment " + originalStart);
 
-									}
-									newlabelnumber = Integer.parseInt(split[0]);
+                                    }
+                                    DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber -= originalStart;
+                                } else {
+                                    DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber = newLabelNumber;
+                                }
 
-									if ((NumberofPoints.argValue + LocalStart) != newlabelnumber)
-									{
-										SALSAUtility.printAndThrowRuntimeException(
-                                                "Unexpected Label Number " + newlabelnumber + " Expected " +
-                                                        NumberofPoints.argValue + " + " + LocalStart);
+                                if (labelsFile) {
+                                    DataPoints.argValue[NumberofPoints.argValue].pointlabel = split[split.length - 1];
+                                } else {
+                                    DataPoints.argValue[NumberofPoints.argValue].group = Integer
+                                            .parseInt(split[split.length - 1]);
+                                }
 
-									}
-									if (DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber >= 0)
-									{
-										if ((DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber - LocalStart) != NumberofPoints.argValue)
-										{
-											SALSAUtility.printAndThrowRuntimeException(
-                                                    "Unexpected Local Number " + DataPoints.argValue[NumberofPoints
-                                                            .argValue].LocalPointNumber + " Expected " +
-                                                            NumberofPoints.argValue + " + " + LocalStart);
+                                if (split.length >= 4) {
+                                    DataPoints.argValue[NumberofPoints.argValue].valuesset = true;
+                                    DataPoints.argValue[NumberofPoints.argValue].x = Double.parseDouble(split[1]);
+                                    DataPoints.argValue[NumberofPoints.argValue].y = Double.parseDouble(split[2]);
+                                    positionSet = true;
+                                }
+                                if (split.length == 5) {
+                                    DataPoints.argValue[NumberofPoints.argValue].z = Double.parseDouble(split[3]);
+                                }
+                                incrementCount = true;
+                                nonColonsInput = true;
+                            } // End Processing non colon Point information
+                        }
+                        if (incrementCount) {
+                            ++NumberofPoints.argValue;
+                        }
+                    }
+                } catch (RuntimeException e) {
+                    SALSAUtility.printAndThrowRuntimeException(
+                            "Failed to load data array " + inputLineStr + " " + " " + NumberofPoints.argValue + " " +
+                                    newLabelNumber + " " + e
+                                    .getMessage());
+                }
+            }
 
-										}
-									}
-									DataPoints.argValue[NumberofPoints.argValue].LocalPointNumber = NumberofPoints.argValue;
-									if (DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber >= 0)
-									{
-										if ((DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber - OriginalStart) < 0)
-										{
-											SALSAUtility.printAndThrowRuntimeException(
-                                                    "Unexpected Original Number " + DataPoints
-                                                            .argValue[NumberofPoints.argValue].OriginalPointNumber +
-                                                            " Local Point " + NumberofPoints.argValue + " Original " +
-                                                            "Increment " + OriginalStart);
+            FileType.argValue = 1;
+            if (positionSet) {
+                FileType.argValue = 0;
+            }
+            if (labelsFile) {
+                FileType.argValue = 2;
+            }
+            if (colonsInput) {
+                if (nonColonsInput) {
+                    FileType.argValue += 6;
+                } else {
+                    FileType.argValue += 3;
+                }
+            }
+            if (FileProperties.NumberOriginalPoints == 0) {
+                FileProperties.NumberOriginalPoints = NumberofPoints.argValue;
+            }
 
-										}
-										DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber -= OriginalStart;
-									}
-									else
-									{
-										DataPoints.argValue[NumberofPoints.argValue].OriginalPointNumber = newlabelnumber;
-									}
+            if (FileProperties.NumberPointsinFile == 0) {
+                FileProperties.NumberPointsinFile = NumberofPoints.argValue;
+            }
 
-									if (labelfile)
-									{
-										DataPoints.argValue[NumberofPoints.argValue].pointlabel = split[split.length - 1];
-									}
-									else
-									{
-										DataPoints.argValue[NumberofPoints.argValue].group = Integer.parseInt(split[split.length - 1]);
-									}
+            if (FileProperties.NumberPointsinFile != NumberofPoints.argValue) {
+                SALSAUtility.printAndThrowRuntimeException(
+                        "Unexpected Number of Points in File " + NumberofPoints.argValue + " Read but Expected "
+                                + FileProperties.NumberPointsinFile);
 
-									if (split.length >= 4)
-									{
-										DataPoints.argValue[NumberofPoints.argValue].valuesset = true;
-										DataPoints.argValue[NumberofPoints.argValue].x = Double.parseDouble(split[1]);
-										DataPoints.argValue[NumberofPoints.argValue].y = Double.parseDouble(split[2]);
-										positionsset = true;
-									}
-									if (split.length == 5)
-									{
-										DataPoints.argValue[NumberofPoints.argValue].z = Double.parseDouble(split[3]);
-									}
-									incrementcount = true;
-									NonColonsInput = true;
-								} // End Processing non colon Point information
-							}
-							if (incrementcount)
-							{
-								++NumberofPoints.argValue;
-							}
-						}
-					}
-					catch (RuntimeException e)
-					{
-						SALSAUtility.printAndThrowRuntimeException(
-                                "Failed to load data array " + inputLineStr + " " + " " + NumberofPoints.argValue + " " + newlabelnumber + " " + e
+            }
+        } catch (IOException e) {
+            SALSAUtility.printAndThrowRuntimeException("Failed to read data from " + mdsClusterFileName + " " + e);
+        }
+        return true;
+    }
 
-                                        .toString());
-						throw (e);
-					}
-				}
+    public static void ArrayInitializer(tangible.RefObject<SALSADataPointProperties[]> DataArray, int sizemax,
+                                        int sizereadin) {
+        if (DataArray.argValue != null) {
+            if (DataArray.argValue.length < sizereadin) {
+                SALSAUtility.printAndThrowRuntimeException(
+                        " Data Array too small for file Length " + DataArray.argValue.length + " Needs " +
+                                sizereadin);
 
-				FileType.argValue = 1;
-				if (positionsset)
-				{
-					FileType.argValue = 0;
-				}
-				if (labelfile)
-				{
-					FileType.argValue = 2;
-				}
-				if (colonsinput)
-				{
-					if (NonColonsInput)
-					{
-						FileType.argValue += 6;
-					}
-					else
-					{
-						FileType.argValue += 3;
-					}
-				}
-				if (FileProperties.NumberOriginalPoints == 0)
-				{
-					FileProperties.NumberOriginalPoints = NumberofPoints.argValue;
-				}
+            }
+            return;
+        }
+        int size = sizereadin;
+        if (size == 0) {
+            size = sizemax;
+        }
+        DataArray.argValue = new SALSADataPointProperties[size];
 
-				if (FileProperties.NumberPointsinFile == 0)
-				{
-					FileProperties.NumberPointsinFile = NumberofPoints.argValue;
-				}
-
-				if (FileProperties.NumberPointsinFile != NumberofPoints.argValue)
-				{
-					SALSAUtility.printAndThrowRuntimeException(
-                            "Unexpected Number of Points in File " + NumberofPoints.argValue + " Read but Expected "
-                                    + FileProperties.NumberPointsinFile);
-
-				}
-				sr.Close();
-			}
-			finally
-			{
-				sr.dispose();
-			}
-		}
-		catch (RuntimeException e)
-		{
-			SALSAUtility.printAndThrowRuntimeException("Failed to read data from " + MDSClusterFileName + " " + e.toString());
-			throw (e);
-		}
-		return true;
-
-	} // End ReadDataPointFile
-
-	public static void ArrayInitializer(tangible.RefObject<SALSADataPointProperties[]> DataArray, int sizemax, int sizereadin)
-	{
-		if (DataArray.argValue != null)
-		{
-			if (DataArray.argValue.length < sizereadin)
-			{
-				SALSAUtility.printAndThrowRuntimeException(
-                        " Data Array too small for file Length " + DataArray.argValue.length
-                                                                                     .toString() + " Needs " + sizereadin);
-
-			}
-			return;
-		}
-		int size = sizereadin;
-		if (size == 0)
-		{
-			size = sizemax;
-		}
-		DataArray.argValue = new SALSADataPointProperties[size];
-		return;
-
-	} // End ArrayInitializer
+    }
 
 	// Write label-cluster results into a file
 	public static void WriteDataPointFile(String CoreOutputFileName, boolean write2Das3D, String OutputStyles, SALSAFileProperties FileProperties, SALSADataPointProperties[] DataPoints, int NumberofDataPoints)
@@ -272,11 +233,7 @@ public class SALSA_Properties
 		boolean[] DothisOutputStyle = new boolean[5];
 		for (int StyleIndex = 0; StyleIndex < 5; StyleIndex++)
 		{
-			DothisOutputStyle[StyleIndex] = false;
-			if (OutputStyles.contains("all"))
-			{
-				DothisOutputStyle[StyleIndex] = true;
-			}
+            DothisOutputStyle[StyleIndex] = OutputStyles.contains("all");
 		}
 		if (OutputStyles.contains("colon"))
 		{

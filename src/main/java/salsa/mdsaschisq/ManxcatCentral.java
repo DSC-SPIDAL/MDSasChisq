@@ -16,6 +16,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.regex.Pattern;
 
+import static edu.rice.hj.HJ.forallChunked;
+
 public class ManxcatCentral
 {
     private static Options programOptions = new Options();
@@ -1967,7 +1969,7 @@ public class ManxcatCentral
 		}
 
 		// Parallel Local Calculation of Diagonal Scaling Elements
-		Parallel.For(0, SALSAUtility.getParallelOptions().MaxDegreeOfParallelism, SALSAUtility.getParallelOptions(), (ThreadNo) => // End loop over Point dependent quantities
+		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 		{
 			int indexlen = SALSAUtility.PointsperThread[ThreadNo];
 			int beginpoint = SALSAUtility.StartPointperThread[ThreadNo] - SALSAUtility.PointStart_Process;
@@ -2076,7 +2078,7 @@ public class ManxcatCentral
 			return;
 		}
 
-		Parallel.For(0, SALSAUtility.getParallelOptions().MaxDegreeOfParallelism, SALSAUtility.getParallelOptions(), (ThreadNo) => // End loop over Point dependent quantities
+		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 		{
 			int indexlen = SALSAUtility.PointsperThread[ThreadNo];
 			int beginpoint = SALSAUtility.StartPointperThread[ThreadNo] - SALSAUtility.PointStart_Process;
@@ -2132,10 +2134,10 @@ public class ManxcatCentral
 		}
 
 		// Parallel Addition (factor = 1.0) or Subtraction (factor = -1.0) of Marquardt A
-		Parallel.For(0, SALSAUtility.getParallelOptions().MaxDegreeOfParallelism, SALSAUtility.getParallelOptions(), (ThreadNo) => // End loop over Point dependent quantities
+		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 		{
-			int indexlen = SALSAUtility.PointsperThread[ThreadNo];
-			int beginpoint = SALSAUtility.StartPointperThread[ThreadNo] - SALSAUtility.PointStart_Process;
+			int indexlen = SALSAUtility.PointsperThread[threadIndex];
+			int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
 			for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
 			{
 				int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
@@ -2175,7 +2177,7 @@ public class ManxcatCentral
 		{
 
 			// Parallel Calculation of Steepest Descent
-						Parallel.For(0, SALSAUtility.getParallelOptions().MaxDegreeOfParallelism, SALSAUtility.getParallelOptions(), (ThreadNo) => // End loop over Point dependent quantities
+						forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 						{
 							int indexlen = SALSAUtility.PointsperThread[ThreadNo];
 							int beginpoint = SALSAUtility.StartPointperThread[ThreadNo] - SALSAUtility.PointStart_Process;
@@ -2264,7 +2266,7 @@ public class ManxcatCentral
 
 		GlobalReductions.FindDoubleSum FindxNorm = new GlobalReductions.FindDoubleSum(SALSAUtility.ThreadCount);
 
-		Parallel.For(0, SALSAUtility.getParallelOptions().MaxDegreeOfParallelism, SALSAUtility.getParallelOptions(), (ThreadNo) => // End loop over Point dependent quantities
+		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 		{
 			double localnorm = 0.0;
 			int indexlen = SALSAUtility.PointsperThread[ThreadNo];
@@ -2309,11 +2311,11 @@ public class ManxcatCentral
 						localnorm += Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] * Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] * tmp;
 				}
 			}
-			FindxNorm.addapoint(ThreadNo, localnorm);
+			FindxNorm.addAPoint(ThreadNo, localnorm);
 		}
 	   );
 
-		FindxNorm.sumoverthreadsandmpi();
+		FindxNorm.sumOverThreadsAndMPI();
 		Hotsun.xnorm = FindxNorm.Total;
 
 	} // End Findxnorm

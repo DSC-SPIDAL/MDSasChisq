@@ -751,7 +751,7 @@ public class ManxcatMDS
 
 		GlobalReductions.FindDoubleSum Findzerocr = new GlobalReductions.FindDoubleSum(SALSAUtility.ThreadCount);
 
-		Parallel.For(0, SALSAUtility.getParallelOptions().MaxDegreeOfParallelism, SALSAUtility.getParallelOptions(), (ThreadNo) => // End loop over Point dependent quantities
+		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 				// Skip Fixed rows if StoredDistanceOption =3
 					// Varied (row) - Fixed (column) Contribution to Chisq Doubled if StoredDistanceOption 3 and so no row for fixed parameters
 					// vary1 forced to be true in this scenario
@@ -891,11 +891,11 @@ public class ManxcatMDS
 														}
 						}
 			}
-			Findzerocr.addapoint(ThreadNo, localzerocr);
+			Findzerocr.addAPoint(ThreadNo, localzerocr);
 		}
 	   );
 
-		Findzerocr.sumoverthreadsandmpi();
+		Findzerocr.sumOverThreadsAndMPI();
 		Hotsun.zerocr = Findzerocr.Total;
 		Solution.Chisquared = Hotsun.zerocr;
 		return violat;
@@ -1118,7 +1118,7 @@ public class ManxcatMDS
 			}
 		}
 
-		Parallel.For(0, SALSAUtility.getParallelOptions().MaxDegreeOfParallelism, SALSAUtility.getParallelOptions(), (ThreadNo) => // End loop over Point dependent quantities
+		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 //                    if (bigorsmall < 0.5)
 //                        bigorsmall = 0.25;
 //                    else
@@ -1289,7 +1289,7 @@ public class ManxcatMDS
 			MatrixDiagonals = Solution.DiagonalofMatrix;
 		}
 
-		Parallel.For(0, SALSAUtility.getParallelOptions().MaxDegreeOfParallelism, SALSAUtility.getParallelOptions(), (ThreadNo) => // End loop over Point dependent quantities
+		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 		{
 			double WeightFunction1, WeightFunction2 = 0;
 			int indexlen = SALSAUtility.PointsperThread[ThreadNo];

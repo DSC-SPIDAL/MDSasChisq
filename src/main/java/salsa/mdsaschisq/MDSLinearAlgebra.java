@@ -277,7 +277,7 @@ public class MDSLinearAlgebra
 		int LocalVectorDimension = ScaledDistributedVector[0].GetLength(0);
 
 		// Parallel Setting
-		Parallel.For(0, SALSAUtility.getParallelOptions().MaxDegreeOfParallelism, SALSAUtility.getParallelOptions(), (ThreadNo) => // End loop over Point dependent quantities
+		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 		{
 			int indexlen = SALSAUtility.PointsperThread[ThreadNo];
 			int beginpoint = SALSAUtility.StartPointperThread[ThreadNo] - SALSAUtility.PointStart_Process;
@@ -310,7 +310,7 @@ public class MDSLinearAlgebra
 		java.util.Random Randobject = new java.util.Random();
 
 		// Parallel Setting
-		Parallel.For(0, SALSAUtility.getParallelOptions().MaxDegreeOfParallelism, SALSAUtility.getParallelOptions(), (ThreadNo) => // End loop over Point dependent quantities
+		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 		{
 			int indexlen = SALSAUtility.PointsperThread[ThreadNo];
 			int beginpoint = SALSAUtility.StartPointperThread[ThreadNo] - SALSAUtility.PointStart_Process;
@@ -344,7 +344,7 @@ public class MDSLinearAlgebra
 		GlobalReductions.FindDoubleSum FindTrace = new GlobalReductions.FindDoubleSum(SALSAUtility.ThreadCount);
 		GlobalReductions.FindDoubleMax FindNorm = new GlobalReductions.FindDoubleMax(SALSAUtility.ThreadCount);
 
-		Parallel.For(0, SALSAUtility.getParallelOptions().MaxDegreeOfParallelism, SALSAUtility.getParallelOptions(), (ThreadNo) => // End loop over Point dependent quantities
+		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 		{
 //	Start Code to calculate Trace and Norm
 			double LocalTrace = 0.0;
@@ -452,13 +452,13 @@ public class MDSLinearAlgebra
 						}
 				}
 			}
-			FindTrace.addapoint(ThreadNo, LocalTrace);
-			FindNorm.addapoint(ThreadNo, LocalNorm);
+			FindTrace.addAPoint(ThreadNo, LocalTrace);
+			FindNorm.addAPoint(ThreadNo, LocalNorm);
 		}
 	   );
 
-		FindTrace.sumoverthreadsandmpi();
-		FindNorm.sumoverthreadsandmpi();
+		FindTrace.sumOverThreadsAndMPI();
+		FindNorm.sumOverThreadsAndMPI();
 
 		Trace.argValue = FindTrace.Total;
 		Norm.argValue = FindNorm.TotalMax;

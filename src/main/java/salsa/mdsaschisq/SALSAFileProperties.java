@@ -76,7 +76,6 @@
 
 import java.io.Serializable;
 
-// TODO - CONTINUE FROM HERE
 public class SALSAFileProperties implements Serializable
 {
 	public int LocalVectorDimension = 3; // Vector dimension of Mapped Points
@@ -96,7 +95,23 @@ public class SALSAFileProperties implements Serializable
 
 	public final SALSAFileProperties ShallowCopy()
 	{
-		return (SALSAFileProperties) this.clone();
+        SALSAFileProperties copy = new SALSAFileProperties();
+        copy.LocalVectorDimension = this.LocalVectorDimension;
+        copy.ClusterStartIndex = this.ClusterStartIndex;
+        copy.OriginalPointStartIndex = this.OriginalPointStartIndex;
+        copy.LocalPointStartIndex = this.LocalPointStartIndex;
+        copy.FileGenerationType = this.FileGenerationType;
+        copy.FamilyName1 = this.FamilyName1;
+        copy.FamilyName2 = this.FamilyName2;
+        copy.GroupName = this.GroupName;
+        copy.ClusterName = this.ClusterName;
+        copy.Comment = this.Comment;
+        copy.NumberOriginalPoints = this.NumberOriginalPoints;
+        copy.NumberPointsinFile = this.NumberPointsinFile;
+        copy.RotationParameters = this.RotationParameters;
+        copy.NumberRotationParameters = this.NumberRotationParameters;
+
+		return copy;
 	}
 
 } // End SALSAFileProperties
