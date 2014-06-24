@@ -1033,7 +1033,7 @@ public class SALSA_ProcessVariedandFixed
 	{
 		for (int GlobalIndex = 0; GlobalIndex < SALSAUtility.NumberOriginalPoints; GlobalIndex++)
 		{
-            GlobalDataLabels[GlobalIndex] = GlobalIndex;
+            GlobalDataLabels[GlobalIndex] = String.valueOf(GlobalIndex);
 		}
 
 	} // End SetDataLabels

@@ -487,19 +487,19 @@ public class ManxcatMDSBasicDataProcessing {
      * Finds the minimum and maximum distances of original and Eculidean data
      * for both whole and selected set of clusters.
      *
-     * @param xminWhole
-     * @param xmaxWhole
-     * @param yminWhole
-     * @param ymaxWhole
-     * @param xminSelected
-     * @param xmaxSelected
-     * @param yminSelected
-     * @param ymaxSelected
-     * @param ymaxSelectedInter
-     * @param originalPnumToCnumTable
-     * @param xminSelectedInter
-     * @param xmaxSelectedInter
-     * @param yminSelectedInter
+     * @param xminWhole minimum distance from all the original distances
+     * @param xmaxWhole maximum distance from all the original distances
+     * @param yminWhole minimum distance from all the projected distances
+     * @param ymaxWhole maximum distance from all the projected distances
+     * @param xminSelected minimum distance from original distances where both i,j sequences belong to one of the selected clusters
+     * @param xmaxSelected maximum distance from original distances where both i,j sequences belong to one of the selected clusters
+     * @param yminSelected minimum distance from projected distances where both i,j sequences belong to one of the selected clusters
+     * @param ymaxSelected maximum distance from projected distances where both i,j sequences belong to one of the selected clusters
+     * @param xminSelectedInter minimum distance from original distances where sequences i,j  belong to two different clusters of the selected clusters
+     * @param xmaxSelectedInter maximum distance from original distances where sequences i,j  belong to two different clusters of the selected clusters
+     * @param yminSelectedInter minimum distance from projected distances where sequences i,j  belong to two different clusters of the selected clusters
+     * @param ymaxSelectedInter maximum distance from projected distances where sequences i,j  belong to two different clusters of the selected clusters
+     * @param originalPnumToCnumTable mapping from original point number to cluster number
      */
     public static void FindMinMaxForDensity(tangible.RefObject<Double> xminWhole, tangible.RefObject<Double> xmaxWhole,
                                             tangible.RefObject<Double> yminWhole, tangible.RefObject<Double> ymaxWhole,
@@ -543,16 +543,7 @@ public class ManxcatMDSBasicDataProcessing {
                 .FindMinorMaxValuewithIndex(
                 SALSAUtility.ThreadCount, 1);
 
-        // TODO - CONTINUE FROM HERE
         forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-					/* At this point the xval should be the transformed distances (if specified using TransformMethod
-					& TransformParameter) */
-                // Todo (html+density) - see if any distance cut needs to be considered. Also check if any pair is to
-                // be removed if not exist in pnumToCnum table
-                // Intra cluster pairs (p1,p2) where both p1,p2 belong to one cluster.
-                // So check if p1,p2 belong to the same cluster in our set of selected clusters
-                // Inter cluster pairs (p1,p2) where both p1,p2 does NOT belong to one cluster.
-                // So check if p1,p2 does NOT belong to the same cluster in our set of selected clusters
         {
             int indexlen = SALSAUtility.PointsperThread[threadIndex];
             int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
@@ -588,15 +579,19 @@ public class ManxcatMDSBasicDataProcessing {
                     int usedPointIndex2 = SALSAUtility.NaivetoActualUsedOrder[globalPointIndex2];
                     double yval = GetEuclideanDistance(Hotsun.GlobalParameter[usedPointIndex1],
                                                        Hotsun.GlobalParameter[usedPointIndex2]);
+                    /* At this point the xval should be the transformed distances (if specified using TransformMethod & TransformParameter) */
+                    // Todo (html+density) - see if any distance cut needs to be considered. Also check if any pair is to be removed if not exist in pnumToCnum table
                     UpdateMinMax(xval, yval, FindXminWhole, FindXmaxWhole, FindYminWhole, FindYmaxWhole, threadIndex);
                     int cnum2 = SALSAUtility.IsClustersSelected ? ((int) originalPnumToCnumTable
                             .get(originalPointIndex2)) : -1;
                     if (cnum1 != -1 && cnum2 != -1 && SALSAUtility.SelectedClusters.contains(cnum1) && SALSAUtility
                             .SelectedClusters.contains(cnum2)) {
                         if (cnum1 == cnum2) {
+                            // Intra cluster pairs (p1,p2) where both p1,p2 belong to one cluster.
                             UpdateMinMax(xval, yval, FindXminSelected, FindXmaxSelected, FindYminSelected,
                                          FindYmaxSelected, threadIndex);
                         } else {
+                            // Inter cluster pairs (p1,p2) where both p1,p2 do NOT belong to one cluster.
                             UpdateMinMax(xval, yval, FindXminSelectedInter, FindXmaxSelectedInter,
                                          FindYminSelectedInter, FindYmaxSelectedInter, threadIndex);
                         }
@@ -636,7 +631,7 @@ public class ManxcatMDSBasicDataProcessing {
     }
 
     /**
-     * Given x and y values along their respective current minimum and maximum values, this will update
+     * Given x and y values along with their respective current minimum and maximum values, this will update
      * the minimum and maximum values.
      *
      * @param x
@@ -732,14 +727,6 @@ public class ManxcatMDSBasicDataProcessing {
         double deltaySelectedInter = (ymaxSelectedInter - yminSelectedInter) / SALSAUtility.Yres;
 
         forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-					/* At this point the xval should be the transformed distances (if specified using TransformMethod
-					& TransformParameter) */
-                // Todo (html+density) - see if any distance cut needs to be considered. Also check if any pair is to
-                // be removed if not exist in pnumToCnum table
-                // Intra cluster pairs (p1,p2) where both p1,p2 belong to one cluster.
-                // So check if p1,p2 belong to the same cluster in our set of selected clusters
-                // Inter cluster pairs (p1,p2) where both p1,p2 does NOT belong to one cluster.
-                // So check if p1,p2 does NOT belong to the same cluster in our set of selected clusters
         {
             int indexlen = SALSAUtility.PointsperThread[threadIndex];
             int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
@@ -784,6 +771,10 @@ public class ManxcatMDSBasicDataProcessing {
                     int usedPointIndex2 = SALSAUtility.NaivetoActualUsedOrder[globalPointIndex2];
                     double yval = GetEuclideanDistance(Hotsun.GlobalParameter[usedPointIndex1],
                                                        Hotsun.GlobalParameter[usedPointIndex2]);
+                    /* At this point the xval should be the transformed distances (if specified using TransformMethod & TransformParameter) */
+
+                    // Todo (html+density) - see if any distance cut needs to be considered. Also check if any pair is to be removed if not exist in pnumToCnum table
+
                     UpdateCells(xval, yval, xmaxWhole, xminWhole, ymaxWhole, yminWhole, deltaxWhole, deltayWhole,
                                 FindDensityMatrixWhole, FindXHistogramWhole, FindYHistogramWhole, threadIndex);
                     int cnum2 = SALSAUtility.IsClustersSelected ? ((int) originalPnumToCnumTable
@@ -791,10 +782,14 @@ public class ManxcatMDSBasicDataProcessing {
                     if (cnum1 != -1 && cnum2 != -1 && SALSAUtility.SelectedClusters.contains(cnum1) && SALSAUtility
                             .SelectedClusters.contains(cnum2)) {
                         if (cnum1 == cnum2) {
+                            // Intra cluster pairs (p1,p2) where both p1,p2 belong to one cluster.
+                            // So check if p1,p2 belong to the same cluster in our set of selected clusters
                             UpdateCells(xval, yval, xmaxSelected, xminSelected, ymaxSelected, yminSelected,
                                         deltaxSelected, deltaySelected, FindDensityMatrixSelected,
                                         FindXHistogramSelected, FindYHistogramSelected, threadIndex);
                         } else {
+                            // Inter cluster pairs (p1,p2) where both p1,p2 does NOT belong to one cluster.
+                            // So check if p1,p2 does NOT belong to the same cluster in our set of selected clusters
                             UpdateCells(xval, yval, xmaxSelectedInter, xminSelectedInter, ymaxSelectedInter,
                                         yminSelectedInter, deltaxSelectedInter, deltaySelectedInter,
                                         FindDensityMatrixSelectedInter, FindXHistogramSelectedInter,
