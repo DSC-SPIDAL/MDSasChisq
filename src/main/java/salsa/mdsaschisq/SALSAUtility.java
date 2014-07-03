@@ -91,6 +91,7 @@ public class SALSAUtility {
     public static int DivisionSize;
 
     public static Date startTime;
+    public static Date endTime;
     public static Stopwatch mainTimer;
     public static Stopwatch PreciseTimer; //    Hold Precise Timing
     public static int NumberofSubTimings = 0; // Number of subtimings
@@ -266,7 +267,7 @@ public class SALSAUtility {
 
     public static void InterimTiming() {
         PreciseTimer.stop();
-        HPDuration += PreciseTimer.elapsed(TimeUnit.MICROSECONDS);
+        HPDuration += PreciseTimer.elapsed(TimeUnit.MICROSECONDS) * 0.001;
         PreciseTimer.reset();
         PreciseTimer.start();
     } // end EndTiming
@@ -275,10 +276,11 @@ public class SALSAUtility {
         timingCompleted = true;
         mainTimer.stop();
         PreciseTimer.stop();
-        HPDuration += PreciseTimer.elapsed(TimeUnit.MICROSECONDS);
+        HPDuration += PreciseTimer.elapsed(TimeUnit.MICROSECONDS) * 0.001;
         mainDuration = mainTimer.elapsed(TimeUnit.MILLISECONDS);
         mainTimer.reset();
         PreciseTimer.reset();
+        endTime = new Date();
     } // end EndTiming
 
     public static void StartSubTimer(int TimingIndex) {
@@ -291,16 +293,19 @@ public class SALSAUtility {
         }
     } // End StartSubTimer
 
-    public static void StopSubTimer(int TimingIndex) {
+    public static double StopSubTimer(int TimingIndex) {
         if (TimingIndex < 0) {
-            return;
+            return 0.0;
         }
 
         if (SubTimingEnable[TimingIndex]) {
             SubTimers[TimingIndex].stop();
-            SubDurations[TimingIndex] += SubTimers[TimingIndex].elapsed(TimeUnit.MICROSECONDS);
+            double elapsed = SubTimers[TimingIndex].elapsed(TimeUnit.MICROSECONDS) * 0.001;
+            SubDurations[TimingIndex] += elapsed;
             SubTimers[TimingIndex].reset();
+            return elapsed;
         }
+        return 0.0;
 
     } // End StopSubTimer
 

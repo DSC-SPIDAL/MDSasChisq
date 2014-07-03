@@ -8,4 +8,6 @@ public class ManxcatErrorMessages
 
 	public static final String UnidentifiedTagInHTMLGeneration = "Unidentified tag in HTML generation";
 	public static String TemplateHtmlNotAvailable = "Template html file Manxcat.Web.template is not avaialable";
+	public static String HtmlGenerationFailed = "Generating HTML content was unsuccessful";
+	public static String CopyingCSSFailed = "Copying CSS Failed";
 }

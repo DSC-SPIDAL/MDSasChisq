@@ -1,171 +1,143 @@
 ﻿package salsa.mdsaschisq;
 
-import Manxcat.*;
-import Salsa.Core.Configuration.Sections.*;
-import SALSALibrary.*;
+import com.google.common.base.Strings;
+import salsa.configuration.sections.MDSasChisqSection;
 
-public class ManxcatMDSWriteSolution
-{
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
-	// Write label-cluster results into a file
-	public static void WriteMDS(String fname, int OutputOption, double[][] param, double[][] perr)
-	{
-		int LocalVectorDimension = param[0].GetLength(0);
+public class ManxcatMDSWriteSolution {
 
-		if (LocalVectorDimension != perr[0].GetLength(0))
-		{
-			SALSAUtility.printAndThrowRuntimeException(
-                    "Inconsistent Dimensions Labels " + LocalVectorDimension + " Perr " + perr[0].GetLength(0)
-                                                                                                 .toString());
-		}
+    // Write label-cluster results into a file
+    public static void WriteMDS(String fname, int OutputOption, double[][] param, double[][] perr) {
+        int LocalVectorDimension = param[0].length;
 
-		ManxcatSection Configuration = ManxcatCentral.config;
+        if (LocalVectorDimension != perr[0].length) {
+            SALSAUtility.printAndThrowRuntimeException(
+                    "Inconsistent Dimensions Labels " + LocalVectorDimension + " Perr " + perr[0].length);
+        }
 
-		// Write SALSA Properties File Header
-		if (OutputOption == 0)
-		{
-			int filetype = 2;
+        MDSasChisqSection config = ManxcatCentral.config;
 
-			if ((SALSAUtility.NumberFixedPoints > 0) || (SALSAUtility.NumberVariedPoints < SALSAUtility.NumberOriginalPoints))
-			{
-				filetype = 4;
-			}
+        // Write SALSA Properties File Header
+        if (OutputOption == 0) {
+            int filetype = 2;
 
-			String cleandate = SALSAUtility.startTime.ToLocalTime().toString();
-			cleandate = cleandate.replace(":", ".");
-			cleandate = cleandate.replace(" ", "-");
-			SALSAUtility.GlobalFileProperties.GroupName = "MDSasChisq-" + Configuration.RunSetLabel + "-Run" + Configuration.RunNumber.toString() + "-Date-" + cleandate;
-			SALSAUtility.GlobalFileProperties.FileGenerationType = filetype;
-			SALSAUtility.GlobalFileProperties.OriginalPointStartIndex = 0;
-			SALSAUtility.GlobalFileProperties.LocalPointStartIndex = 0;
-			SALSAUtility.GlobalFileProperties.NumberOriginalPoints = SALSAUtility.NumberOriginalPoints;
-			SALSAUtility.GlobalFileProperties.NumberPointsinFile = SALSAUtility.PointCount_Global;
+            if ((SALSAUtility.NumberFixedPoints > 0) || (SALSAUtility.NumberVariedPoints < SALSAUtility.NumberOriginalPoints)) {
+                filetype = 4;
+            }
 
-			// Comment should have key features of Run
-			String OldComment = SALSAUtility.GlobalFileProperties.Comment;
+            String cleandate = SALSAUtility.startTime.toString();
+            cleandate = cleandate.replace(":", ".");
+            cleandate = cleandate.replace(" ", "-");
+            SALSAUtility.GlobalFileProperties.GroupName = "MDSasChisq-" + config.RunSetLabel + "-Run" + config.RunNumber + "-Date-" + cleandate;
+            SALSAUtility.GlobalFileProperties.FileGenerationType = filetype;
+            SALSAUtility.GlobalFileProperties.OriginalPointStartIndex = 0;
+            SALSAUtility.GlobalFileProperties.LocalPointStartIndex = 0;
+            SALSAUtility.GlobalFileProperties.NumberOriginalPoints = SALSAUtility.NumberOriginalPoints;
+            SALSAUtility.GlobalFileProperties.NumberPointsinFile = SALSAUtility.PointCount_Global;
 
-			if (!OldComment.equals(""))
-			{
-				OldComment += "\n";
-			}
-			OldComment += "MDSasChisq " + Configuration.RunNumber.toString() + " StartTime " + cleandate + " ****";
-			OldComment += "\n Distance Input Option " + Configuration.DistanceProcessingOption.toString() + " Distance Formula " + Configuration.DistanceFormula.toString() + " Weighting Option " + Configuration.Chisqnorm.toString() + " Minimum Distance Value " + Configuration.MinimumDistance.toString();
-			OldComment += "\n" + Hotsun.HotsunComment;
-			SALSAUtility.GlobalFileProperties.Comment = OldComment;
+            // Comment should have key features of Run
+            String OldComment = SALSAUtility.GlobalFileProperties.Comment;
 
-			for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++)
-			{
-				int OriginalPointIndex = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex];
-				int groupnumber = -1;
-				String grouplabel = "Ignored";
-				SALSAUtility.GlobalPointProperties[GlobalPointIndex].FixedorVaried = 0;
-				if (ManxcatMDS.PointStatus[GlobalPointIndex] == -1)
-				{
-					groupnumber = 3;
-					grouplabel = "Deleted";
-				}
-				else
-				{
-					if (SALSAUtility.OriginalPointDisposition[GlobalPointIndex] <= -SALSAUtility.SALSASHIFT)
-					{
-						groupnumber = 2;
-						grouplabel = "Fixed";
-						SALSAUtility.GlobalPointProperties[GlobalPointIndex].FixedorVaried = 2;
-					}
+            if (!OldComment.equals("")) {
+                OldComment += "\n";
+            }
+            OldComment += "MDSasChisq " + config.RunNumber + " StartTime " + cleandate + " ****";
+            OldComment += "\n Distance Input Option " + config.DistanceProcessingOption + " Distance Formula " + config.DistanceFormula + " Weighting Option " + config.Chisqnorm + " Minimum Distance Value " + config.MinimumDistance;
+            OldComment += "\n" + Hotsun.HotsunComment;
+            SALSAUtility.GlobalFileProperties.Comment = OldComment;
 
-					if (SALSAUtility.OriginalPointDisposition[GlobalPointIndex] >= SALSAUtility.SALSASHIFT)
-					{
-						groupnumber = 1;
-						grouplabel = "Varied";
-						SALSAUtility.GlobalPointProperties[GlobalPointIndex].source = "MDSasChisq-" + Configuration.RunSetLabel + "-Run" + Configuration.RunNumber.toString() + "-Date-" + cleandate;
-						SALSAUtility.GlobalPointProperties[GlobalPointIndex].FixedorVaried = 1;
-					}
-				}
-				SALSAUtility.GlobalPointProperties[GlobalPointIndex].group = groupnumber;
-				SALSAUtility.GlobalPointProperties[GlobalPointIndex].grouplabel = grouplabel;
-				SALSAUtility.GlobalPointProperties[GlobalPointIndex].OriginalPointNumber = OriginalPointIndex;
-				SALSAUtility.GlobalPointProperties[GlobalPointIndex].LocalPointNumber = GlobalPointIndex;
-			}
+            for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++) {
+                int OriginalPointIndex = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex];
+                int groupnumber = -1;
+                String grouplabel = "Ignored";
+                SALSAUtility.GlobalPointProperties[GlobalPointIndex].FixedorVaried = 0;
+                if (ManxcatMDS.PointStatus[GlobalPointIndex] == -1) {
+                    groupnumber = 3;
+                    grouplabel = "Deleted";
+                } else {
+                    if (SALSAUtility.OriginalPointDisposition[GlobalPointIndex] <= -SALSAUtility.SALSASHIFT) {
+                        groupnumber = 2;
+                        grouplabel = "Fixed";
+                        SALSAUtility.GlobalPointProperties[GlobalPointIndex].FixedorVaried = 2;
+                    }
 
-			for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++)
-			{
-				if (ManxcatMDS.PointStatus[GlobalPointIndex] == -1)
-				{
-					SALSAUtility.GlobalPointProperties[GlobalPointIndex].valuesset = false;
-					SALSAUtility.GlobalPointProperties[GlobalPointIndex].errorsset = false;
-					continue;
-				}
-				SALSAUtility.GlobalPointProperties[GlobalPointIndex].x = param[GlobalPointIndex][0];
-				SALSAUtility.GlobalPointProperties[GlobalPointIndex].y = param[GlobalPointIndex][1];
+                    if (SALSAUtility.OriginalPointDisposition[GlobalPointIndex] >= SALSAUtility.SALSASHIFT) {
+                        groupnumber = 1;
+                        grouplabel = "Varied";
+                        SALSAUtility.GlobalPointProperties[GlobalPointIndex].source = "MDSasChisq-" + config.RunSetLabel + "-Run" + config.RunNumber + "-Date-" + cleandate;
+                        SALSAUtility.GlobalPointProperties[GlobalPointIndex].FixedorVaried = 1;
+                    }
+                }
+                SALSAUtility.GlobalPointProperties[GlobalPointIndex].group = groupnumber;
+                SALSAUtility.GlobalPointProperties[GlobalPointIndex].grouplabel = grouplabel;
+                SALSAUtility.GlobalPointProperties[GlobalPointIndex].OriginalPointNumber = OriginalPointIndex;
+                SALSAUtility.GlobalPointProperties[GlobalPointIndex].LocalPointNumber = GlobalPointIndex;
+            }
 
-				if (LocalVectorDimension > 2)
-				{
-					SALSAUtility.GlobalPointProperties[GlobalPointIndex].z = param[GlobalPointIndex][2];
-				}
-				SALSAUtility.GlobalPointProperties[GlobalPointIndex].xerr = perr[GlobalPointIndex][0];
-				SALSAUtility.GlobalPointProperties[GlobalPointIndex].yerr = perr[GlobalPointIndex][1];
+            for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++) {
+                if (ManxcatMDS.PointStatus[GlobalPointIndex] == -1) {
+                    SALSAUtility.GlobalPointProperties[GlobalPointIndex].valuesset = false;
+                    SALSAUtility.GlobalPointProperties[GlobalPointIndex].errorsset = false;
+                    continue;
+                }
+                SALSAUtility.GlobalPointProperties[GlobalPointIndex].x = param[GlobalPointIndex][0];
+                SALSAUtility.GlobalPointProperties[GlobalPointIndex].y = param[GlobalPointIndex][1];
 
-				if (LocalVectorDimension > 2)
-				{
-					SALSAUtility.GlobalPointProperties[GlobalPointIndex].zerr = perr[GlobalPointIndex][2];
-				}
-				SALSAUtility.GlobalPointProperties[GlobalPointIndex].valuesset = true;
-				SALSAUtility.GlobalPointProperties[GlobalPointIndex].errorsset = true;
-			}
-			if (SALSAUtility.Usedreordered)
-			{
-				SALSADataPointProperties[] NaivePointProperties = new SALSADataPointProperties[SALSAUtility.PointCount_Global];
-				for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++)
-				{
-					int NaivePointIndex = SALSAUtility.ActualtoNaiveUsedOrder[GlobalPointIndex];
-					NaivePointProperties[NaivePointIndex] = SALSAUtility.GlobalPointProperties[GlobalPointIndex].ShallowCopy();
-				}
-				SALSALibrary.SALSA_Properties.WriteDataPointFile(fname, ManxcatCentral.config.Write2Das3D, "all ", SALSAUtility.GlobalFileProperties, NaivePointProperties, SALSAUtility.PointCount_Global);
-				return;
-			}
-			SALSALibrary.SALSA_Properties.WriteDataPointFile(fname, ManxcatCentral.config.Write2Das3D, "all ", SALSAUtility.GlobalFileProperties, SALSAUtility.GlobalPointProperties, SALSAUtility.PointCount_Global);
-			return;
-		}
+                if (LocalVectorDimension > 2) {
+                    SALSAUtility.GlobalPointProperties[GlobalPointIndex].z = param[GlobalPointIndex][2];
+                }
+                SALSAUtility.GlobalPointProperties[GlobalPointIndex].xerr = perr[GlobalPointIndex][0];
+                SALSAUtility.GlobalPointProperties[GlobalPointIndex].yerr = perr[GlobalPointIndex][1];
 
-		//  Option OutputOption = 1
-		// Simple output of Used in ORIGINAL not Loadbalanced Order
-		try
-		{
-			StreamWriter sw = null;
+                if (LocalVectorDimension > 2) {
+                    SALSAUtility.GlobalPointProperties[GlobalPointIndex].zerr = perr[GlobalPointIndex][2];
+                }
+                SALSAUtility.GlobalPointProperties[GlobalPointIndex].valuesset = true;
+                SALSAUtility.GlobalPointProperties[GlobalPointIndex].errorsset = true;
+            }
+            if (SALSAUtility.Usedreordered) {
+                SALSADataPointProperties[] NaivePointProperties = new SALSADataPointProperties[SALSAUtility.PointCount_Global];
+                for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++) {
+                    int NaivePointIndex = SALSAUtility.ActualtoNaiveUsedOrder[GlobalPointIndex];
+                    NaivePointProperties[NaivePointIndex] = SALSAUtility.GlobalPointProperties[GlobalPointIndex].ShallowCopy();
+                }
+                SALSA_Properties.WriteDataPointFile(fname, ManxcatCentral.config.Write2Das3D, "all ",
+                        SALSAUtility.GlobalFileProperties, NaivePointProperties, SALSAUtility.PointCount_Global);
+                return;
+            }
+            SALSA_Properties.WriteDataPointFile(fname, ManxcatCentral.config.Write2Das3D, "all ",
+                    SALSAUtility.GlobalFileProperties, SALSAUtility.GlobalPointProperties,
+                    SALSAUtility.PointCount_Global);
+            return;
+        }
 
-			if (!tangible.DotNetToJavaStringHelper.isNullOrEmpty(fname))
-			{
-				sw = new StreamWriter(fname, false, Encoding.UTF8);
-			}
+        //  Option OutputOption = 1
+        // Simple output of Used in ORIGINAL not Loadbalanced Order
+        if (!Strings.isNullOrEmpty(fname)) {
+            try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(fname),
+                    Charset.defaultCharset()), true)) {
+                for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++) {
+                    if (ManxcatMDS.PointStatus[GlobalPointIndex] == -1) {
+                        continue;
+                    }
+                    String Coordinates = "";
+                    int SingleCluster = 1;
+                    int UsedPointIndex = SALSAUtility.NaivetoActualUsedOrder[GlobalPointIndex];
+                    for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
+                        Coordinates += String.format("%.4E", param[UsedPointIndex][LocalVectorIndex]) + "\t";
+                    }
 
-			if (sw != null)
-			{
-				for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++)
-				{
-					if (ManxcatMDS.PointStatus[GlobalPointIndex] == -1)
-					{
-						continue;
-					}
-					String Coordinates = "";
-					int SingleCluster = 1;
-					int UsedPointIndex = SALSAUtility.NaivetoActualUsedOrder[GlobalPointIndex];
-					for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++)
-					{
-						Coordinates += String.format("%.4E", param[UsedPointIndex][LocalVectorIndex]) + "\t";
-					}
-
-					sw.WriteLine(String.format((GlobalPointIndex).toString() + "\t" + Coordinates + SingleCluster));
-				}
-			}
-
-			sw.Flush();
-			sw.Close();
-		}
-		catch (RuntimeException e)
-		{
-			System.out.println("Failed writing data" + e);
-			throw (e);
-		}
-	} // End WriteMDS
-
-} // End class ManxcatMDSWriteSolution // End Namespace MDS
+                    writer.println(String.format((GlobalPointIndex) + "\t" + Coordinates + SingleCluster));
+                }
+                writer.close();
+            } catch (IOException e) {
+                SALSAUtility.printAndThrowRuntimeException("Failed writing data" + e);
+            }
+        }
+    }
+}

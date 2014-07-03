@@ -379,9 +379,7 @@ public class ManxcatCentral
 
 			Hotsun.Q = Hotsun.QHighInitialFactor * Hotsun.Qhigh;
 			boolean QlessthanQlow = Hotsun.Q < Hotsun.Qlow;
-			tangible.RefObject<Boolean> tempRef_QlessthanQlow = new tangible.RefObject<Boolean>(QlessthanQlow);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_QlessthanQlow);
-			QlessthanQlow = tempRef_QlessthanQlow.argValue;
+            QlessthanQlow = SALSAUtility.synchronizeMPIVariable(QlessthanQlow);
 
 			if (QlessthanQlow)
 			{
@@ -402,17 +400,11 @@ public class ManxcatCentral
 
 			if ((SALSAUtility.DebugPrintOption > 0) && (SALSAUtility.MPI_Rank == 0))
 			{
-				SALSAUtility.SALSAPrint(1,
-                                        "\n-----------------------------------------------\n" + SALSAUtility.startTime
-                                                                                                            .ToLocalTime() + " Iterations " + Hotsun.numit + " Chisq " + String
-
-
-                                                .format("%.3f",
-                                                        ChisqPrintConstant * Hotsun.zerocr) + " Parameters " + Hotsun
-                                                .npar + " Data Points " + (new Long(
-                                                Hotsun.ndata))
-                                                .toString());
-			}
+                SALSAUtility.SALSAPrint(1,
+                        "\n-----------------------------------------------\n" + SALSAUtility.startTime + " Iterations " + Hotsun.numit + " Chisq " + String.format(
+                                "%.3f",
+                                ChisqPrintConstant * Hotsun.zerocr) + " Parameters " + Hotsun.npar + " Data Points " + Hotsun.ndata);         
+            }
 
 			Hotsun.DecisionMethod = 0; //   Initial Conditions on Decisions
 			Hotsun.DecisionMethod_1 = 0;
@@ -460,9 +452,7 @@ public class ManxcatCentral
 					double Qtest = 0.05 * Hotsun.Qhigh;
 					Qtest = Math.max(2.0 * Hotsun.Qlow, Qtest);
 					boolean Qisaboveaverage = Hotsun.Q > Qtest;
-					tangible.RefObject<Boolean> tempRef_Qisaboveaverage = new tangible.RefObject<Boolean>(Qisaboveaverage);
-					SALSAUtility.SynchronizeMPIvariable(tempRef_Qisaboveaverage);
-					Qisaboveaverage = tempRef_Qisaboveaverage.argValue;
+                    Qisaboveaverage = SALSAUtility.synchronizeMPIVariable(Qisaboveaverage);
 
 					if (Qisaboveaverage)
 					{
@@ -501,7 +491,7 @@ public class ManxcatCentral
 					{
 						// Steepest Descent Solution  -- Q is NOT added
 						Hotsun.AddMarquardtQDynamically = false;
-						SteepestDescentSolution(Hotsun.CurrentSolution, new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+						SteepestDescentSolution(Hotsun.CurrentSolution, GlobalMatrixVectorProduct);
 						++Hotsun.isdtry;
 						Hotsun.Qsd = Hotsun.Q;
 						Hotsun.materr = 0;
@@ -546,7 +536,7 @@ public class ManxcatCentral
 							if (Hotsun.materr > 1)
 							{
 								// Too many failures
-								EndupManxcat(6, new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution), new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+								EndupManxcat(6, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
 								wefailed = true;
 								break;
 							}
@@ -557,9 +547,7 @@ public class ManxcatCentral
 							Hotsun.Q = 4.0 * Hotsun.Q;
 
 							boolean Qessentiallyzero = Hotsun.Q <= (2.0 * Hotsun.QHighInitialFactor);
-							tangible.RefObject<Boolean> tempRef_Qessentiallyzero = new tangible.RefObject<Boolean>(Qessentiallyzero);
-							SALSAUtility.SynchronizeMPIvariable(tempRef_Qessentiallyzero);
-							Qessentiallyzero = tempRef_Qessentiallyzero.argValue;
+                            Qessentiallyzero = SALSAUtility.synchronizeMPIVariable(Qessentiallyzero);
 							if (Qessentiallyzero)
 							{
 								Hotsun.Q = 1.0;
@@ -570,7 +558,6 @@ public class ManxcatCentral
 							{
 								Hotsun.isdtry = 3;
 							}
-							continue;
 						}
 					}
 				} // End while Solving Matrix and finding good Q value if failure
@@ -585,7 +572,7 @@ public class ManxcatCentral
 				//  Here we just use direct Conjugate Gradient
 
 				//  Calculate Predicted Chisq Change from this solution
-				FindPredictedChisqChange(Hotsun.CurrentSolution, new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+				FindPredictedChisqChange(Hotsun.CurrentSolution, GlobalMatrixVectorProduct);
 				Hotsun.expchg = Hotsun.pred1 + Hotsun.pred2;
 
 				if (Hotsun.pred2 > 0)
@@ -599,7 +586,7 @@ public class ManxcatCentral
 				// For derivative test avoid first iteration that could be special
 				if (Hotsun.derivtest && (Hotsun.numit == 3))
 				{
-					DoDerivTest(new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+					DoDerivTest(Calcfg, GlobalMatrixVectorProduct);
 					Hotsun.derivtest = false;
 				}
 				Hotsun.doingderivtest = false;
@@ -654,29 +641,25 @@ public class ManxcatCentral
 				double ExtraDecrease = 0.0;
 				int LineIterations = 0;
 				boolean Delchipositive = Hotsun.delchi >= 0.0;
-				tangible.RefObject<Boolean> tempRef_Delchipositive = new tangible.RefObject<Boolean>(Delchipositive);
-				SALSAUtility.SynchronizeMPIvariable(tempRef_Delchipositive);
-				Delchipositive = tempRef_Delchipositive.argValue;
+                Delchipositive = SALSAUtility.synchronizeMPIVariable(Delchipositive);
 
 				if (Delchipositive)
 				{
 					if ((Hotsun.OmegaOption > 0) && (Hotsun.igood > 0))
 					{
 						boolean LookatOmegaOption = Hotsun.delchi > (Hotsun.Omega * Hotsun.expchg);
-						tangible.RefObject<Boolean> tempRef_LookatOmegaOption = new tangible.RefObject<Boolean>(LookatOmegaOption);
-						SALSAUtility.SynchronizeMPIvariable(tempRef_LookatOmegaOption);
-						LookatOmegaOption = tempRef_LookatOmegaOption.argValue;
+                        LookatOmegaOption = SALSAUtility.synchronizeMPIVariable(LookatOmegaOption);
 
 						if (LookatOmegaOption)
 						{
 							// Do a line search exploring larger shifts
 							LineSearchUsed = true;
 							LineFactorGuess = -1.0; // Explore larger solutions
-							tangible.RefObject<Integer> tempRef_DecisionMethod_LineSearch = new tangible.RefObject<Integer>(Hotsun.DecisionMethod_LineSearch);
-							tangible.RefObject<Double> tempRef_LineFactor = new tangible.RefObject<Double>(LineFactor);
-							tangible.RefObject<Double> tempRef_ExtraDecrease = new tangible.RefObject<Double>(ExtraDecrease);
-							tangible.RefObject<Integer> tempRef_LineIterations = new tangible.RefObject<Integer>(LineIterations);
-							searchsuccess = LineSearch(Hotsun.CurrentSolution, Hotsun.PreviousSolution, tempRef_DecisionMethod_LineSearch, tempRef_LineFactor, tempRef_ExtraDecrease, tempRef_LineIterations, new Hotsun.Hotsun.CalcfgSignature(Calcfg), -1.0);
+							tangible.RefObject<Integer> tempRef_DecisionMethod_LineSearch = new tangible.RefObject<>(Hotsun.DecisionMethod_LineSearch);
+							tangible.RefObject<Double> tempRef_LineFactor = new tangible.RefObject<>(LineFactor);
+							tangible.RefObject<Double> tempRef_ExtraDecrease = new tangible.RefObject<>(ExtraDecrease);
+							tangible.RefObject<Integer> tempRef_LineIterations = new tangible.RefObject<>(LineIterations);
+							searchsuccess = LineSearch(Hotsun.CurrentSolution, Hotsun.PreviousSolution, tempRef_DecisionMethod_LineSearch, tempRef_LineFactor, tempRef_ExtraDecrease, tempRef_LineIterations, Calcfg, -1.0);
 						Hotsun.DecisionMethod_LineSearch = tempRef_DecisionMethod_LineSearch.argValue;
 						LineFactor = tempRef_LineFactor.argValue;
 						ExtraDecrease = tempRef_ExtraDecrease.argValue;
@@ -709,11 +692,11 @@ public class ManxcatCentral
 								double dchi4 = Hotsun.delchi * ChisqPrintConstant;
 								double alpha = dchi1 / (2.0 * (dchi1 - dchi4));
 								LineFactorGuess = alpha;
-								tangible.RefObject<Integer> tempRef_DecisionMethod_LineSearch2 = new tangible.RefObject<Integer>(Hotsun.DecisionMethod_LineSearch);
-								tangible.RefObject<Double> tempRef_LineFactor2 = new tangible.RefObject<Double>(LineFactor);
-								tangible.RefObject<Double> tempRef_ExtraDecrease2 = new tangible.RefObject<Double>(ExtraDecrease);
-								tangible.RefObject<Integer> tempRef_LineIterations2 = new tangible.RefObject<Integer>(LineIterations);
-								searchsuccess = LineSearch(Hotsun.CurrentSolution, Hotsun.PreviousSolution, tempRef_DecisionMethod_LineSearch2, tempRef_LineFactor2, tempRef_ExtraDecrease2, tempRef_LineIterations2, new Hotsun.Hotsun.CalcfgSignature(Calcfg), alpha);
+								tangible.RefObject<Integer> tempRef_DecisionMethod_LineSearch2 = new tangible.RefObject<>(Hotsun.DecisionMethod_LineSearch);
+								tangible.RefObject<Double> tempRef_LineFactor2 = new tangible.RefObject<>(LineFactor);
+								tangible.RefObject<Double> tempRef_ExtraDecrease2 = new tangible.RefObject<>(ExtraDecrease);
+								tangible.RefObject<Integer> tempRef_LineIterations2 = new tangible.RefObject<>(LineIterations);
+								searchsuccess = LineSearch(Hotsun.CurrentSolution, Hotsun.PreviousSolution, tempRef_DecisionMethod_LineSearch2, tempRef_LineFactor2, tempRef_ExtraDecrease2, tempRef_LineIterations2, Calcfg, alpha);
 							Hotsun.DecisionMethod_LineSearch = tempRef_DecisionMethod_LineSearch2.argValue;
 							LineFactor = tempRef_LineFactor2.argValue;
 							ExtraDecrease = tempRef_ExtraDecrease2.argValue;
@@ -917,7 +900,7 @@ public class ManxcatCentral
 					MakeVectorGlobal(Hotsun.CurrentSolution.param, Hotsun.GlobalParameter);
 					GlobalParameterSet = true; // Set Indicator  that Global Parameters are set
 
-					WriteCoordinates(0, new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution));
+					WriteCoordinates(0, WriteSolution);
 
 					CopySolution(Hotsun.CurrentSolution, Hotsun.SearchSolution1);
 					Hotsun.zerocr = chisave;
@@ -941,9 +924,7 @@ public class ManxcatCentral
 					{
 						Hotsun.DecisionMethod_1 = 2;
 						boolean CurrentSolutionBest = Hotsun.CurrentSolution.Chisquared < Hotsun.BestSolution.Chisquared;
-						tangible.RefObject<Boolean> tempRef_CurrentSolutionBest = new tangible.RefObject<Boolean>(CurrentSolutionBest);
-						SALSAUtility.SynchronizeMPIvariable(tempRef_CurrentSolutionBest);
-						CurrentSolutionBest = tempRef_CurrentSolutionBest.argValue;
+                        CurrentSolutionBest = SALSAUtility.synchronizeMPIVariable(CurrentSolutionBest);
 
 						if (!CurrentSolutionBest)
 						{
@@ -962,9 +943,7 @@ public class ManxcatCentral
 					// If necessary, save current best parameters
 					// We save true (diagonal of) second derivative matrix -- not one overwritten by Marquardt
 					boolean CurrentSolutionBest = Hotsun.CurrentSolution.Chisquared < Hotsun.BestSolution.Chisquared;
-					tangible.RefObject<Boolean> tempRef_CurrentSolutionBest2 = new tangible.RefObject<Boolean>(CurrentSolutionBest);
-					SALSAUtility.SynchronizeMPIvariable(tempRef_CurrentSolutionBest2);
-					CurrentSolutionBest = tempRef_CurrentSolutionBest2.argValue;
+                    CurrentSolutionBest = SALSAUtility.synchronizeMPIVariable(CurrentSolutionBest);
 
 					if (CurrentSolutionBest)
 					{
@@ -987,9 +966,7 @@ public class ManxcatCentral
 					{
 						Hotsun.DecisionMethod = 4;
 						boolean QsdTest = Hotsun.Q < (Hotsun.Qsd - 0.0000000001);
-						tangible.RefObject<Boolean> tempRef_QsdTest = new tangible.RefObject<Boolean>(QsdTest);
-						SALSAUtility.SynchronizeMPIvariable(tempRef_QsdTest);
-						QsdTest = tempRef_QsdTest.argValue;
+                        QsdTest = SALSAUtility.synchronizeMPIVariable(QsdTest);
 
 						if (QsdTest)
 						{
@@ -1042,40 +1019,36 @@ public class ManxcatCentral
 				}
 
 				boolean TimeExceeded = (Hotsun.timmax > 0.0) && (Hotsun.TotalTimeUsed > Hotsun.timmax);
-				tangible.RefObject<Boolean> tempRef_TimeExceeded = new tangible.RefObject<Boolean>(TimeExceeded);
-				SALSAUtility.SynchronizeMPIvariable(tempRef_TimeExceeded);
-				TimeExceeded = tempRef_TimeExceeded.argValue;
+                TimeExceeded = SALSAUtility.synchronizeMPIVariable(TimeExceeded);
 
 				if (TimeExceeded)
 				{
 					// Time limit reached
-					EndupManxcat(3, new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution), new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+					EndupManxcat(3, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
 					break;
 				}
 
 				if (Hotsun.numit >= Hotsun.maxit)
 				{
 					// Iteration limit reached
-					EndupManxcat(1, new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution), new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+					EndupManxcat(1, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
 					break;
 				}
 
 				boolean SmallExpectedChisqChange = (Hotsun.expchg * ChisqPrintConstant) <= Hotsun.dellim;
-				tangible.RefObject<Boolean> tempRef_SmallExpectedChisqChange = new tangible.RefObject<Boolean>(SmallExpectedChisqChange);
-				SALSAUtility.SynchronizeMPIvariable(tempRef_SmallExpectedChisqChange);
-				SmallExpectedChisqChange = tempRef_SmallExpectedChisqChange.argValue;
+                SmallExpectedChisqChange = SALSAUtility.synchronizeMPIVariable(SmallExpectedChisqChange);
 
 				if (SmallExpectedChisqChange)
 				{
 					// Expected change in chisq <= preset limit
-					EndupManxcat(2, new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution), new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+					EndupManxcat(2, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
 					break;
 				}
 
 				if (Hotsun.bnderr > Hotsun.bnderrLimit)
 				{
 					// Boundary Value limit reached
-					EndupManxcat(5, new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution), new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+					EndupManxcat(5, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
 					break;
 				}
 
@@ -1091,13 +1064,11 @@ public class ManxcatCentral
 					}
 
 					boolean TooLittleProgress = (Hotsun.chsave[itest] - Hotsun.zeromn) < Hotsun.dellim;
-					tangible.RefObject<Boolean> tempRef_TooLittleProgress = new tangible.RefObject<Boolean>(TooLittleProgress);
-					SALSAUtility.SynchronizeMPIvariable(tempRef_TooLittleProgress);
-					TooLittleProgress = tempRef_TooLittleProgress.argValue;
+                    TooLittleProgress = SALSAUtility.synchronizeMPIVariable(TooLittleProgress);
 
 					if (TooLittleProgress)
 					{
-						EndupManxcat(4, new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution), new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+						EndupManxcat(4, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
 						break;
 					}
 				}
@@ -1107,21 +1078,17 @@ public class ManxcatCentral
 				//  Reasonable Success -- Decrease Marquardt Parameter if going very well
 				//  Namely actual change is larger that Fletcher's rho * Expected change estimated from Taylor expansion
 				boolean GoodenoughChisqChange = Hotsun.delchi >= (Hotsun.rho * Hotsun.expchg);
-				tangible.RefObject<Boolean> tempRef_GoodenoughChisqChange = new tangible.RefObject<Boolean>(GoodenoughChisqChange);
-				SALSAUtility.SynchronizeMPIvariable(tempRef_GoodenoughChisqChange);
-				GoodenoughChisqChange = tempRef_GoodenoughChisqChange.argValue;
+                GoodenoughChisqChange = SALSAUtility.synchronizeMPIVariable(GoodenoughChisqChange);
 
 				if (GoodenoughChisqChange)
 				{
-					launchQlimits(new Hotsun.Hotsun.FindQlimitsSignature(FindQlimits)); // Reset Q limits every now and then
+					launchQlimits(FindQlimits); // Reset Q limits every now and then
 					Hotsun.DecisionMethod_4 = 2;
 
 					Hotsun.Qgood = Hotsun.Q;
 					++Hotsun.igood;
 					boolean Qessentiallyzero = Hotsun.Q < 0.0000000001;
-					tangible.RefObject<Boolean> tempRef_Qessentiallyzero2 = new tangible.RefObject<Boolean>(Qessentiallyzero);
-					SALSAUtility.SynchronizeMPIvariable(tempRef_Qessentiallyzero2);
-					Qessentiallyzero = tempRef_Qessentiallyzero2.argValue;
+                    Qessentiallyzero = SALSAUtility.synchronizeMPIVariable(Qessentiallyzero);
 
 					if (Qessentiallyzero)
 					{
@@ -1132,9 +1099,7 @@ public class ManxcatCentral
 					//  Modest change are those "good" iterations that change Chisq by less than Feltcher's Sigma *   Expected change estimated from Taylor expansion
 					//  Good but modest chisq changes leave Q unchanged
 					boolean ChisqChangemodest = Hotsun.delchi < (Hotsun.sigma * Hotsun.expchg);
-					tangible.RefObject<Boolean> tempRef_ChisqChangemodest = new tangible.RefObject<Boolean>(ChisqChangemodest);
-					SALSAUtility.SynchronizeMPIvariable(tempRef_ChisqChangemodest);
-					ChisqChangemodest = tempRef_ChisqChangemodest.argValue;
+                    ChisqChangemodest = SALSAUtility.synchronizeMPIVariable(ChisqChangemodest);
 
 					if (ChisqChangemodest)
 					{
@@ -1158,9 +1123,7 @@ public class ManxcatCentral
 					//  This is case of really good Chisq change -- decrease Q
 					Hotsun.CountToSD = 0;
 					boolean Qalreadysmall = Hotsun.Q <= (Hotsun.Qscale * Hotsun.Qlow);
-					tangible.RefObject<Boolean> tempRef_Qalreadysmall = new tangible.RefObject<Boolean>(Qalreadysmall);
-					SALSAUtility.SynchronizeMPIvariable(tempRef_Qalreadysmall);
-					Qalreadysmall = tempRef_Qalreadysmall.argValue;
+                    Qalreadysmall = SALSAUtility.synchronizeMPIVariable(Qalreadysmall);
 
 					if (Qalreadysmall)
 					{
@@ -1175,19 +1138,17 @@ public class ManxcatCentral
 						{
 							Hotsun.DecisionMethod_2 = 5;
 						}
-						continue; // Next Iteration
 					}
 					else
 					{
 						Hotsun.DecisionMethod_2 = 6;
 						Hotsun.Q = Math.max(Math.sqrt(Hotsun.Q * Hotsun.Qlow), Hotsun.Q * 0.33);
-						continue; // Next Iteration
 					}
 				} // End case when reasonable success -- possibly decrease Q
 
-					//  Unexpectedly small or negative change -- Increase Marquardt Parameter
-					// Reset limits Qlow and Qhigh on allowed range of Q values if needed
-				else
+                //  Unexpectedly small or negative change -- Increase Marquardt Parameter
+                // Reset limits Qlow and Qhigh on allowed range of Q values if needed
+                else
 				{
 					Hotsun.DecisionMethod_3 = 1;
 
@@ -1221,14 +1182,12 @@ public class ManxcatCentral
 					{
 						// Qlow and Qhigh need to be reset
 						Hotsun.DecisionMethod_4 = 1;
-						launchQlimits(new Hotsun.Hotsun.FindQlimitsSignature(FindQlimits));
+						launchQlimits(FindQlimits);
 
 					} // End case Qlow and Qhigh need to be reset
 
 					QnearQhigh = Hotsun.Qhigh <= (Hotsun.Qscale * Hotsun.Q);
-					tangible.RefObject<Boolean> tempRef_QnearQhigh = new tangible.RefObject<Boolean>(QnearQhigh);
-					SALSAUtility.SynchronizeMPIvariable(tempRef_QnearQhigh);
-					QnearQhigh = tempRef_QnearQhigh.argValue;
+                    QnearQhigh = SALSAUtility.synchronizeMPIVariable(QnearQhigh);
 
 					if (QnearQhigh)
 					{
@@ -1254,9 +1213,7 @@ public class ManxcatCentral
 					{
 						Qlookswrong = false;
 						boolean Qgoodsmall = Hotsun.Qgood <= (Hotsun.Qscale * Hotsun.Q);
-						tangible.RefObject<Boolean> tempRef_Qgoodsmall = new tangible.RefObject<Boolean>(Qgoodsmall);
-						SALSAUtility.SynchronizeMPIvariable(tempRef_Qgoodsmall);
-						Qgoodsmall = tempRef_Qgoodsmall.argValue;
+                        Qgoodsmall = SALSAUtility.synchronizeMPIVariable(Qgoodsmall);
 
 						if (Qgoodsmall)
 						{
@@ -1270,9 +1227,7 @@ public class ManxcatCentral
 						}
 					}
 
-					tangible.RefObject<Boolean> tempRef_Qlookswrong = new tangible.RefObject<Boolean>(Qlookswrong);
-					SALSAUtility.SynchronizeMPIvariable(tempRef_Qlookswrong);
-					Qlookswrong = tempRef_Qlookswrong.argValue;
+                    Qlookswrong = SALSAUtility.synchronizeMPIVariable(Qlookswrong);
 
 					if (Qlookswrong)
 					{
@@ -1297,8 +1252,6 @@ public class ManxcatCentral
 		Sequel.invoke();
 
 		System.out.println("Completed");
-
-		return;
 	}
 
 	// End Control
@@ -1374,8 +1327,7 @@ public class ManxcatCentral
 		if ((SALSAUtility.DebugPrintOption > 0) && (SALSAUtility.MPI_Rank == 0))
 		{
 
-			SALSAUtility.SALSAPrint(1, "\n-------------------" + SALSAUtility.endTime
-                                                                             .ToLocalTime() + "\nIterations " + Hotsun.numit + " Chisq " + String
+			SALSAUtility.SALSAPrint(1, "\n-------------------" + SALSAUtility.endTime + "\nIterations " + Hotsun.numit + " Chisq " + String
 
                     .format("%.3f", ChisqPrintConstant * Hotsun.zerocr) + " Q " + String
                     .format("%.3f", Hotsun.Q) + " Qlow " + String.format("%.3f", Hotsun.Qlow) + " Qhigh " + String
@@ -1457,7 +1409,7 @@ public class ManxcatCentral
 		// Output Chisqcomponent
 		if (SALSAUtility.NumberFixedPoints > 0)
 		{
-			CalculateChisqComponents(new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct), Hotsun.CurrentSolution, ChisqPrintConstant);
+			CalculateChisqComponents(Calcfg, GlobalMatrixVectorProduct, Hotsun.CurrentSolution, ChisqPrintConstant);
 		}
 
 		//      Process Iteration over Initialization parameters
@@ -1467,7 +1419,7 @@ public class ManxcatCentral
 			Hotsun.BestChisqLoop = 0;
 			if (Hotsun.InitializationLoopCount != (Hotsun.InitializationLoops - 1))
 			{
-				WriteOutParameters(new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution), new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+				WriteOutParameters(WriteSolution, Calcfg, GlobalMatrixVectorProduct);
 			}
 		}
 		else
@@ -1479,7 +1431,7 @@ public class ManxcatCentral
 
 				if (Hotsun.InitializationLoopCount != (Hotsun.InitializationLoops - 1))
 				{
-					WriteOutParameters(new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution), new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+					WriteOutParameters(WriteSolution, Calcfg, GlobalMatrixVectorProduct);
 				}
 			}
 		}
@@ -1490,7 +1442,7 @@ public class ManxcatCentral
 		{
 			return;
 		}
-		WriteOutParameters(new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution), new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct));
+		WriteOutParameters(WriteSolution, Calcfg, GlobalMatrixVectorProduct);
 
 	} // End EndupMancat(int ReasonToStop)
 
@@ -1524,16 +1476,16 @@ public class ManxcatCentral
 				{
 					SALSAUtility.SALSAPrint(1, ChisqList);
 				}
-				Hotsun.HotsunComment = firstcomment;
+                Hotsun.HotsunComment = firstcomment;
 			}
 			else
 			{
-				Hotsun.HotsunComment = String.format("%.3f", Hotsun.CurrentSolution.Chisquared * ChisqPrintConstant);
+                Hotsun.HotsunComment = String.format("%.3f", Hotsun.CurrentSolution.Chisquared * ChisqPrintConstant);
 			}
 			// Output Chisqcomponent
 			if (SALSAUtility.NumberFixedPoints > 0)
 			{
-				CalculateChisqComponents(new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct), Hotsun.CurrentSolution, ChisqPrintConstant);
+				CalculateChisqComponents(Calcfg, GlobalMatrixVectorProduct, Hotsun.CurrentSolution, ChisqPrintConstant);
 			}
 		}
 
@@ -1549,8 +1501,7 @@ public class ManxcatCentral
 			SALSABLAS.zrword(Hotsun.perr);
 			Hotsun.errcal = 0;
 		}
-		WriteCoordinates(1, new Hotsun.Hotsun.WriteSolutionSignature(WriteSolution));
-		return;
+		WriteCoordinates(1, WriteSolution);
 
 	} // End WriteOutParameters
 
@@ -1630,13 +1581,13 @@ public class ManxcatCentral
 	{
 		int savecomponentflag = SALSAUtility.chisqcomponent;
 		SALSAUtility.chisqcomponent = 1;
-		double chisq1 = MultiplicationFactor * StandaAloneChisq(new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct), FromSolution);
+		double chisq1 = MultiplicationFactor * StandaAloneChisq(Calcfg, GlobalMatrixVectorProduct, FromSolution);
 		SALSAUtility.chisqcomponent = 2;
-		double chisq2 = MultiplicationFactor * StandaAloneChisq(new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct), FromSolution);
+		double chisq2 = MultiplicationFactor * StandaAloneChisq(Calcfg, GlobalMatrixVectorProduct, FromSolution);
 		SALSAUtility.chisqcomponent = 3;
-		double chisq3 = MultiplicationFactor * StandaAloneChisq(new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct), FromSolution);
+		double chisq3 = MultiplicationFactor * StandaAloneChisq(Calcfg, GlobalMatrixVectorProduct, FromSolution);
 		SALSAUtility.chisqcomponent = 4;
-		double chisq4 = MultiplicationFactor * StandaAloneChisq(new Hotsun.Hotsun.CalcfgSignature(Calcfg), new Hotsun.Hotsun.GlobalMatrixVectorProductSignature(GlobalMatrixVectorProduct), FromSolution);
+		double chisq4 = MultiplicationFactor * StandaAloneChisq(Calcfg, GlobalMatrixVectorProduct, FromSolution);
 		String componentcomment = " V-V " + String.format("%.3f", chisq1) + " V-F " + String.format("%.3f", chisq2) + " F-V " + String.format("%.3f", chisq3) + " F-F " + String.format("%.3f", chisq4);
 		if (SALSAUtility.MPI_Rank == 0)
 		{
@@ -1644,7 +1595,6 @@ public class ManxcatCentral
 		}
 		SALSAUtility.chisqcomponent = savecomponentflag;
 		Hotsun.HotsunComment += "\n" + componentcomment;
-		return;
 
 	} // End CalculateChisqComponents()
 
@@ -1883,9 +1833,8 @@ public class ManxcatCentral
 				{
 					MPI2DDoubleVectorPacket.CopyMPI2DDoubleVectorPacket(FromAfar2DDoubleVector, TogoDistributed2DDoubleVector);
 				}
-				tangible.RefObject<MPI2DDoubleVectorPacket> tempRef_FromAfar2DDoubleVector = new tangible.RefObject<MPI2DDoubleVectorPacket>(FromAfar2DDoubleVector);
-				SALSAUtility.MPI_communicator.<MPI2DDoubleVectorPacket>Broadcast(tempRef_FromAfar2DDoubleVector, MPICommunicationSteps);
-				FromAfar2DDoubleVector = tempRef_FromAfar2DDoubleVector.argValue;
+                // Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
+                FromAfar2DDoubleVector = SALSAUtility.mpiOps.broadcast(FromAfar2DDoubleVector, MPICommunicationSteps);
 				SALSABLAS.CopyVector(GlobalVector, FromAfar2DDoubleVector.Marray, FromAfar2DDoubleVector.FirstPoint, FromAfar2DDoubleVector.NumberofPoints);
 			} // End loop over MPIrankcount
 			SALSAUtility.StopSubTimer(SALSAUtility.MPISENDRECEIVETiming);
@@ -1911,9 +1860,8 @@ public class ManxcatCentral
 				{
 					MPI1DStringVectorPacket.CopyMPI1DStringVectorPacket(FromAfar1DStringVector, TogoDistributed1DStringVector);
 				}
-				tangible.RefObject<MPI1DStringVectorPacket> tempRef_FromAfar1DStringVector = new tangible.RefObject<MPI1DStringVectorPacket>(FromAfar1DStringVector);
-				SALSAUtility.MPI_communicator.<MPI1DStringVectorPacket>Broadcast(tempRef_FromAfar1DStringVector, MPICommunicationSteps);
-				FromAfar1DStringVector = tempRef_FromAfar1DStringVector.argValue;
+                // Note - MPI Call - Broadcast - MPI1DStringVectorPacket
+                FromAfar1DStringVector= SALSAUtility.mpiOps.broadcast(FromAfar1DStringVector, MPICommunicationSteps);
 				SALSABLAS.CopyVector(GlobalVector, FromAfar1DStringVector.Marray, FromAfar1DStringVector.FirstPoint, FromAfar1DStringVector.NumberofPoints);
 			} // End loop over MPIrankcount
 			SALSAUtility.StopSubTimer(SALSAUtility.MPISENDRECEIVETiming);
@@ -1971,8 +1919,8 @@ public class ManxcatCentral
 		// Parallel Local Calculation of Diagonal Scaling Elements
 		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 		{
-			int indexlen = SALSAUtility.PointsperThread[ThreadNo];
-			int beginpoint = SALSAUtility.StartPointperThread[ThreadNo] - SALSAUtility.PointStart_Process;
+			int indexlen = SALSAUtility.PointsperThread[threadIndex];
+			int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
 			for (int LocalToProcessIndex = beginpoint; LocalToProcessIndex < indexlen + beginpoint; LocalToProcessIndex++)
 			{
 				int GlobalIndex = LocalToProcessIndex + SALSAUtility.PointStart_Process;
@@ -2032,18 +1980,16 @@ public class ManxcatCentral
 					MPI2DDoubleVectorPacket.CopyMPI2DDoubleVectorPacket(FromAfar2DDoubleVector, TogoDiagVector);
 				}
 
-				tangible.RefObject<MPI2DDoubleVectorPacket> tempRef_FromAfar2DDoubleVector = new tangible.RefObject<MPI2DDoubleVectorPacket>(FromAfar2DDoubleVector);
-				SALSAUtility.MPI_communicator.<MPI2DDoubleVectorPacket>Broadcast(tempRef_FromAfar2DDoubleVector, MPICommunicationSteps);
-				FromAfar2DDoubleVector = tempRef_FromAfar2DDoubleVector.argValue;
+                // Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
+                FromAfar2DDoubleVector = SALSAUtility.mpiOps.broadcast(FromAfar2DDoubleVector, MPICommunicationSteps);
 				SALSABLAS.CopyVector(Hotsun.diag, FromAfar2DDoubleVector.Marray, FromAfar2DDoubleVector.FirstPoint, FromAfar2DDoubleVector.NumberofPoints);
 
 				if (MPICommunicationSteps == SALSAUtility.MPI_Rank)
 				{
 					MPI2DDoubleVectorPacket.CopyMPI2DDoubleVectorPacket(FromAfar2DDoubleVector, TogoSqDgInvVector);
 				}
-				tangible.RefObject<MPI2DDoubleVectorPacket> tempRef_FromAfar2DDoubleVector2 = new tangible.RefObject<MPI2DDoubleVectorPacket>(FromAfar2DDoubleVector);
-				SALSAUtility.MPI_communicator.<MPI2DDoubleVectorPacket>Broadcast(tempRef_FromAfar2DDoubleVector2, MPICommunicationSteps);
-				FromAfar2DDoubleVector = tempRef_FromAfar2DDoubleVector2.argValue;
+                // Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
+                FromAfar2DDoubleVector = SALSAUtility.mpiOps.broadcast(FromAfar2DDoubleVector, MPICommunicationSteps);
 				SALSABLAS.CopyVector(Hotsun.sqdginv, FromAfar2DDoubleVector.Marray, FromAfar2DDoubleVector.FirstPoint, FromAfar2DDoubleVector.NumberofPoints);
 				SALSAUtility.StopSubTimer(SALSAUtility.MPISENDRECEIVETiming);
 			} // End loop over MPIrankcount
@@ -2080,8 +2026,8 @@ public class ManxcatCentral
 
 		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 		{
-			int indexlen = SALSAUtility.PointsperThread[ThreadNo];
-			int beginpoint = SALSAUtility.StartPointperThread[ThreadNo] - SALSAUtility.PointStart_Process;
+			int indexlen = SALSAUtility.PointsperThread[threadIndex];
+			int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
 			for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
 			{
 				for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
@@ -2179,8 +2125,8 @@ public class ManxcatCentral
 			// Parallel Calculation of Steepest Descent
 						forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 						{
-							int indexlen = SALSAUtility.PointsperThread[ThreadNo];
-							int beginpoint = SALSAUtility.StartPointperThread[ThreadNo] - SALSAUtility.PointStart_Process;
+							int indexlen = SALSAUtility.PointsperThread[threadIndex];
+							int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
 							for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
 							{
 								int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
@@ -2269,8 +2215,8 @@ public class ManxcatCentral
 		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
 		{
 			double localnorm = 0.0;
-			int indexlen = SALSAUtility.PointsperThread[ThreadNo];
-			int beginpoint = SALSAUtility.StartPointperThread[ThreadNo] - SALSAUtility.PointStart_Process;
+			int indexlen = SALSAUtility.PointsperThread[threadIndex];
+			int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
 			for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
 			{
 				int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
@@ -2311,7 +2257,7 @@ public class ManxcatCentral
 						localnorm += Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] * Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] * tmp;
 				}
 			}
-			FindxNorm.addAPoint(ThreadNo, localnorm);
+			FindxNorm.addAPoint(threadIndex, localnorm);
 		}
 	   );
 
@@ -2407,9 +2353,7 @@ public class ManxcatCentral
 		if (EstimatedLineFactor > 0.0)
 		{ // Case of LineFactor < 1 from an initial step that failed
 			boolean NoChisqIncrease = CurrentSolution.Chisquared <= OriginalSolution.Chisquared;
-			tangible.RefObject<Boolean> tempRef_NoChisqIncrease = new tangible.RefObject<Boolean>(NoChisqIncrease);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_NoChisqIncrease);
-			NoChisqIncrease = tempRef_NoChisqIncrease.argValue;
+            NoChisqIncrease = SALSAUtility.synchronizeMPIVariable(NoChisqIncrease);
 
 			if (NoChisqIncrease)
 			{
@@ -2420,36 +2364,26 @@ public class ManxcatCentral
 			CopySolution(Hotsun.SearchSolution1, OriginalSolution);
 			CopySolution(Hotsun.SearchSolution3, CurrentSolution);
 
-			tangible.RefObject<SearchStuff> tempRef_Left = new tangible.RefObject<SearchStuff>(Left);
-			ExistingCalcDeriv_LineSearch(0.0, Hotsun.SearchSolution1, tempRef_Left);
-			Left = tempRef_Left.argValue;
-			tangible.RefObject<SearchStuff> tempRef_Middle = new tangible.RefObject<SearchStuff>(Middle);
-			NewCalcDeriv_LineSearch(alpha, Hotsun.SearchSolution2, tempRef_Middle, new Hotsun.Hotsun.CalcfgSignature(Calcfg));
-		Middle = tempRef_Middle.argValue;
-			tangible.RefObject<SearchStuff> tempRef_Right = new tangible.RefObject<SearchStuff>(Right);
-			ExistingCalcDeriv_LineSearch(1.0, Hotsun.SearchSolution3, tempRef_Right);
-			Right = tempRef_Right.argValue;
+			ExistingCalcDeriv_LineSearch(0.0, Hotsun.SearchSolution1, Left);
+			NewCalcDeriv_LineSearch(alpha, Hotsun.SearchSolution2, Middle, Calcfg);
+			ExistingCalcDeriv_LineSearch(1.0, Hotsun.SearchSolution3, Right);
 
 			tangible.RefObject<Integer> tempRef_DerivSearchMethod = new tangible.RefObject<Integer>(DerivSearchMethod);
 			tangible.RefObject<SearchStuff> tempRef_BestFromLineSearch = new tangible.RefObject<SearchStuff>(BestFromLineSearch);
 			tangible.RefObject<Integer> tempRef_LocalIterations = new tangible.RefObject<Integer>(LocalIterations);
-			boolean DerivSearch3 = DerivativeSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_DerivSearchMethod, tempRef_BestFromLineSearch, tempRef_LocalIterations, new Hotsun.Hotsun.CalcfgSignature(Calcfg));
+			boolean DerivSearch3 = DerivativeSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_DerivSearchMethod, tempRef_BestFromLineSearch, tempRef_LocalIterations, Calcfg);
 		DerivSearchMethod = tempRef_DerivSearchMethod.argValue;
 		BestFromLineSearch = tempRef_BestFromLineSearch.argValue;
 		LocalIterations = tempRef_LocalIterations.argValue;
 			++LocalIterations;
 			LineSearchMethod.argValue = 40 + DerivSearchMethod;
-			tangible.RefObject<Boolean> tempRef_DerivSearch3 = new tangible.RefObject<Boolean>(DerivSearch3);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_DerivSearch3);
-			DerivSearch3 = tempRef_DerivSearch3.argValue;
+            DerivSearch3 = SALSAUtility.synchronizeMPIVariable(DerivSearch3);
 			success = DerivSearch3;
 		}
 		else
 		{ // Case of LineFactor > 1 from a good step that can be improved
 			boolean NoChisqDecrease = CurrentSolution.Chisquared >= OriginalSolution.Chisquared;
-			tangible.RefObject<Boolean> tempRef_NoChisqDecrease = new tangible.RefObject<Boolean>(NoChisqDecrease);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_NoChisqDecrease);
-			NoChisqDecrease = tempRef_NoChisqDecrease.argValue;
+            NoChisqDecrease = SALSAUtility.synchronizeMPIVariable(NoChisqDecrease);
 
 			if (NoChisqDecrease)
 			{
@@ -2460,17 +2394,11 @@ public class ManxcatCentral
 			CopySolution(Hotsun.SearchSolution1, OriginalSolution);
 			CopySolution(Hotsun.SearchSolution2, CurrentSolution);
 
-			tangible.RefObject<SearchStuff> tempRef_Middle2 = new tangible.RefObject<SearchStuff>(Middle);
-			ExistingCalcDeriv_LineSearch(0.0, Hotsun.SearchSolution1, tempRef_Middle2);
-			Middle = tempRef_Middle2.argValue;
-			tangible.RefObject<SearchStuff> tempRef_Right2 = new tangible.RefObject<SearchStuff>(Right);
-			ExistingCalcDeriv_LineSearch(1.0, Hotsun.SearchSolution2, tempRef_Right2);
-			Right = tempRef_Right2.argValue;
+			ExistingCalcDeriv_LineSearch(0.0, Hotsun.SearchSolution1, Middle);
+			ExistingCalcDeriv_LineSearch(1.0, Hotsun.SearchSolution2, Right);
 
 			boolean RightDerivativePositive = Right.deriv > 0;
-			tangible.RefObject<Boolean> tempRef_RightDerivativePositive = new tangible.RefObject<Boolean>(RightDerivativePositive);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_RightDerivativePositive);
-			RightDerivativePositive = tempRef_RightDerivativePositive.argValue;
+            RightDerivativePositive = SALSAUtility.synchronizeMPIVariable(RightDerivativePositive);
 
 			if (RightDerivativePositive)
 			{ // Inconsistent derivatives
@@ -2478,14 +2406,12 @@ public class ManxcatCentral
 				tangible.RefObject<Integer> tempRef_DerivSearchMethod2 = new tangible.RefObject<Integer>(DerivSearchMethod);
 				tangible.RefObject<SearchStuff> tempRef_BestFromLineSearch2 = new tangible.RefObject<SearchStuff>(BestFromLineSearch);
 				tangible.RefObject<Integer> tempRef_LocalIterations2 = new tangible.RefObject<Integer>(LocalIterations);
-				boolean DerivSearch1 = DerivativeSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_DerivSearchMethod2, tempRef_BestFromLineSearch2, tempRef_LocalIterations2, new Hotsun.Hotsun.CalcfgSignature(Calcfg));
+				boolean DerivSearch1 = DerivativeSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_DerivSearchMethod2, tempRef_BestFromLineSearch2, tempRef_LocalIterations2, Calcfg);
 			DerivSearchMethod = tempRef_DerivSearchMethod2.argValue;
 			BestFromLineSearch = tempRef_BestFromLineSearch2.argValue;
 			LocalIterations = tempRef_LocalIterations2.argValue;
 				LineSearchMethod.argValue = 80 + DerivSearchMethod;
-				tangible.RefObject<Boolean> tempRef_DerivSearch1 = new tangible.RefObject<Boolean>(DerivSearch1);
-				SALSAUtility.SynchronizeMPIvariable(tempRef_DerivSearch1);
-				DerivSearch1 = tempRef_DerivSearch1.argValue;
+                DerivSearch1 = SALSAUtility.synchronizeMPIVariable(DerivSearch1);
 				success = DerivSearch1;
 			}
 			else
@@ -2508,15 +2434,11 @@ public class ManxcatCentral
 					}
 					Left = Middle.clone();
 					Middle = Right.clone();
-					tangible.RefObject<SearchStuff> tempRef_Right3 = new tangible.RefObject<SearchStuff>(Right);
-					NewCalcDeriv_LineSearch(alpha, SaveSolutionReference, tempRef_Right3, new Hotsun.Hotsun.CalcfgSignature(Calcfg));
-				Right = tempRef_Right3.argValue;
+					NewCalcDeriv_LineSearch(alpha, SaveSolutionReference, Right, Calcfg);
 
 					//  Right.deriv > 0 is best case but also stop if value increases at Right even with unexpected negative derivative
 					boolean TimetoBreak = (Right.deriv > 0) || (Right.value > Middle.value);
-					tangible.RefObject<Boolean> tempRef_TimetoBreak = new tangible.RefObject<Boolean>(TimetoBreak);
-					SALSAUtility.SynchronizeMPIvariable(tempRef_TimetoBreak);
-					TimetoBreak = tempRef_TimetoBreak.argValue;
+                    TimetoBreak = SALSAUtility.synchronizeMPIVariable(TimetoBreak);
 
 					if (TimetoBreak)
 					{
@@ -2526,14 +2448,12 @@ public class ManxcatCentral
 				tangible.RefObject<Integer> tempRef_DerivSearchMethod3 = new tangible.RefObject<Integer>(DerivSearchMethod);
 				tangible.RefObject<SearchStuff> tempRef_BestFromLineSearch3 = new tangible.RefObject<SearchStuff>(BestFromLineSearch);
 				tangible.RefObject<Integer> tempRef_LocalIterations3 = new tangible.RefObject<Integer>(LocalIterations);
-				boolean DerivSearch2 = DerivativeSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_DerivSearchMethod3, tempRef_BestFromLineSearch3, tempRef_LocalIterations3, new Hotsun.Hotsun.CalcfgSignature(Calcfg));
+				boolean DerivSearch2 = DerivativeSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_DerivSearchMethod3, tempRef_BestFromLineSearch3, tempRef_LocalIterations3, Calcfg);
 			DerivSearchMethod = tempRef_DerivSearchMethod3.argValue;
 			BestFromLineSearch = tempRef_BestFromLineSearch3.argValue;
 			LocalIterations = tempRef_LocalIterations3.argValue;
 				LineSearchMethod.argValue = 120 + DerivSearchMethod;
-				tangible.RefObject<Boolean> tempRef_DerivSearch2 = new tangible.RefObject<Boolean>(DerivSearch2);
-				SALSAUtility.SynchronizeMPIvariable(tempRef_DerivSearch2);
-				DerivSearch2 = tempRef_DerivSearch2.argValue;
+                DerivSearch2 = SALSAUtility.synchronizeMPIVariable(DerivSearch2);
 				success = DerivSearch2;
 			}
 		} // End case LineFactor > 1.0
@@ -2570,20 +2490,16 @@ public class ManxcatCentral
 		Iterations.argValue = 0;
 		Best.argValue = Middle.clone();
 		boolean WrongSignofRightDeriv = Right.deriv <= 0;
-		tangible.RefObject<Boolean> tempRef_WrongSignofRightDeriv = new tangible.RefObject<Boolean>(WrongSignofRightDeriv);
-		SALSAUtility.SynchronizeMPIvariable(tempRef_WrongSignofRightDeriv);
-		WrongSignofRightDeriv = tempRef_WrongSignofRightDeriv.argValue;
+        WrongSignofRightDeriv= SALSAUtility.synchronizeMPIVariable(WrongSignofRightDeriv);
 
 		if (WrongSignofRightDeriv)
 		{ // Inconsistent Derivatives -- Use value Search
 			int GoldenSectionMethod = 0;
 			tangible.RefObject<Integer> tempRef_GoldenSectionMethod = new tangible.RefObject<Integer>(GoldenSectionMethod);
-			boolean GoldenResult = GoldenSectionValueSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_GoldenSectionMethod, Best.clone(), Iterations, new Hotsun.Hotsun.CalcfgSignature(Calcfg));
+			boolean GoldenResult = GoldenSectionValueSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_GoldenSectionMethod, Best.clone(), Iterations, Calcfg);
 		GoldenSectionMethod = tempRef_GoldenSectionMethod.argValue;
 			SearchMethod.argValue = 20 + GoldenSectionMethod;
-			tangible.RefObject<Boolean> tempRef_GoldenResult = new tangible.RefObject<Boolean>(GoldenResult);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_GoldenResult);
-			GoldenResult = tempRef_GoldenResult.argValue;
+            GoldenResult = SALSAUtility.synchronizeMPIVariable(GoldenResult);
 			return GoldenResult;
 		}
 
@@ -2591,9 +2507,7 @@ public class ManxcatCentral
 		int LocalIterations = 0;
 
 		boolean UnexpectedSignofMiddleDeriv = Middle.deriv > 0;
-		tangible.RefObject<Boolean> tempRef_UnexpectedSignofMiddleDeriv = new tangible.RefObject<Boolean>(UnexpectedSignofMiddleDeriv);
-		SALSAUtility.SynchronizeMPIvariable(tempRef_UnexpectedSignofMiddleDeriv);
-		UnexpectedSignofMiddleDeriv = tempRef_UnexpectedSignofMiddleDeriv.argValue;
+        UnexpectedSignofMiddleDeriv = SALSAUtility.synchronizeMPIVariable(UnexpectedSignofMiddleDeriv);
 
 		if (UnexpectedSignofMiddleDeriv)
 		{ // Best solution betwenn Left and Middle// First see if Deriv search possible. That needs Left to be defined with a negative derivative
@@ -2606,27 +2520,23 @@ public class ManxcatCentral
 					derivsearchforbidden = true;
 				}
 			}
-			tangible.RefObject<Boolean> tempRef_derivsearchforbidden = new tangible.RefObject<Boolean>(derivsearchforbidden);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_derivsearchforbidden);
-			derivsearchforbidden = tempRef_derivsearchforbidden.argValue;
+            derivsearchforbidden = SALSAUtility.synchronizeMPIVariable(derivsearchforbidden);
 
 			if (derivsearchforbidden)
 			{
 				int GoldenSectionMethod = 0;
 				tangible.RefObject<Integer> tempRef_GoldenSectionMethod2 = new tangible.RefObject<Integer>(GoldenSectionMethod);
-				boolean GoldenResult = GoldenSectionValueSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_GoldenSectionMethod2, Best.clone(), Iterations, new Hotsun.Hotsun.CalcfgSignature(Calcfg));
+				boolean GoldenResult = GoldenSectionValueSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_GoldenSectionMethod2, Best.clone(), Iterations, Calcfg);
 			GoldenSectionMethod = tempRef_GoldenSectionMethod2.argValue;
 				SearchMethod.argValue = 30 + GoldenSectionMethod;
-				tangible.RefObject<Boolean> tempRef_GoldenResult2 = new tangible.RefObject<Boolean>(GoldenResult);
-				SALSAUtility.SynchronizeMPIvariable(tempRef_GoldenResult2);
-				GoldenResult = tempRef_GoldenResult2.argValue;
+                GoldenResult = SALSAUtility.synchronizeMPIVariable(GoldenResult);
 				return GoldenResult;
 			}
 			if (Middle.value > Right.value)
 			{
 				tangible.RefObject<Integer> tempRef_SimpleSearchMethod = new tangible.RefObject<Integer>(SimpleSearchMethod);
 				tangible.RefObject<Integer> tempRef_LocalIterations = new tangible.RefObject<Integer>(LocalIterations);
-				boolean result2 = SimpleDerivativeSearch(Left.clone(), Right.clone(), tempRef_SimpleSearchMethod, Best.clone(), tempRef_LocalIterations, new Hotsun.Hotsun.CalcfgSignature(Calcfg), Middle.clone());
+				boolean result2 = SimpleDerivativeSearch(Left.clone(), Right.clone(), tempRef_SimpleSearchMethod, Best.clone(), tempRef_LocalIterations, Calcfg, Middle.clone());
 			SimpleSearchMethod = tempRef_SimpleSearchMethod.argValue;
 			LocalIterations = tempRef_LocalIterations.argValue;
 				Iterations.argValue += LocalIterations;
@@ -2635,7 +2545,7 @@ public class ManxcatCentral
 			}
 			tangible.RefObject<Integer> tempRef_SimpleSearchMethod2 = new tangible.RefObject<Integer>(SimpleSearchMethod);
 			tangible.RefObject<Integer> tempRef_LocalIterations2 = new tangible.RefObject<Integer>(LocalIterations);
-			boolean result1 = SimpleDerivativeSearch(Left.clone(), Middle.clone(), tempRef_SimpleSearchMethod2, Best.clone(), tempRef_LocalIterations2, new Hotsun.Hotsun.CalcfgSignature(Calcfg), Right.clone());
+			boolean result1 = SimpleDerivativeSearch(Left.clone(), Middle.clone(), tempRef_SimpleSearchMethod2, Best.clone(), tempRef_LocalIterations2, Calcfg, Right.clone());
 		SimpleSearchMethod = tempRef_SimpleSearchMethod2.argValue;
 		LocalIterations = tempRef_LocalIterations2.argValue;
 			Iterations.argValue += LocalIterations;
@@ -2644,7 +2554,7 @@ public class ManxcatCentral
 		}
 		tangible.RefObject<Integer> tempRef_SimpleSearchMethod3 = new tangible.RefObject<Integer>(SimpleSearchMethod);
 		tangible.RefObject<Integer> tempRef_LocalIterations3 = new tangible.RefObject<Integer>(LocalIterations);
-		boolean result = SimpleDerivativeSearch(Middle.clone(), Right.clone(), tempRef_SimpleSearchMethod3, Best.clone(), tempRef_LocalIterations3, new Hotsun.Hotsun.CalcfgSignature(Calcfg), Left.clone());
+		boolean result = SimpleDerivativeSearch(Middle.clone(), Right.clone(), tempRef_SimpleSearchMethod3, Best.clone(), tempRef_LocalIterations3, Calcfg, Left.clone());
 	SimpleSearchMethod = tempRef_SimpleSearchMethod3.argValue;
 	LocalIterations = tempRef_LocalIterations3.argValue;
 		Iterations.argValue += LocalIterations;
@@ -2669,15 +2579,11 @@ public class ManxcatCentral
 			double x4 = x3 - (x3 - x2) * OtherSide.deriv / (OtherSide.deriv - OneSide.deriv);
 			SearchStuff NewPoint = new SearchStuff();
 			Desertwind NewSolution = matchingSolution(NotUsed.Solution, OneSide.Solution, OtherSide.Solution);
-			tangible.RefObject<SearchStuff> tempRef_NewPoint = new tangible.RefObject<SearchStuff>(NewPoint);
-			NewCalcDeriv_LineSearch(x4, NewSolution, tempRef_NewPoint, new Hotsun.Hotsun.CalcfgSignature(Calcfg));
-		NewPoint = tempRef_NewPoint.argValue;
+			NewCalcDeriv_LineSearch(x4, NewSolution, NewPoint, Calcfg);
 			double oldtestvalue = Math.min(OneSide.value, OtherSide.value);
 
 			boolean NewPointValueLarger = (NewPoint.value > OneSide.value);
-			tangible.RefObject<Boolean> tempRef_NewPointValueLarger = new tangible.RefObject<Boolean>(NewPointValueLarger);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_NewPointValueLarger);
-			NewPointValueLarger = tempRef_NewPointValueLarger.argValue;
+            NewPointValueLarger = SALSAUtility.synchronizeMPIVariable(NewPointValueLarger);
 
 			if (NewPointValueLarger)
 			{
@@ -2703,9 +2609,7 @@ public class ManxcatCentral
 			x2 = OneSide.alpha;
 
 			boolean casetobreak1 = ((OtherSide.value - OneSide.value) < TargetDelta) || ((x3 - x2) < 0.01 * InitialRange);
-			tangible.RefObject<Boolean> tempRef_casetobreak1 = new tangible.RefObject<Boolean>(casetobreak1);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_casetobreak1);
-			casetobreak1 = tempRef_casetobreak1.argValue;
+            casetobreak1 = SALSAUtility.synchronizeMPIVariable(casetobreak1);
 
 			if (casetobreak1)
 			{
@@ -2715,9 +2619,7 @@ public class ManxcatCentral
 
 			double newtestvalue = Math.min(OneSide.value, OtherSide.value);
 			boolean casetobreak2 = (newtestvalue > oldtestvalue - TargetValueChange);
-			tangible.RefObject<Boolean> tempRef_casetobreak2 = new tangible.RefObject<Boolean>(casetobreak2);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_casetobreak2);
-			casetobreak2 = tempRef_casetobreak2.argValue;
+            casetobreak2 = SALSAUtility.synchronizeMPIVariable(casetobreak2);
 
 			if (casetobreak2)
 			{
@@ -2747,16 +2649,12 @@ public class ManxcatCentral
 
 		//  First Check for Consistency of data
 		boolean leftlow = (Left.value <= Middle.value);
-		tangible.RefObject<Boolean> tempRef_leftlow = new tangible.RefObject<Boolean>(leftlow);
-		SALSAUtility.SynchronizeMPIvariable(tempRef_leftlow);
-		leftlow = tempRef_leftlow.argValue;
+        leftlow = SALSAUtility.synchronizeMPIVariable(leftlow);
 
 		if (leftlow)
 		{
 			boolean leftbiggerthanright = (Left.value > Right.value);
-			tangible.RefObject<Boolean> tempRef_leftbiggerthanright = new tangible.RefObject<Boolean>(leftbiggerthanright);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_leftbiggerthanright);
-			leftbiggerthanright = tempRef_leftbiggerthanright.argValue;
+            leftbiggerthanright = SALSAUtility.synchronizeMPIVariable(leftbiggerthanright);
 
 			if (leftbiggerthanright)
 			{
@@ -2773,9 +2671,7 @@ public class ManxcatCentral
 		}
 
 		boolean rightlow = (Right.value <= Middle.value);
-		tangible.RefObject<Boolean> tempRef_rightlow = new tangible.RefObject<Boolean>(rightlow);
-		SALSAUtility.SynchronizeMPIvariable(tempRef_rightlow);
-		rightlow = tempRef_rightlow.argValue;
+        rightlow = SALSAUtility.synchronizeMPIVariable(rightlow);
 
 		if (rightlow)
 		{
@@ -2788,9 +2684,7 @@ public class ManxcatCentral
 		double x2 = Middle.alpha;
 		double x3 = Right.alpha;
 		boolean inconsistentpositions = (((x2 - x1) <= 0.0) || ((x3 - x2) <= 0.0));
-		tangible.RefObject<Boolean> tempRef_inconsistentpositions = new tangible.RefObject<Boolean>(inconsistentpositions);
-		SALSAUtility.SynchronizeMPIvariable(tempRef_inconsistentpositions);
-		inconsistentpositions = tempRef_inconsistentpositions.argValue;
+        inconsistentpositions = SALSAUtility.synchronizeMPIVariable(inconsistentpositions);
 
 		if (inconsistentpositions)
 		{ // Data Error in positions
@@ -2811,21 +2705,15 @@ public class ManxcatCentral
 			SearchStuff save = new SearchStuff();
 
 			boolean leftintervallarger = ((x2 - x1) > (x3 - x2));
-			tangible.RefObject<Boolean> tempRef_leftintervallarger = new tangible.RefObject<Boolean>(leftintervallarger);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_leftintervallarger);
-			leftintervallarger = tempRef_leftintervallarger.argValue;
+            leftintervallarger = SALSAUtility.synchronizeMPIVariable(leftintervallarger);
 
 			if (leftintervallarger)
 			{ // Left Interval Bigger -- place New Point to left
 				x4 = x2 - (x3 - x2) / goldennumber;
-				tangible.RefObject<SearchStuff> tempRef_NewPoint = new tangible.RefObject<SearchStuff>(NewPoint);
-				NewCalcDeriv_LineSearch(x4, NewSolution, tempRef_NewPoint, new Hotsun.Hotsun.CalcfgSignature(Calcfg));
-			NewPoint = tempRef_NewPoint.argValue;
+				NewCalcDeriv_LineSearch(x4, NewSolution, NewPoint, Calcfg);
 
 				boolean NewPointsmallerthanMiddle = (NewPoint.value < Middle.value);
-				tangible.RefObject<Boolean> tempRef_NewPointsmallerthanMiddle = new tangible.RefObject<Boolean>(NewPointsmallerthanMiddle);
-				SALSAUtility.SynchronizeMPIvariable(tempRef_NewPointsmallerthanMiddle);
-				NewPointsmallerthanMiddle = tempRef_NewPointsmallerthanMiddle.argValue;
+                NewPointsmallerthanMiddle = SALSAUtility.synchronizeMPIVariable(NewPointsmallerthanMiddle);
 
 				if (NewPointsmallerthanMiddle)
 				{ // Its x1 x4 x2
@@ -2841,14 +2729,10 @@ public class ManxcatCentral
 			else
 			{ // // Right Interval Bigger -- place New Point to right
 				x4 = x2 + (x2 - x1) / goldennumber;
-				tangible.RefObject<SearchStuff> tempRef_NewPoint2 = new tangible.RefObject<SearchStuff>(NewPoint);
-				NewCalcDeriv_LineSearch(x4, NewSolution, tempRef_NewPoint2, new Hotsun.Hotsun.CalcfgSignature(Calcfg));
-			NewPoint = tempRef_NewPoint2.argValue;
+				NewCalcDeriv_LineSearch(x4, NewSolution, NewPoint, Calcfg);
 
 				boolean NewPointsmallerthanMiddle = (NewPoint.value < Middle.value);
-				tangible.RefObject<Boolean> tempRef_NewPointsmallerthanMiddle2 = new tangible.RefObject<Boolean>(NewPointsmallerthanMiddle);
-				SALSAUtility.SynchronizeMPIvariable(tempRef_NewPointsmallerthanMiddle2);
-				NewPointsmallerthanMiddle = tempRef_NewPointsmallerthanMiddle2.argValue;
+                NewPointsmallerthanMiddle = SALSAUtility.synchronizeMPIVariable(NewPointsmallerthanMiddle);
 
 				if (NewPointsmallerthanMiddle)
 				{ // Its x2 x4 x3
@@ -2867,9 +2751,7 @@ public class ManxcatCentral
 			x3 = Right.alpha;
 
 			boolean casetobreakonsectionsize = ((x3 - x1) < 0.01 * InitialRange);
-			tangible.RefObject<Boolean> tempRef_casetobreakonsectionsize = new tangible.RefObject<Boolean>(casetobreakonsectionsize);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_casetobreakonsectionsize);
-			casetobreakonsectionsize = tempRef_casetobreakonsectionsize.argValue;
+            casetobreakonsectionsize = SALSAUtility.synchronizeMPIVariable(casetobreakonsectionsize);
 
 			if (casetobreakonsectionsize)
 			{
@@ -2880,9 +2762,7 @@ public class ManxcatCentral
 
 			double CurrentChange = Math.min(Left.value - Middle.value, Right.value - Middle.value);
 			boolean casetobreakonvaluechange = ((CurrentChange <= TargetDelta) && (LastChange <= TargetDelta));
-			tangible.RefObject<Boolean> tempRef_casetobreakonvaluechange = new tangible.RefObject<Boolean>(casetobreakonvaluechange);
-			SALSAUtility.SynchronizeMPIvariable(tempRef_casetobreakonvaluechange);
-			casetobreakonvaluechange = tempRef_casetobreakonvaluechange.argValue;
+            casetobreakonvaluechange = SALSAUtility.synchronizeMPIVariable(casetobreakonvaluechange);
 
 			if (casetobreakonvaluechange)
 			{
@@ -2939,19 +2819,19 @@ public class ManxcatCentral
         SALSAUtility.printAndThrowRuntimeException("Invalid Solution Index");
 	} // End findsolutionindex
 
-	public static void ExistingCalcDeriv_LineSearch(double alpha, Desertwind SearchSolution, tangible.RefObject<SearchStuff> SearchPoint)
+	public static void ExistingCalcDeriv_LineSearch(double alpha, Desertwind SearchSolution, SearchStuff SearchPoint)
 	{ // Calculate value and derivative at a point where Calcfg has been called
 
-		SearchPoint.argValue.alpha = alpha;
-		SearchPoint.argValue.value = SearchSolution.Chisquared;
-		SearchPoint.argValue.Solution = SearchSolution;
-		SearchPoint.argValue.deriv = -2.0 * SALSABLAS.VectorScalarProduct(SearchPoint.argValue.Solution.first, Hotsun.EndingLinePositionSolution.xshift);
+		SearchPoint.alpha = alpha;
+		SearchPoint.value = SearchSolution.Chisquared;
+		SearchPoint.Solution = SearchSolution;
+		SearchPoint.deriv = -2.0 * SALSABLAS.VectorScalarProduct(SearchPoint.Solution.first, Hotsun.EndingLinePositionSolution.xshift);
 	} // End CalcDeriv_LineSearch at a point where Calcfg has been called
 
-	public static void NewCalcDeriv_LineSearch(double alpha, Desertwind NewSolution, tangible.RefObject<SearchStuff> SearchPoint, Hotsun.CalcfgSignature Calcfg)
+	public static void NewCalcDeriv_LineSearch(double alpha, Desertwind NewSolution, SearchStuff SearchPoint, Hotsun.CalcfgSignature Calcfg)
 	{ // Calculate value and derivative at a point where Calcfg has NOT been called
 
-		SearchPoint.argValue.Solution = NewSolution;
+		SearchPoint.Solution = NewSolution;
 
 		//  Set up parameters for next call to Calcfg
 		//  This adds in estimated change to param and zeros first derivative, Second Derivative and Chisq (zerocr)
@@ -2966,15 +2846,11 @@ public class ManxcatCentral
 		violat = Calcfg.invoke(NewSolution);
 		SALSAUtility.StopSubTimer(2);
 
-		SearchPoint.argValue.alpha = alpha;
-		SearchPoint.argValue.value = NewSolution.Chisquared;
-		SearchPoint.argValue.deriv = -2.0 * SALSABLAS.VectorScalarProduct(NewSolution.first, Hotsun.EndingLinePositionSolution.xshift);
-		return;
-
+		SearchPoint.alpha = alpha;
+		SearchPoint.value = NewSolution.Chisquared;
+		SearchPoint.deriv = -2.0 * SALSABLAS.VectorScalarProduct(NewSolution.first, Hotsun.EndingLinePositionSolution.xshift);
 	} // End CalcDeriv_LineSearch at a point where Calcfg has NOT been called
 
-//C# TO JAVA CONVERTER WARNING: Java does not allow user-defined value types. The behavior of this class will differ from the original:
-//ORIGINAL LINE: public struct SearchStuff
 	public final static class SearchStuff
 	{
 		public double alpha; // Free Parameter in Line Search

@@ -5,7 +5,8 @@ import mpi.Intracomm;
 import mpi.MPI;
 import mpi.MPIException;
 import mpi.Op;
-import salsa.pairwiseclustering.MPIPacket;
+import salsa.mdsaschisq.MPI1DStringVectorPacket;
+import salsa.mdsaschisq.MPI2DDoubleVectorPacket;
 
 import java.io.Serializable;
 
@@ -194,14 +195,24 @@ public class MpiOps {
         comm.Bcast(values, 0, values.length,MPI.BOOLEAN,root);
     }
 
-    public <T extends Serializable> MPIPacket<T> broadcast(MPIPacket<T> value, int root) throws MPIException{
+    public MPI1DStringVectorPacket broadcast(MPI1DStringVectorPacket value, int root) throws MPIException{
         return broadcast(value, root, comm);
     }
 
-    public <T extends Serializable> MPIPacket<T> broadcast(MPIPacket<T> value, int root, Intracomm comm) throws MPIException{
+    public MPI1DStringVectorPacket broadcast(MPI1DStringVectorPacket value, int root, Intracomm comm) throws MPIException{
         objectSendBuff[0] = value;
         comm.Bcast(objectSendBuff,0,1,MPI.OBJECT,root);
-        return (MPIPacket<T>) objectSendBuff[0]; // unavoidable (without tapping into reflection) unchecked cast  due to how Java generics work
+        return (MPI1DStringVectorPacket) objectSendBuff[0];
+    }
+
+    public MPI2DDoubleVectorPacket broadcast(MPI2DDoubleVectorPacket value, int root) throws MPIException{
+        return broadcast(value, root, comm);
+    }
+
+    public MPI2DDoubleVectorPacket broadcast(MPI2DDoubleVectorPacket value, int root, Intracomm comm) throws MPIException{
+        objectSendBuff[0] = value;
+        comm.Bcast(objectSendBuff,0,1,MPI.OBJECT,root);
+        return (MPI2DDoubleVectorPacket) objectSendBuff[0];
     }
 
 
