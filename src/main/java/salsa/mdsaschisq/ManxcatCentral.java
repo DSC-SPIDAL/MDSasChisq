@@ -2335,7 +2335,7 @@ public class ManxcatCentral
 		SearchStuff Left = new SearchStuff();
 		SearchStuff Middle = new SearchStuff();
 		SearchStuff Right = new SearchStuff();
-		SearchStuff BestFromLineSearch = new SearchStuff();
+		SearchStuff BestFromLineSearch = null; // will be set by other methods
 		boolean success;
 		int LocalIterations = 0;
 
@@ -2372,9 +2372,9 @@ public class ManxcatCentral
 			tangible.RefObject<SearchStuff> tempRef_BestFromLineSearch = new tangible.RefObject<SearchStuff>(BestFromLineSearch);
 			tangible.RefObject<Integer> tempRef_LocalIterations = new tangible.RefObject<Integer>(LocalIterations);
 			boolean DerivSearch3 = DerivativeSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_DerivSearchMethod, tempRef_BestFromLineSearch, tempRef_LocalIterations, Calcfg);
-		DerivSearchMethod = tempRef_DerivSearchMethod.argValue;
-		BestFromLineSearch = tempRef_BestFromLineSearch.argValue;
-		LocalIterations = tempRef_LocalIterations.argValue;
+            DerivSearchMethod = tempRef_DerivSearchMethod.argValue;
+            BestFromLineSearch = tempRef_BestFromLineSearch.argValue;
+            LocalIterations = tempRef_LocalIterations.argValue;
 			++LocalIterations;
 			LineSearchMethod.argValue = 40 + DerivSearchMethod;
             DerivSearch3 = SALSAUtility.synchronizeMPIVariable(DerivSearch3);
@@ -2496,7 +2496,7 @@ public class ManxcatCentral
 		{ // Inconsistent Derivatives -- Use value Search
 			int GoldenSectionMethod = 0;
 			tangible.RefObject<Integer> tempRef_GoldenSectionMethod = new tangible.RefObject<Integer>(GoldenSectionMethod);
-			boolean GoldenResult = GoldenSectionValueSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_GoldenSectionMethod, Best.clone(), Iterations, Calcfg);
+			boolean GoldenResult = GoldenSectionValueSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_GoldenSectionMethod, Best, Iterations, Calcfg);
 		GoldenSectionMethod = tempRef_GoldenSectionMethod.argValue;
 			SearchMethod.argValue = 20 + GoldenSectionMethod;
             GoldenResult = SALSAUtility.synchronizeMPIVariable(GoldenResult);
@@ -2526,7 +2526,7 @@ public class ManxcatCentral
 			{
 				int GoldenSectionMethod = 0;
 				tangible.RefObject<Integer> tempRef_GoldenSectionMethod2 = new tangible.RefObject<Integer>(GoldenSectionMethod);
-				boolean GoldenResult = GoldenSectionValueSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_GoldenSectionMethod2, Best.clone(), Iterations, Calcfg);
+				boolean GoldenResult = GoldenSectionValueSearch(Left.clone(), Middle.clone(), Right.clone(), tempRef_GoldenSectionMethod2, Best, Iterations, Calcfg);
 			GoldenSectionMethod = tempRef_GoldenSectionMethod2.argValue;
 				SearchMethod.argValue = 30 + GoldenSectionMethod;
                 GoldenResult = SALSAUtility.synchronizeMPIVariable(GoldenResult);
@@ -2536,7 +2536,7 @@ public class ManxcatCentral
 			{
 				tangible.RefObject<Integer> tempRef_SimpleSearchMethod = new tangible.RefObject<Integer>(SimpleSearchMethod);
 				tangible.RefObject<Integer> tempRef_LocalIterations = new tangible.RefObject<Integer>(LocalIterations);
-				boolean result2 = SimpleDerivativeSearch(Left.clone(), Right.clone(), tempRef_SimpleSearchMethod, Best.clone(), tempRef_LocalIterations, Calcfg, Middle.clone());
+				boolean result2 = SimpleDerivativeSearch(Left.clone(), Right.clone(), tempRef_SimpleSearchMethod, Best, tempRef_LocalIterations, Calcfg, Middle.clone());
 			SimpleSearchMethod = tempRef_SimpleSearchMethod.argValue;
 			LocalIterations = tempRef_LocalIterations.argValue;
 				Iterations.argValue += LocalIterations;
@@ -2545,7 +2545,7 @@ public class ManxcatCentral
 			}
 			tangible.RefObject<Integer> tempRef_SimpleSearchMethod2 = new tangible.RefObject<Integer>(SimpleSearchMethod);
 			tangible.RefObject<Integer> tempRef_LocalIterations2 = new tangible.RefObject<Integer>(LocalIterations);
-			boolean result1 = SimpleDerivativeSearch(Left.clone(), Middle.clone(), tempRef_SimpleSearchMethod2, Best.clone(), tempRef_LocalIterations2, Calcfg, Right.clone());
+			boolean result1 = SimpleDerivativeSearch(Left.clone(), Middle.clone(), tempRef_SimpleSearchMethod2, Best, tempRef_LocalIterations2, Calcfg, Right.clone());
 		SimpleSearchMethod = tempRef_SimpleSearchMethod2.argValue;
 		LocalIterations = tempRef_LocalIterations2.argValue;
 			Iterations.argValue += LocalIterations;
@@ -2554,7 +2554,7 @@ public class ManxcatCentral
 		}
 		tangible.RefObject<Integer> tempRef_SimpleSearchMethod3 = new tangible.RefObject<Integer>(SimpleSearchMethod);
 		tangible.RefObject<Integer> tempRef_LocalIterations3 = new tangible.RefObject<Integer>(LocalIterations);
-		boolean result = SimpleDerivativeSearch(Middle.clone(), Right.clone(), tempRef_SimpleSearchMethod3, Best.clone(), tempRef_LocalIterations3, Calcfg, Left.clone());
+		boolean result = SimpleDerivativeSearch(Middle.clone(), Right.clone(), tempRef_SimpleSearchMethod3, Best, tempRef_LocalIterations3, Calcfg, Left.clone());
 	SimpleSearchMethod = tempRef_SimpleSearchMethod3.argValue;
 	LocalIterations = tempRef_LocalIterations3.argValue;
 		Iterations.argValue += LocalIterations;
@@ -2799,9 +2799,8 @@ public class ManxcatCentral
 			}
 		}
 		SALSAUtility.printAndThrowRuntimeException("Invalid Solution Set");
-
-
-	} // End matchingSolution
+        return null;
+	}
 
 	//  Find which of pre allocated Solutions correspondds to a particular one stored in trial
 	public static int findsolutionindex(Desertwind trial, Desertwind[] Possibles)
@@ -2815,9 +2814,9 @@ public class ManxcatCentral
 				return i;
 			}
 		}
-
         SALSAUtility.printAndThrowRuntimeException("Invalid Solution Index");
-	} // End findsolutionindex
+        return -1;
+	}
 
 	public static void ExistingCalcDeriv_LineSearch(double alpha, Desertwind SearchSolution, SearchStuff SearchPoint)
 	{ // Calculate value and derivative at a point where Calcfg has been called
