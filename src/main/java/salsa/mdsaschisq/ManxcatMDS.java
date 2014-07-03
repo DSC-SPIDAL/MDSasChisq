@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -504,10 +505,10 @@ public class ManxcatMDS {
         Path scriptFile = Paths.get(outDir, prefix + "-plot.txt");
 
 
-        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(densityFile));
-             PrintWriter xHistWriter = new PrintWriter(Files.newBufferedWriter(xHistFile));
-             PrintWriter yHistWriter = new PrintWriter(Files.newBufferedWriter(yHistFile));
-             PrintWriter scriptWriter = new PrintWriter(Files.newBufferedWriter(scriptFile))) {
+        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(densityFile, Charset.defaultCharset()));
+             PrintWriter xHistWriter = new PrintWriter(Files.newBufferedWriter(xHistFile, Charset.defaultCharset()));
+             PrintWriter yHistWriter = new PrintWriter(Files.newBufferedWriter(yHistFile, Charset.defaultCharset()));
+             PrintWriter scriptWriter = new PrintWriter(Files.newBufferedWriter(scriptFile, Charset.defaultCharset()))) {
 
             writer.println("#xcoord\tycoord\thistogramValue");
             xHistWriter.println("#xval\thistogramvalue");
@@ -691,7 +692,7 @@ public class ManxcatMDS {
     }
 
     private static void ReadClusterFile(Hashtable orignalPnumToCnumTable) {
-        try (BufferedReader reader = Files.newBufferedReader(Paths.get(SALSAUtility.ClusterFile))) {
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(SALSAUtility.ClusterFile), Charset.defaultCharset())) {
             Pattern pattern = Pattern.compile("[\t ]");
             String line;
             while ((line = reader.readLine()) != null) {
@@ -1155,7 +1156,7 @@ public class ManxcatMDS {
         if (!Files.exists(weightFilePath)) {
             SALSAUtility.printAndThrowRuntimeException("File " + WeightFileName + " does not exists.");
         } else {
-            try (BufferedReader reader = Files.newBufferedReader(weightFilePath)) {
+            try (BufferedReader reader = Files.newBufferedReader(weightFilePath, Charset.defaultCharset())) {
 
                 // Read contents of a file, line by line, into a string
                 String inputLineStr;
@@ -1396,7 +1397,7 @@ public class ManxcatMDS {
                 ManxcatCentral.config.InitializationFileName)).isFile()) {
             throw new RuntimeException("Simple initialization file necessary with the specified processing option");
         }
-        try (BufferedReader reader = Files.newBufferedReader(Paths.get(ManxcatCentral.config.InitializationFileName))) {
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(ManxcatCentral.config.InitializationFileName), Charset.defaultCharset())) {
             Pattern pattern = Pattern.compile("[\t ]");
             Hotsun.GlobalParameter = new double[SALSAUtility.PointCount_Global][];
             String line;

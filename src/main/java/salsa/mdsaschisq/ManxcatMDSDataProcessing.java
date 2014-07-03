@@ -151,7 +151,7 @@ public class ManxcatMDSDataProcessing {
             if (!Files.exists(functionFilePath)) {
                 SALSAUtility.printAndThrowRuntimeException("File " + FunctionFileName + " does not exists.");
             } else {
-                try (BufferedReader reader = Files.newBufferedReader(functionFilePath)) {
+                try (BufferedReader reader = Files.newBufferedReader(functionFilePath, Charset.defaultCharset())) {
                     Pattern pattern = Pattern.compile("[ ]");
                     // Read contents of a file, line by line, into a string
                     String inputLineStr;
@@ -613,7 +613,7 @@ public class ManxcatMDSDataProcessing {
         if (!Files.exists(MDSClusterFilePath)) {
             SALSAUtility.printAndThrowRuntimeException("File " + MDSClusterFileName + " does not exists");
         } else {
-            try (BufferedReader reader = Files.newBufferedReader(MDSClusterFilePath)) {
+            try (BufferedReader reader = Files.newBufferedReader(MDSClusterFilePath, Charset.defaultCharset())) {
                 // Read contents of a file, line by line, into a string
                 String inputLineStr;
                 Pattern pattern = Pattern.compile("[\t ]");
@@ -668,7 +668,7 @@ public class ManxcatMDSDataProcessing {
         if (!Files.exists(LabelFileNamePath)) {
             SALSAUtility.printAndThrowRuntimeException("File " + LabelFileName + " does not exists");
         } else {
-            try (BufferedReader reader = Files.newBufferedReader(LabelFileNamePath)) {
+            try (BufferedReader reader = Files.newBufferedReader(LabelFileNamePath, Charset.defaultCharset())) {
                 // Read contents of a file, line by line, into a string
                 String inputLineStr;
                 Pattern pattern = Pattern.compile("[\t ]");

@@ -2,6 +2,7 @@ package salsa.configuration.sections;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.regex.Pattern;
@@ -15,7 +16,7 @@ public class ManxcatSection {
 
     private static void generatePropertyWrite() {
         String file = "/home/saliya/Desktop/manxcatsection5";
-        try (BufferedReader reader = Files.newBufferedReader(Paths.get(file))) {
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(file), Charset.defaultCharset())) {
             Pattern pat = Pattern.compile("[ ]");
             String line = null;
             while ((line = reader.readLine()) != null){
@@ -37,7 +38,7 @@ public class ManxcatSection {
 
     private static void generatePropertyRead() {
         String file = "/home/saliya/Desktop/manxcatsection4";
-        try (BufferedReader reader = Files.newBufferedReader(Paths.get(file))) {
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(file), Charset.defaultCharset())) {
             Pattern pat = Pattern.compile("[ ]");
             String line = null;
             while ((line = reader.readLine()) != null){

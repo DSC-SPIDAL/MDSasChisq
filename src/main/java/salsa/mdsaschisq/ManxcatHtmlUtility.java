@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import salsa.configuration.sections.MDSasChisqSection;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -26,7 +27,7 @@ public class ManxcatHtmlUtility {
     }
 
     private static void GenerateHtmlContent(String htmlFile, MDSasChisqSection config) {
-        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(htmlFile)))) {
+        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(htmlFile), Charset.defaultCharset()))) {
 
             try (InputStream stream = ManxcatHtmlUtility.class.getClassLoader().getResourceAsStream("template")) {
                 if (stream != null) {
@@ -195,7 +196,7 @@ public class ManxcatHtmlUtility {
     }
 
     private static void CopyStylesCSS(String toPath) {
-        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(toPath)))) {
+        try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(Paths.get(toPath), Charset.defaultCharset()))) {
             try (InputStream stream = ManxcatHtmlUtility.class.getClassLoader().getResourceAsStream("style")) {
                 if (stream != null) {
                     try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
