@@ -1,4 +1,4 @@
-﻿package salsa.mdsaschisq;
+package salsa.mdsaschisq;
 
 import mpi.MPI;
 

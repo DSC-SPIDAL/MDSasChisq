@@ -1,4 +1,4 @@
-﻿package salsa.mdsaschisq;
+package salsa.mdsaschisq;
 
 public final class RangePartitioner {
     public static Range[] Partition(int length, int numPartitions) {

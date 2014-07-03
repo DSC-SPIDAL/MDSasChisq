@@ -1,4 +1,4 @@
-﻿package salsa.mdsaschisq;
+package salsa.mdsaschisq;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;

@@ -1,4 +1,4 @@
-﻿package salsa.mdsaschisq;
+package salsa.mdsaschisq;
 
 //    OLD Comments on input Data
 //    public string DataFileName = " "; // Input data file name
