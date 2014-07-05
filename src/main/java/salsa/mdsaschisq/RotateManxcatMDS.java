@@ -1,6 +1,7 @@
 package salsa.mdsaschisq;
 
 import com.google.common.base.Strings;
+import edu.rice.hj.api.SuspendableException;
 import salsa.configuration.sections.MDSasChisqSection;
 
 import java.io.IOException;
@@ -9,7 +10,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static edu.rice.hj.HJ.forall;
+import static edu.rice.hj.Module1.forallChunked;
 
 public class RotateManxcatMDS {
     // Parameters in 3D case
@@ -394,66 +395,70 @@ public class RotateManxcatMDS {
         GenericManxcat.ReInitializeAccum();
 
         //  Finally Loop over entries in Chisq
-        forall(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
-                    double[][] DerivativeFl = new double[PointVectorDimension][];
-                    for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                        DerivativeFl[LocalVectorIndex] = new double[Hotsun.npar];
-                    }
-                    int indexlen = SALSAUtility.PointsperThread[threadIndex];
-                    int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-                    for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint; DistributedPointIndex++) {
-                        int GlobalIndex = SALSAUtility.PointStart_Process + DistributedPointIndex;
-                        // Setting weight to Math.Sqrt(1.0/SALSAUtility.PointCount_Global)* Fudge Factor/FirstScale
-                        double weight = Math.sqrt(
-                                1.0 / SALSAUtility.PointCount_Global) * ManxcatCentral.ChisqFunctionCalcMultiplier / FirstScale;
-                        // RotationOption =0 is simple least squares sum; RotationOption = 1 implies use fractional errors
-                        if (RotationOption == 1) {
-                            double size = 0.0;
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
+                        double[][] DerivativeFl = new double[PointVectorDimension][];
+                        for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                            DerivativeFl[LocalVectorIndex] = new double[Hotsun.npar];
+                        }
+                        int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                        int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                        for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint; DistributedPointIndex++) {
+                            int GlobalIndex = SALSAUtility.PointStart_Process + DistributedPointIndex;
+                            // Setting weight to Math.Sqrt(1.0/SALSAUtility.PointCount_Global)* Fudge Factor/FirstScale
+                            double weight = Math.sqrt(
+                                    1.0 / SALSAUtility.PointCount_Global) * ManxcatCentral.ChisqFunctionCalcMultiplier / FirstScale;
+                            // RotationOption =0 is simple least squares sum; RotationOption = 1 implies use fractional errors
+                            if (RotationOption == 1) {
+                                double size = 0.0;
+                                for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                                    size += FirstData[GlobalIndex][LocalVectorIndex] * FirstData[GlobalIndex][LocalVectorIndex];
+                                }
+                                size = Math.sqrt(size);
+                                size = Math.max(MinimumDistance, size);
+                                weight *= FirstScale / size;
+                            }
+                            double[] ValueFl = new double[PointVectorDimension];
+                            MatrixVectorProduct(ValueFl, Rotation, SecondData[GlobalIndex]);
+                            VectorSum(ValueFl, Translation, +1.0, ValueFl);
+                            VectorSum(ValueFl, ValueFl, -1.0, FirstData[GlobalIndex]);
                             for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                                size += FirstData[GlobalIndex][LocalVectorIndex] * FirstData[GlobalIndex][LocalVectorIndex];
+                                ValueFl[LocalVectorIndex] *= weight;
                             }
-                            size = Math.sqrt(size);
-                            size = Math.max(MinimumDistance, size);
-                            weight *= FirstScale / size;
-                        }
-                        double[] ValueFl = new double[PointVectorDimension];
-                        MatrixVectorProduct(ValueFl, Rotation, SecondData[GlobalIndex]);
-                        VectorSum(ValueFl, Translation, +1.0, ValueFl);
-                        VectorSum(ValueFl, ValueFl, -1.0, FirstData[GlobalIndex]);
-                        for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                            ValueFl[LocalVectorIndex] *= weight;
-                        }
-                        for (int ipar = 0; ipar < Hotsun.npar; ipar++) {
-                            if (ipar < PointVectorDimension) {
-                                for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                                    DerivativeFl[LocalVectorIndex][ipar] = weight * DerivTranslation[ipar][LocalVectorIndex];
-                                }
-                            } else {
-                                double[] tempvector = new double[PointVectorDimension];
-                                MatrixVectorProduct(tempvector, DerivRotationScale[ipar], SecondData[GlobalIndex]);
-                                for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                                    DerivativeFl[LocalVectorIndex][ipar] = weight * tempvector[LocalVectorIndex];
+                            for (int ipar = 0; ipar < Hotsun.npar; ipar++) {
+                                if (ipar < PointVectorDimension) {
+                                    for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                                        DerivativeFl[LocalVectorIndex][ipar] = weight * DerivTranslation[ipar][LocalVectorIndex];
+                                    }
+                                } else {
+                                    double[] tempvector = new double[PointVectorDimension];
+                                    MatrixVectorProduct(tempvector, DerivRotationScale[ipar], SecondData[GlobalIndex]);
+                                    for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                                        DerivativeFl[LocalVectorIndex][ipar] = weight * tempvector[LocalVectorIndex];
+                                    }
                                 }
                             }
-                        }
-                        for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                            GenericManxcat.Accum(threadIndex, ValueFl[LocalVectorIndex],
-                                    DerivativeFl[LocalVectorIndex]);
-                            if (GlobalIndex <= 0) {
-                                String deriv = "";
-                                for (int ipar = 0; ipar < Hotsun.npar; ipar++) {
-                                    deriv += String.format("%.4E", DerivativeFl[LocalVectorIndex][ipar]) + " ";
+                            for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                                GenericManxcat.Accum(threadIndex, ValueFl[LocalVectorIndex],
+                                        DerivativeFl[LocalVectorIndex]);
+                                if (GlobalIndex <= 0) {
+                                    String deriv = "";
+                                    for (int ipar = 0; ipar < Hotsun.npar; ipar++) {
+                                        deriv += String.format("%.4E", DerivativeFl[LocalVectorIndex][ipar]) + " ";
+                                    }
+                                    // SALSAUtility.SALSAPrint(0, "Val " +  ValueFl[LocalVectorIndex].ToString("f4") + " Drv " + deriv);
+                                    GenericManxcat.AccumDebug(GlobalIndex);
                                 }
-                                // SALSAUtility.SALSAPrint(0, "Val " +  ValueFl[LocalVectorIndex].ToString("f4") + " Drv " + deriv);
-                                GenericManxcat.AccumDebug(GlobalIndex);
-                            }
-                            if (GlobalIndex > (SALSAUtility.PointCount_Global - 2)) {
-                                GenericManxcat.AccumDebug(GlobalIndex);
+                                if (GlobalIndex > (SALSAUtility.PointCount_Global - 2)) {
+                                    GenericManxcat.AccumDebug(GlobalIndex);
+                                }
                             }
                         }
                     }
-                }
-        );
+            );
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
         // Add up MPI and Thread Contributions
         GenericManxcat.AddupChisqContributions(Solution);

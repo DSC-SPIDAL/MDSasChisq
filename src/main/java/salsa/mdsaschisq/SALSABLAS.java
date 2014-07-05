@@ -1,6 +1,8 @@
 package salsa.mdsaschisq;
 
-import static edu.rice.hj.HJ.forallChunked;
+import edu.rice.hj.api.SuspendableException;
+
+import static edu.rice.hj.Module1.forallChunked;
 
 public class SALSABLAS {
 
@@ -15,15 +17,19 @@ public class SALSABLAS {
             return;
         }
 
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                TobeZeroed[LongIndex] = 0.0;
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                    TobeZeroed[LongIndex] = 0.0;
+                }
             }
+            );
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
         }
-        );
 
     }
 
@@ -43,16 +49,20 @@ public class SALSABLAS {
         }
 
         // Parallel Initialization
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
-                    TobeZeroed[LongIndex][LocalVectorIndex] = 0.0;
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                    for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
+                        TobeZeroed[LongIndex][LocalVectorIndex] = 0.0;
+                    }
                 }
-            }
-        });
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
     }
 
@@ -75,18 +85,22 @@ public class SALSABLAS {
         }
 
         // Parallel Initialization
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < LocalVectorDimension1; LocalVectorIndex1++) {
-                    for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < LocalVectorDimension2; LocalVectorIndex2++) {
-                        TobeZeroed[LongIndex][LocalVectorIndex1][LocalVectorIndex2] = 0.0;
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                    for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < LocalVectorDimension1; LocalVectorIndex1++) {
+                        for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < LocalVectorDimension2; LocalVectorIndex2++) {
+                            TobeZeroed[LongIndex][LocalVectorIndex1][LocalVectorIndex2] = 0.0;
+                        }
                     }
                 }
-            }
-        });
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
     }
 
@@ -102,14 +116,18 @@ public class SALSABLAS {
         }
 
         // Parallel Initialization
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                TobeZeroed[LongIndex] = 0;
-            }
-        });
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                    TobeZeroed[LongIndex] = 0;
+                }
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
     }
 
@@ -129,16 +147,20 @@ public class SALSABLAS {
         }
 
         // Parallel Initialization
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
-                    TobeZeroed[LongIndex][LocalVectorIndex] = 0;
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                    for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
+                        TobeZeroed[LongIndex][LocalVectorIndex] = 0;
+                    }
                 }
-            }
-        });
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
     }
 
     // Set one dimensional Boolean Array
@@ -153,14 +175,18 @@ public class SALSABLAS {
         }
 
         // Parallel Initialization
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                TobeZeroed[LongIndex] = boolvalue;
-            }
-        });
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                    TobeZeroed[LongIndex] = boolvalue;
+                }
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
     }
 
@@ -180,16 +206,20 @@ public class SALSABLAS {
         }
 
         // Parallel Initialization
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
-                    TobeZeroed[LongIndex][LocalVectorIndex] = boolvalue;
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                    for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
+                        TobeZeroed[LongIndex][LocalVectorIndex] = boolvalue;
+                    }
                 }
-            }
-        });
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
     }
 
     public static void zrword(double[][][][] MatrixA) {
@@ -233,20 +263,24 @@ public class SALSABLAS {
         }
 
         // Parallel VectorC = CoeffAlpha * VectorA + CoeffBeta * VectorB
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            if (CoeffBeta != 0.0) {
-                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                    VectorC[LongIndex] = CoeffAlpha * VectorA[LongIndex] + CoeffBeta * VectorB[LongIndex];
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                if (CoeffBeta != 0.0) {
+                    for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                        VectorC[LongIndex] = CoeffAlpha * VectorA[LongIndex] + CoeffBeta * VectorB[LongIndex];
+                    }
+                } else {
+                    for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                        VectorC[LongIndex] = CoeffAlpha * VectorA[LongIndex];
+                    }
                 }
-            } else {
-                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                    VectorC[LongIndex] = CoeffAlpha * VectorA[LongIndex];
-                }
-            }
-        });
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
     } // End LinearCombineVector -- One dimensional double
 
@@ -285,25 +319,29 @@ public class SALSABLAS {
         }
 
         // Parallel VectorC = CoeffAlpha * VectorA + CoeffBeta * VectorB
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            if (CoeffBeta != 0.0) {
-                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                    for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
-                        VectorC[LongIndex][LocalVectorIndex] = CoeffAlpha * VectorA[LongIndex][LocalVectorIndex] +
-                                CoeffBeta * VectorB[LongIndex][LocalVectorIndex];
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                if (CoeffBeta != 0.0) {
+                    for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                        for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
+                            VectorC[LongIndex][LocalVectorIndex] = CoeffAlpha * VectorA[LongIndex][LocalVectorIndex] +
+                                    CoeffBeta * VectorB[LongIndex][LocalVectorIndex];
+                        }
+                    }
+                } else {
+                    for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                        for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
+                            VectorC[LongIndex][LocalVectorIndex] = CoeffAlpha * VectorA[LongIndex][LocalVectorIndex];
+                        }
                     }
                 }
-            } else {
-                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                    for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
-                        VectorC[LongIndex][LocalVectorIndex] = CoeffAlpha * VectorA[LongIndex][LocalVectorIndex];
-                    }
-                }
-            }
-        });
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
     }
 
     //  Copy TotalSize local vectors from VectorA to VectorC starting in position 0 of VectorC and position
@@ -324,21 +362,25 @@ public class SALSABLAS {
         }
 
         // Parallel VectorC = VectorA
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            int endpoint = indexlen + beginpoint;
-            if (endpoint > TotalSize) {
-                endpoint = TotalSize;
-            }
-            if (threadIndex == (SALSAUtility.ThreadCount - 1)) {
-                endpoint = TotalSize;
-            }
-            for (int LongIndex = beginpoint; LongIndex < endpoint; LongIndex++) {
-                System.arraycopy(VectorA[LongIndex], 0, VectorC[LongIndex + StartIndex], 0, LocalVectorDimension);
-            }
-        });
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                int endpoint = indexlen + beginpoint;
+                if (endpoint > TotalSize) {
+                    endpoint = TotalSize;
+                }
+                if (threadIndex == (SALSAUtility.ThreadCount - 1)) {
+                    endpoint = TotalSize;
+                }
+                for (int LongIndex = beginpoint; LongIndex < endpoint; LongIndex++) {
+                    System.arraycopy(VectorA[LongIndex], 0, VectorC[LongIndex + StartIndex], 0, LocalVectorDimension);
+                }
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
     }
 
     //  Copy TotalSize local vectors from VectorA to VectorC starting in position 0 of VectorC and position
@@ -350,19 +392,23 @@ public class SALSABLAS {
         }
 
         // Parallel VectorC = VectorA
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            int endpoint = indexlen + beginpoint;
-            if (endpoint > TotalSize) {
-                endpoint = TotalSize;
-            }
-            if (threadIndex == (SALSAUtility.ThreadCount - 1)) {
-                endpoint = TotalSize;
-            }
-            System.arraycopy(VectorA, beginpoint, VectorC, beginpoint + StartIndex, endpoint - beginpoint);
-        });
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                int endpoint = indexlen + beginpoint;
+                if (endpoint > TotalSize) {
+                    endpoint = TotalSize;
+                }
+                if (threadIndex == (SALSAUtility.ThreadCount - 1)) {
+                    endpoint = TotalSize;
+                }
+                System.arraycopy(VectorA, beginpoint, VectorC, beginpoint + StartIndex, endpoint - beginpoint);
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
     }
 
     //  Copy TotalSize local vectors from VectorA to VectorC starting in position 0 of VectorC and position
@@ -393,24 +439,28 @@ public class SALSABLAS {
         }
 
         // Parallel VectorC = VectorA
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            int endpoint = indexlen + beginpoint;
-            if (endpoint > TotalSize) {
-                endpoint = TotalSize;
-            }
-            if (threadIndex == (SALSAUtility.ThreadCount - 1)) {
-                endpoint = TotalSize;
-            }
-            for (int LongIndex = beginpoint; LongIndex < endpoint; LongIndex++) {
-                for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < LocalVectorDimension1; LocalVectorIndex1++) {
-                    System.arraycopy(VectorA[LongIndex][LocalVectorIndex1], 0,
-                                     VectorC[LongIndex + StartIndex][LocalVectorIndex1], 0, LocalVectorDimension2);
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                int endpoint = indexlen + beginpoint;
+                if (endpoint > TotalSize) {
+                    endpoint = TotalSize;
                 }
-            }
-        });
+                if (threadIndex == (SALSAUtility.ThreadCount - 1)) {
+                    endpoint = TotalSize;
+                }
+                for (int LongIndex = beginpoint; LongIndex < endpoint; LongIndex++) {
+                    for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < LocalVectorDimension1; LocalVectorIndex1++) {
+                        System.arraycopy(VectorA[LongIndex][LocalVectorIndex1], 0,
+                                         VectorC[LongIndex + StartIndex][LocalVectorIndex1], 0, LocalVectorDimension2);
+                    }
+                }
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
     }
 
     //  Form Vector Dot Product -- One Dimensional
@@ -430,16 +480,20 @@ public class SALSABLAS {
         // Parallel Scalar Product  = Sum(over i) VectorA[i] * VectorB[i]
         GlobalReductions.FindDoubleSum FindScalarProduct = new GlobalReductions.FindDoubleSum(SALSAUtility.ThreadCount);
 
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            double tmp = 0.0;
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                tmp += VectorA[LongIndex] * VectorB[LongIndex];
-            }
-            FindScalarProduct.addAPoint(threadIndex, tmp);
-        });
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                double tmp = 0.0;
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                    tmp += VectorA[LongIndex] * VectorB[LongIndex];
+                }
+                FindScalarProduct.addAPoint(threadIndex, tmp);
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
         FindScalarProduct.sumOverThreadsAndMPI();
         return FindScalarProduct.Total;
@@ -470,18 +524,22 @@ public class SALSABLAS {
         // Parallel Scalar Product  = Sum(over i) VectorA[i] * VectorB[i]
         GlobalReductions.FindDoubleSum ScalarProduct = new GlobalReductions.FindDoubleSum(SALSAUtility.ThreadCount);
 
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            double tmp = 0.0;
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
-                    tmp += VectorB[LongIndex][LocalVectorIndex] * VectorA[LongIndex][LocalVectorIndex];
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                double tmp = 0.0;
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                    for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
+                        tmp += VectorB[LongIndex][LocalVectorIndex] * VectorA[LongIndex][LocalVectorIndex];
+                    }
                 }
-            }
-            ScalarProduct.addAPoint(threadIndex, tmp);
-        });
+                ScalarProduct.addAPoint(threadIndex, tmp);
+            });
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
         ScalarProduct.sumOverThreadsAndMPI();
         return ScalarProduct.Total;

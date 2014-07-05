@@ -1,8 +1,9 @@
 package salsa.mdsaschisq;
 
+import edu.rice.hj.api.SuspendableException;
 import mpi.MPI;
 
-import static edu.rice.hj.HJ.forallChunked;
+import static edu.rice.hj.Module1.forallChunked;
 
 public class ManxcatMDSBasicDataProcessing {
     // Initial distance analysis looped over till no more deletions
@@ -32,58 +33,62 @@ public class ManxcatMDSBasicDataProcessing {
             DeletedPoint[GlobalPointIndex] = 0;
         }
 
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            // Unset Distances if either point on deleted list
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            FindLinkHistogramBinCounts.startThread(threadIndex);
-            for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint;
-                 DistributedPointIndex++) {
-                int GlobalPointIndex1 = DistributedPointIndex + SALSAUtility.PointStart_Process;
-                int OriginalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex1];
-                if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex1] < SALSAUtility.SALSASHIFT) {
-                    continue;
-                }
-                int Countlinks = 0;
-                for (int GlobalPointIndex2 = 0; GlobalPointIndex2 < SALSAUtility.PointCount_Global;
-                     GlobalPointIndex2++) {
-                    int OriginalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex2];
-                    if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex2] < SALSAUtility.SALSASHIFT) {
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                // Unset Distances if either point on deleted list
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                FindLinkHistogramBinCounts.startThread(threadIndex);
+                for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint;
+                     DistributedPointIndex++) {
+                    int GlobalPointIndex1 = DistributedPointIndex + SALSAUtility.PointStart_Process;
+                    int OriginalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex1];
+                    if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex1] < SALSAUtility.SALSASHIFT) {
                         continue;
                     }
-                    if (GlobalPointIndex1 == GlobalPointIndex2) {
-                        continue;
+                    int Countlinks = 0;
+                    for (int GlobalPointIndex2 = 0; GlobalPointIndex2 < SALSAUtility.PointCount_Global;
+                         GlobalPointIndex2++) {
+                        int OriginalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex2];
+                        if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex2] < SALSAUtility.SALSASHIFT) {
+                            continue;
+                        }
+                        if (GlobalPointIndex1 == GlobalPointIndex2) {
+                            continue;
+                        }
+                        double tmp2 = SALSAParallelism.getDistanceValue(GlobalPointIndex1, GlobalPointIndex2);
+                        if (tmp2 < -0.5) {
+                            FindMissingDistances.addAPoint(threadIndex, 1.0);
+                            continue;
+                        }
+                        if ((ManxcatMDS.PointStatus[GlobalPointIndex1] == -1) || (ManxcatMDS
+                                .PointStatus[GlobalPointIndex2] == -1)) {
+                            FindMissingDistances.addAPoint(threadIndex, 1.0);
+                            SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, -1.0);
+                            continue;
+                        }
+                        FindSystemMeanSigma.addAPoint(threadIndex, tmp2);
+                        FindSystemMax.addAPoint(threadIndex, tmp2);
+                        ++Countlinks;
                     }
-                    double tmp2 = SALSAParallelism.getDistanceValue(GlobalPointIndex1, GlobalPointIndex2);
-                    if (tmp2 < -0.5) {
-                        FindMissingDistances.addAPoint(threadIndex, 1.0);
-                        continue;
+                    if (Countlinks <= SALSAUtility.LinkCut) {
+                        FindDisconnectedPoints.addAPoint(threadIndex, 1);
+                        DeletedPoint[GlobalPointIndex1] = 1;
                     }
-                    if ((ManxcatMDS.PointStatus[GlobalPointIndex1] == -1) || (ManxcatMDS
-                            .PointStatus[GlobalPointIndex2] == -1)) {
-                        FindMissingDistances.addAPoint(threadIndex, 1.0);
-                        SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, -1.0);
-                        continue;
+                    if (Countlinks < HistogramSize) {
+                        FindLinkHistogramBinCounts.addAPoint(threadIndex, Countlinks);
                     }
-                    FindSystemMeanSigma.addAPoint(threadIndex, tmp2);
-                    FindSystemMax.addAPoint(threadIndex, tmp2);
-                    ++Countlinks;
-                }
-                if (Countlinks <= SALSAUtility.LinkCut) {
-                    FindDisconnectedPoints.addAPoint(threadIndex, 1);
-                    DeletedPoint[GlobalPointIndex1] = 1;
-                }
-                if (Countlinks < HistogramSize) {
-                    FindLinkHistogramBinCounts.addAPoint(threadIndex, Countlinks);
-                }
-                FindLinkswithoutCut.addAPoint(threadIndex, (double) Countlinks);
-                if (Countlinks > SALSAUtility.LinkCut) {
-                    FindLinkswithCut.addAPoint(threadIndex, (double) Countlinks);
+                    FindLinkswithoutCut.addAPoint(threadIndex, (double) Countlinks);
+                    if (Countlinks > SALSAUtility.LinkCut) {
+                        FindLinkswithCut.addAPoint(threadIndex, (double) Countlinks);
+                    }
                 }
             }
+            );
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
         }
-        );
 
         FindMissingDistances.sumOverThreadsAndMPI();
         FindDisconnectedPoints.sumOverThreadsAndMPI();
@@ -229,95 +234,99 @@ public class ManxcatMDSBasicDataProcessing {
         double initialScaleFactorLoopVar = initialScaleFactor;
         double initialEstimatedDimensionLoopVar = initialEstimatedDimension;
         double initialTransformedMaxDistanceLoopVar = initialTransformedMaxDistance;
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-                // Unset Distances if either point on deleted list
-                // Transform Distances if Requested
-                // log(1-d) transformation
-                // (x ** power with power given by TransformParameter
-                // 4D Transformation.
-                // Note. Works only when no missing distances
-                // SQRT(4D) Transformation.
-                // Note. Works only when no missing distances
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            FindDistanceWeightBinCounts.startThread(threadIndex);
-            for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint;
-                 DistributedPointIndex++) {
-                int GlobalPointIndex1 = DistributedPointIndex + SALSAUtility.PointStart_Process;
-                int OriginalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex1];
-                if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex1] < SALSAUtility.SALSASHIFT) {
-                    continue;
-                }
-                int Countlinks = 0;
-                for (int GlobalPointIndex2 = 0; GlobalPointIndex2 < SALSAUtility.PointCount_Global;
-                     GlobalPointIndex2++) {
-                    int OriginalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex2];
-                    if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex2] < SALSAUtility.SALSASHIFT) {
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+                    // Unset Distances if either point on deleted list
+                    // Transform Distances if Requested
+                    // log(1-d) transformation
+                    // (x ** power with power given by TransformParameter
+                    // 4D Transformation.
+                    // Note. Works only when no missing distances
+                    // SQRT(4D) Transformation.
+                    // Note. Works only when no missing distances
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                FindDistanceWeightBinCounts.startThread(threadIndex);
+                for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint;
+                     DistributedPointIndex++) {
+                    int GlobalPointIndex1 = DistributedPointIndex + SALSAUtility.PointStart_Process;
+                    int OriginalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex1];
+                    if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex1] < SALSAUtility.SALSASHIFT) {
                         continue;
                     }
-                    if (GlobalPointIndex1 == GlobalPointIndex2) {
-                        continue;
-                    }
-                    double tmp2 = SALSAParallelism.getDistanceValue(GlobalPointIndex1, GlobalPointIndex2);
-                    if (tmp2 < -0.5) {
-                        FindMissingDistances.addAPoint(threadIndex, 1.0);
-                        continue;
-                    }
-                    if ((ManxcatMDS.PointStatus[GlobalPointIndex1] == -1) || (ManxcatMDS
-                            .PointStatus[GlobalPointIndex2] == -1)) {
-                        FindMissingDistances.addAPoint(threadIndex, 1.0);
-                        SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, -1.0);
-                    } else {
-                        double newvalue = tmp2;
-                        if (SALSAUtility.TransformMethod == 12) {
-                            tmp2 = Math.min(0.975, tmp2);
-                            newvalue = Math.log(1 - Math.pow(tmp2, SALSAUtility.TransformParameter)) / Math
-                                    .log(1 - Math.pow(0.975, SALSAUtility.TransformParameter));
-                            SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, newvalue);
-                        } else if (SALSAUtility.TransformMethod == 11) {
-                            tmp2 = Math.min(1.0, tmp2);
-                            newvalue = 1.0 - Math.pow(1.0 - tmp2, SALSAUtility.TransformParameter);
-                            SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, newvalue);
-                        } else if (SALSAUtility.TransformMethod == 10) {
-                            tmp2 = Math.min(1.0, tmp2);
-                            newvalue = Math.pow(tmp2, SALSAUtility.TransformParameter);
-                            SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, newvalue);
-                        } else if (SALSAUtility.TransformMethod == 8) {
-                            tmp2 = initialScaleFactorLoopVar * Transform4D(SpecialFunction
-                                                                                   .igamc(initialEstimatedDimensionLoopVar * 0.5,
-                                                                                          tmp2 / initialScaleFactorLoopVar));
-                            newvalue = tmp2 / initialTransformedMaxDistanceLoopVar;
-                            SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, newvalue);
-                        } else if (SALSAUtility.TransformMethod == 9) {
-                            tmp2 = initialScaleFactorLoopVar * Transform4D(SpecialFunction
-                                                                                   .igamc(initialEstimatedDimensionLoopVar * 0.5,
-                                                                                          tmp2 / initialScaleFactorLoopVar));
-                            newvalue = Math.sqrt(tmp2) / initialTransformedMaxDistanceLoopVar;
-                            SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, newvalue);
+                    int Countlinks = 0;
+                    for (int GlobalPointIndex2 = 0; GlobalPointIndex2 < SALSAUtility.PointCount_Global;
+                         GlobalPointIndex2++) {
+                        int OriginalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex2];
+                        if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex2] < SALSAUtility.SALSASHIFT) {
+                            continue;
                         }
-                        FindNewoldDistancestatistics.addAPoint(threadIndex, tmp2, newvalue);
-                        FindSystemMax.addAPoint(threadIndex, newvalue);
-                        FindSystemMeanSigma.addAPoint(threadIndex, newvalue);
-                        ++Countlinks;
-                        if (SALSAUtility.NumberDistanceWeightCuts > 0) {
-                            int distpos = SALSAUtility.NumberDistanceWeightCuts;
-                            for (int weightbin = 0; weightbin < SALSAUtility.NumberDistanceWeightCuts; weightbin++) {
-                                if (SALSAUtility.DistanceWeightCuts[weightbin] > newvalue) {
-                                    distpos = weightbin;
-                                    break;
-                                }
+                        if (GlobalPointIndex1 == GlobalPointIndex2) {
+                            continue;
+                        }
+                        double tmp2 = SALSAParallelism.getDistanceValue(GlobalPointIndex1, GlobalPointIndex2);
+                        if (tmp2 < -0.5) {
+                            FindMissingDistances.addAPoint(threadIndex, 1.0);
+                            continue;
+                        }
+                        if ((ManxcatMDS.PointStatus[GlobalPointIndex1] == -1) || (ManxcatMDS
+                                .PointStatus[GlobalPointIndex2] == -1)) {
+                            FindMissingDistances.addAPoint(threadIndex, 1.0);
+                            SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, -1.0);
+                        } else {
+                            double newvalue = tmp2;
+                            if (SALSAUtility.TransformMethod == 12) {
+                                tmp2 = Math.min(0.975, tmp2);
+                                newvalue = Math.log(1 - Math.pow(tmp2, SALSAUtility.TransformParameter)) / Math
+                                        .log(1 - Math.pow(0.975, SALSAUtility.TransformParameter));
+                                SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, newvalue);
+                            } else if (SALSAUtility.TransformMethod == 11) {
+                                tmp2 = Math.min(1.0, tmp2);
+                                newvalue = 1.0 - Math.pow(1.0 - tmp2, SALSAUtility.TransformParameter);
+                                SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, newvalue);
+                            } else if (SALSAUtility.TransformMethod == 10) {
+                                tmp2 = Math.min(1.0, tmp2);
+                                newvalue = Math.pow(tmp2, SALSAUtility.TransformParameter);
+                                SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, newvalue);
+                            } else if (SALSAUtility.TransformMethod == 8) {
+                                tmp2 = initialScaleFactorLoopVar * Transform4D(SpecialFunction
+                                                                                       .igamc(initialEstimatedDimensionLoopVar * 0.5,
+                                                                                               tmp2 / initialScaleFactorLoopVar));
+                                newvalue = tmp2 / initialTransformedMaxDistanceLoopVar;
+                                SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, newvalue);
+                            } else if (SALSAUtility.TransformMethod == 9) {
+                                tmp2 = initialScaleFactorLoopVar * Transform4D(SpecialFunction
+                                                                                       .igamc(initialEstimatedDimensionLoopVar * 0.5,
+                                                                                               tmp2 / initialScaleFactorLoopVar));
+                                newvalue = Math.sqrt(tmp2) / initialTransformedMaxDistanceLoopVar;
+                                SALSAParallelism.putDistanceValue(GlobalPointIndex1, GlobalPointIndex2, newvalue);
                             }
-                            FindDistanceWeightBinCounts.addAPoint(threadIndex, distpos);
+                            FindNewoldDistancestatistics.addAPoint(threadIndex, tmp2, newvalue);
+                            FindSystemMax.addAPoint(threadIndex, newvalue);
+                            FindSystemMeanSigma.addAPoint(threadIndex, newvalue);
+                            ++Countlinks;
+                            if (SALSAUtility.NumberDistanceWeightCuts > 0) {
+                                int distpos = SALSAUtility.NumberDistanceWeightCuts;
+                                for (int weightbin = 0; weightbin < SALSAUtility.NumberDistanceWeightCuts; weightbin++) {
+                                    if (SALSAUtility.DistanceWeightCuts[weightbin] > newvalue) {
+                                        distpos = weightbin;
+                                        break;
+                                    }
+                                }
+                                FindDistanceWeightBinCounts.addAPoint(threadIndex, distpos);
+                            }
                         }
                     }
-                }
-                if ((Countlinks <= 0) && (ManxcatMDS.PointStatus[GlobalPointIndex1] != -1)) {
-                    FindDisconnectedPoints.addAPoint(threadIndex, 1);
+                    if ((Countlinks <= 0) && (ManxcatMDS.PointStatus[GlobalPointIndex1] != -1)) {
+                        FindDisconnectedPoints.addAPoint(threadIndex, 1);
+                    }
                 }
             }
+            );
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
         }
-        );
 
         // Accumulate Threads and invoke MPI
         FindNewoldDistancestatistics.sumOverThreadsAndMPI();
@@ -418,63 +427,67 @@ public class ManxcatMDSBasicDataProcessing {
         GlobalReductions.FindDoubleArraySum FindDistanceHistogramBinCounts = new GlobalReductions.FindDoubleArraySum(
                 SALSAUtility.ThreadCount, HistogramSize);
 
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            // Form histogram
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            FindDistanceHistogramBinCounts.startThread(threadIndex);
-            for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint;
-                 DistributedPointIndex++) {
-                double distcemeanperpoint = 0.0;
-                int GlobalPointIndex1 = DistributedPointIndex + SALSAUtility.PointStart_Process;
-                if (ManxcatMDS.PointStatus[GlobalPointIndex1] == -1) {
-                    continue;
-                }
-                int OriginalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex1];
-                if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex1] < SALSAUtility.SALSASHIFT) {
-                    continue;
-                }
-                int Countlinks = 0;
-                for (int GlobalPointIndex2 = 0; GlobalPointIndex2 < SALSAUtility.PointCount_Global;
-                     GlobalPointIndex2++) {
-                    if (ManxcatMDS.PointStatus[GlobalPointIndex2] == -1) {
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                // Form histogram
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                FindDistanceHistogramBinCounts.startThread(threadIndex);
+                for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint;
+                     DistributedPointIndex++) {
+                    double distcemeanperpoint = 0.0;
+                    int GlobalPointIndex1 = DistributedPointIndex + SALSAUtility.PointStart_Process;
+                    if (ManxcatMDS.PointStatus[GlobalPointIndex1] == -1) {
                         continue;
                     }
-                    int OriginalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex2];
-                    if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex2] < SALSAUtility.SALSASHIFT) {
+                    int OriginalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex1];
+                    if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex1] < SALSAUtility.SALSASHIFT) {
                         continue;
                     }
-                    if (GlobalPointIndex1 == GlobalPointIndex2) {
-                        continue;
+                    int Countlinks = 0;
+                    for (int GlobalPointIndex2 = 0; GlobalPointIndex2 < SALSAUtility.PointCount_Global;
+                         GlobalPointIndex2++) {
+                        if (ManxcatMDS.PointStatus[GlobalPointIndex2] == -1) {
+                            continue;
+                        }
+                        int OriginalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex2];
+                        if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex2] < SALSAUtility.SALSASHIFT) {
+                            continue;
+                        }
+                        if (GlobalPointIndex1 == GlobalPointIndex2) {
+                            continue;
+                        }
+                        double tmp2 = SALSAParallelism.getDistanceValue(GlobalPointIndex1, GlobalPointIndex2);
+                        if (tmp2 < -0.5) {
+                            continue;
+                        }
+                        distcemeanperpoint += tmp2;
+                        ++Countlinks;
+                        double Histvalue = (tmp2 - Histmin) * HistFudge;
+                        int HistPosition = (int) Math.floor(Histvalue);
+                        if (HistPosition == NumberBins) {
+                            HistPosition = (int) Math.floor(Histvalue - 0.00001);
+                        }
+                        if (HistPosition < 0) {
+                            HistPosition = -1;
+                        }
+                        if (HistPosition >= NumberBins) {
+                            HistPosition = NumberBins;
+                        }
+                        FindDistanceHistogramBinCounts.addAPoint(threadIndex,
+                                                                 1 + HistPosition);
                     }
-                    double tmp2 = SALSAParallelism.getDistanceValue(GlobalPointIndex1, GlobalPointIndex2);
-                    if (tmp2 < -0.5) {
-                        continue;
+                    if ((Countlinks >= ManxcatMDS.LinkCutforCenter) && (ManxcatMDS.PointStatus[GlobalPointIndex1] == 0)) {
+                        distcemeanperpoint = distcemeanperpoint / Countlinks;
+                        FindCenterCompute.addAPoint(threadIndex, GlobalPointIndex1, distcemeanperpoint);
                     }
-                    distcemeanperpoint += tmp2;
-                    ++Countlinks;
-                    double Histvalue = (tmp2 - Histmin) * HistFudge;
-                    int HistPosition = (int) Math.floor(Histvalue);
-                    if (HistPosition == NumberBins) {
-                        HistPosition = (int) Math.floor(Histvalue - 0.00001);
-                    }
-                    if (HistPosition < 0) {
-                        HistPosition = -1;
-                    }
-                    if (HistPosition >= NumberBins) {
-                        HistPosition = NumberBins;
-                    }
-                    FindDistanceHistogramBinCounts.addAPoint(threadIndex,
-                                                             1 + HistPosition);
-                }
-                if ((Countlinks >= ManxcatMDS.LinkCutforCenter) && (ManxcatMDS.PointStatus[GlobalPointIndex1] == 0)) {
-                    distcemeanperpoint = distcemeanperpoint / Countlinks;
-                    FindCenterCompute.addAPoint(threadIndex, GlobalPointIndex1, distcemeanperpoint);
                 }
             }
+            );
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
         }
-        );
 
         FindCenterCompute.sumOverThreadsAndMPI();
         FindDistanceHistogramBinCounts.sumOverThreadsAndMPI();
@@ -543,63 +556,67 @@ public class ManxcatMDSBasicDataProcessing {
                 .FindMinorMaxValuewithIndex(
                 SALSAUtility.ThreadCount, 1);
 
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int distributedPointIndex = beginpoint; distributedPointIndex < indexlen + beginpoint;
-                 distributedPointIndex++) {
-                int globalPointIndex1 = distributedPointIndex + SALSAUtility.PointStart_Process;
-                if (ManxcatMDS.PointStatus[globalPointIndex1] == -1) {
-                    continue;
-                }
-                int originalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[globalPointIndex1];
-                int cnum1 = SALSAUtility.IsClustersSelected ? ((int) originalPnumToCnumTable
-                        .get(originalPointIndex1)) : -1;
-                if (SALSAUtility.OriginalPointDisposition[originalPointIndex1] < SALSAUtility.SALSASHIFT) {
-                    continue;
-                }
-                int usedPointIndex1 = SALSAUtility.NaivetoActualUsedOrder[globalPointIndex1];
-                for (int globalPointIndex2 = 0; globalPointIndex2 < SALSAUtility.PointCount_Global;
-                     globalPointIndex2++) {
-                    if (ManxcatMDS.PointStatus[globalPointIndex2] == -1) {
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int distributedPointIndex = beginpoint; distributedPointIndex < indexlen + beginpoint;
+                     distributedPointIndex++) {
+                    int globalPointIndex1 = distributedPointIndex + SALSAUtility.PointStart_Process;
+                    if (ManxcatMDS.PointStatus[globalPointIndex1] == -1) {
                         continue;
                     }
-                    int originalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[globalPointIndex2];
-                    if (SALSAUtility.OriginalPointDisposition[originalPointIndex2] < SALSAUtility.SALSASHIFT) {
+                    int originalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[globalPointIndex1];
+                    int cnum1 = SALSAUtility.IsClustersSelected ? ((int) originalPnumToCnumTable
+                            .get(originalPointIndex1)) : -1;
+                    if (SALSAUtility.OriginalPointDisposition[originalPointIndex1] < SALSAUtility.SALSASHIFT) {
                         continue;
                     }
-                    if (globalPointIndex1 == globalPointIndex2) {
-                        continue;
-                    }
-                    double xval = SALSAParallelism.getDistanceValue(globalPointIndex1, globalPointIndex2);
-                    if (xval < -0.5) {
-                        continue;
-                    }
-                    int usedPointIndex2 = SALSAUtility.NaivetoActualUsedOrder[globalPointIndex2];
-                    double yval = GetEuclideanDistance(Hotsun.GlobalParameter[usedPointIndex1],
-                                                       Hotsun.GlobalParameter[usedPointIndex2]);
-                    /* At this point the xval should be the transformed distances (if specified using TransformMethod & TransformParameter) */
-                    // Todo (html+density) - see if any distance cut needs to be considered. Also check if any pair is to be removed if not exist in pnumToCnum table
-                    UpdateMinMax(xval, yval, FindXminWhole, FindXmaxWhole, FindYminWhole, FindYmaxWhole, threadIndex);
-                    int cnum2 = SALSAUtility.IsClustersSelected ? ((int) originalPnumToCnumTable
-                            .get(originalPointIndex2)) : -1;
-                    if (cnum1 != -1 && cnum2 != -1 && SALSAUtility.SelectedClusters.contains(cnum1) && SALSAUtility
-                            .SelectedClusters.contains(cnum2)) {
-                        if (cnum1 == cnum2) {
-                            // Intra cluster pairs (p1,p2) where both p1,p2 belong to one cluster.
-                            UpdateMinMax(xval, yval, FindXminSelected, FindXmaxSelected, FindYminSelected,
-                                         FindYmaxSelected, threadIndex);
-                        } else {
-                            // Inter cluster pairs (p1,p2) where both p1,p2 do NOT belong to one cluster.
-                            UpdateMinMax(xval, yval, FindXminSelectedInter, FindXmaxSelectedInter,
-                                         FindYminSelectedInter, FindYmaxSelectedInter, threadIndex);
+                    int usedPointIndex1 = SALSAUtility.NaivetoActualUsedOrder[globalPointIndex1];
+                    for (int globalPointIndex2 = 0; globalPointIndex2 < SALSAUtility.PointCount_Global;
+                         globalPointIndex2++) {
+                        if (ManxcatMDS.PointStatus[globalPointIndex2] == -1) {
+                            continue;
+                        }
+                        int originalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[globalPointIndex2];
+                        if (SALSAUtility.OriginalPointDisposition[originalPointIndex2] < SALSAUtility.SALSASHIFT) {
+                            continue;
+                        }
+                        if (globalPointIndex1 == globalPointIndex2) {
+                            continue;
+                        }
+                        double xval = SALSAParallelism.getDistanceValue(globalPointIndex1, globalPointIndex2);
+                        if (xval < -0.5) {
+                            continue;
+                        }
+                        int usedPointIndex2 = SALSAUtility.NaivetoActualUsedOrder[globalPointIndex2];
+                        double yval = GetEuclideanDistance(Hotsun.GlobalParameter[usedPointIndex1],
+                                                           Hotsun.GlobalParameter[usedPointIndex2]);
+                        /* At this point the xval should be the transformed distances (if specified using TransformMethod & TransformParameter) */
+                        // Todo (html+density) - see if any distance cut needs to be considered. Also check if any pair is to be removed if not exist in pnumToCnum table
+                        UpdateMinMax(xval, yval, FindXminWhole, FindXmaxWhole, FindYminWhole, FindYmaxWhole, threadIndex);
+                        int cnum2 = SALSAUtility.IsClustersSelected ? ((int) originalPnumToCnumTable
+                                .get(originalPointIndex2)) : -1;
+                        if (cnum1 != -1 && cnum2 != -1 && SALSAUtility.SelectedClusters.contains(cnum1) && SALSAUtility
+                                .SelectedClusters.contains(cnum2)) {
+                            if (cnum1 == cnum2) {
+                                // Intra cluster pairs (p1,p2) where both p1,p2 belong to one cluster.
+                                UpdateMinMax(xval, yval, FindXminSelected, FindXmaxSelected, FindYminSelected,
+                                             FindYmaxSelected, threadIndex);
+                            } else {
+                                // Inter cluster pairs (p1,p2) where both p1,p2 do NOT belong to one cluster.
+                                UpdateMinMax(xval, yval, FindXminSelectedInter, FindXmaxSelectedInter,
+                                             FindYminSelectedInter, FindYmaxSelectedInter, threadIndex);
+                            }
                         }
                     }
                 }
             }
+            );
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
         }
-        );
 
         FindXminWhole.sumOverThreadsAndMPI();
         FindXminSelected.sumOverThreadsAndMPI();
@@ -726,80 +743,84 @@ public class ManxcatMDSBasicDataProcessing {
         double deltaxSelectedInter = (xmaxSelectedInter - xminSelectedInter) / SALSAUtility.Xres;
         double deltaySelectedInter = (ymaxSelectedInter - yminSelectedInter) / SALSAUtility.Yres;
 
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            FindDensityMatrixWhole.startThread(threadIndex);
-            FindDensityMatrixSelected.startThread(threadIndex);
-            FindDensityMatrixSelectedInter.startThread(threadIndex);
-            FindXHistogramWhole.startThread(threadIndex);
-            FindXHistogramSelected.startThread(threadIndex);
-            FindXHistogramSelectedInter.startThread(threadIndex);
-            FindYHistogramWhole.startThread(threadIndex);
-            FindYHistogramSelected.startThread(threadIndex);
-            FindYHistogramSelectedInter.startThread(threadIndex);
-            for (int distributedPointIndex = beginpoint; distributedPointIndex < indexlen + beginpoint;
-                 distributedPointIndex++) {
-                int globalPointIndex1 = distributedPointIndex + SALSAUtility.PointStart_Process;
-                if (ManxcatMDS.PointStatus[globalPointIndex1] == -1) {
-                    continue;
-                }
-                int originalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[globalPointIndex1];
-                int cnum1 = SALSAUtility.IsClustersSelected ? ((int) originalPnumToCnumTable
-                        .get(originalPointIndex1)) : -1;
-                if (SALSAUtility.OriginalPointDisposition[originalPointIndex1] < SALSAUtility.SALSASHIFT) {
-                    continue;
-                }
-                int usedPointIndex1 = SALSAUtility.NaivetoActualUsedOrder[globalPointIndex1];
-                for (int globalPointIndex2 = 0; globalPointIndex2 < SALSAUtility.PointCount_Global;
-                     globalPointIndex2++) {
-                    if (ManxcatMDS.PointStatus[globalPointIndex2] == -1) {
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                FindDensityMatrixWhole.startThread(threadIndex);
+                FindDensityMatrixSelected.startThread(threadIndex);
+                FindDensityMatrixSelectedInter.startThread(threadIndex);
+                FindXHistogramWhole.startThread(threadIndex);
+                FindXHistogramSelected.startThread(threadIndex);
+                FindXHistogramSelectedInter.startThread(threadIndex);
+                FindYHistogramWhole.startThread(threadIndex);
+                FindYHistogramSelected.startThread(threadIndex);
+                FindYHistogramSelectedInter.startThread(threadIndex);
+                for (int distributedPointIndex = beginpoint; distributedPointIndex < indexlen + beginpoint;
+                     distributedPointIndex++) {
+                    int globalPointIndex1 = distributedPointIndex + SALSAUtility.PointStart_Process;
+                    if (ManxcatMDS.PointStatus[globalPointIndex1] == -1) {
                         continue;
                     }
-                    int originalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[globalPointIndex2];
-                    if (SALSAUtility.OriginalPointDisposition[originalPointIndex2] < SALSAUtility.SALSASHIFT) {
+                    int originalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[globalPointIndex1];
+                    int cnum1 = SALSAUtility.IsClustersSelected ? ((int) originalPnumToCnumTable
+                            .get(originalPointIndex1)) : -1;
+                    if (SALSAUtility.OriginalPointDisposition[originalPointIndex1] < SALSAUtility.SALSASHIFT) {
                         continue;
                     }
-                    if (globalPointIndex1 == globalPointIndex2) {
-                        continue;
-                    }
-                    double xval = SALSAParallelism.getDistanceValue(globalPointIndex1, globalPointIndex2);
-                    if (xval < -0.5) {
-                        continue;
-                    }
-                    int usedPointIndex2 = SALSAUtility.NaivetoActualUsedOrder[globalPointIndex2];
-                    double yval = GetEuclideanDistance(Hotsun.GlobalParameter[usedPointIndex1],
-                                                       Hotsun.GlobalParameter[usedPointIndex2]);
-                    /* At this point the xval should be the transformed distances (if specified using TransformMethod & TransformParameter) */
+                    int usedPointIndex1 = SALSAUtility.NaivetoActualUsedOrder[globalPointIndex1];
+                    for (int globalPointIndex2 = 0; globalPointIndex2 < SALSAUtility.PointCount_Global;
+                         globalPointIndex2++) {
+                        if (ManxcatMDS.PointStatus[globalPointIndex2] == -1) {
+                            continue;
+                        }
+                        int originalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[globalPointIndex2];
+                        if (SALSAUtility.OriginalPointDisposition[originalPointIndex2] < SALSAUtility.SALSASHIFT) {
+                            continue;
+                        }
+                        if (globalPointIndex1 == globalPointIndex2) {
+                            continue;
+                        }
+                        double xval = SALSAParallelism.getDistanceValue(globalPointIndex1, globalPointIndex2);
+                        if (xval < -0.5) {
+                            continue;
+                        }
+                        int usedPointIndex2 = SALSAUtility.NaivetoActualUsedOrder[globalPointIndex2];
+                        double yval = GetEuclideanDistance(Hotsun.GlobalParameter[usedPointIndex1],
+                                                           Hotsun.GlobalParameter[usedPointIndex2]);
+                        /* At this point the xval should be the transformed distances (if specified using TransformMethod & TransformParameter) */
 
-                    // Todo (html+density) - see if any distance cut needs to be considered. Also check if any pair is to be removed if not exist in pnumToCnum table
+                        // Todo (html+density) - see if any distance cut needs to be considered. Also check if any pair is to be removed if not exist in pnumToCnum table
 
-                    UpdateCells(xval, yval, xmaxWhole, xminWhole, ymaxWhole, yminWhole, deltaxWhole, deltayWhole,
-                                FindDensityMatrixWhole, FindXHistogramWhole, FindYHistogramWhole, threadIndex);
-                    int cnum2 = SALSAUtility.IsClustersSelected ? ((int) originalPnumToCnumTable
-                            .get(originalPointIndex2)) : -1;
-                    if (cnum1 != -1 && cnum2 != -1 && SALSAUtility.SelectedClusters.contains(cnum1) && SALSAUtility
-                            .SelectedClusters.contains(cnum2)) {
-                        if (cnum1 == cnum2) {
-                            // Intra cluster pairs (p1,p2) where both p1,p2 belong to one cluster.
-                            // So check if p1,p2 belong to the same cluster in our set of selected clusters
-                            UpdateCells(xval, yval, xmaxSelected, xminSelected, ymaxSelected, yminSelected,
-                                        deltaxSelected, deltaySelected, FindDensityMatrixSelected,
-                                        FindXHistogramSelected, FindYHistogramSelected, threadIndex);
-                        } else {
-                            // Inter cluster pairs (p1,p2) where both p1,p2 does NOT belong to one cluster.
-                            // So check if p1,p2 does NOT belong to the same cluster in our set of selected clusters
-                            UpdateCells(xval, yval, xmaxSelectedInter, xminSelectedInter, ymaxSelectedInter,
-                                        yminSelectedInter, deltaxSelectedInter, deltaySelectedInter,
-                                        FindDensityMatrixSelectedInter, FindXHistogramSelectedInter,
-                                        FindYHistogramSelectedInter, threadIndex);
+                        UpdateCells(xval, yval, xmaxWhole, xminWhole, ymaxWhole, yminWhole, deltaxWhole, deltayWhole,
+                                    FindDensityMatrixWhole, FindXHistogramWhole, FindYHistogramWhole, threadIndex);
+                        int cnum2 = SALSAUtility.IsClustersSelected ? ((int) originalPnumToCnumTable
+                                .get(originalPointIndex2)) : -1;
+                        if (cnum1 != -1 && cnum2 != -1 && SALSAUtility.SelectedClusters.contains(cnum1) && SALSAUtility
+                                .SelectedClusters.contains(cnum2)) {
+                            if (cnum1 == cnum2) {
+                                // Intra cluster pairs (p1,p2) where both p1,p2 belong to one cluster.
+                                // So check if p1,p2 belong to the same cluster in our set of selected clusters
+                                UpdateCells(xval, yval, xmaxSelected, xminSelected, ymaxSelected, yminSelected,
+                                            deltaxSelected, deltaySelected, FindDensityMatrixSelected,
+                                            FindXHistogramSelected, FindYHistogramSelected, threadIndex);
+                            } else {
+                                // Inter cluster pairs (p1,p2) where both p1,p2 does NOT belong to one cluster.
+                                // So check if p1,p2 does NOT belong to the same cluster in our set of selected clusters
+                                UpdateCells(xval, yval, xmaxSelectedInter, xminSelectedInter, ymaxSelectedInter,
+                                            yminSelectedInter, deltaxSelectedInter, deltaySelectedInter,
+                                            FindDensityMatrixSelectedInter, FindXHistogramSelectedInter,
+                                            FindYHistogramSelectedInter, threadIndex);
+                            }
                         }
                     }
                 }
             }
+            );
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
         }
-        );
 
         FindDensityMatrixWhole.sumOverThreadsAndMPI();
         FindDensityMatrixSelected.sumOverThreadsAndMPI();
@@ -885,48 +906,52 @@ public class ManxcatMDSBasicDataProcessing {
         GlobalReductions.FindMinorMaxValuewithIndex FindxAxisCompute = new GlobalReductions.FindMinorMaxValuewithIndex(
                 SALSAUtility.ThreadCount, 1);
 
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint; DistributedPointIndex++) {
-                int notlonely = 0;
-                int GlobalPointIndex1 = DistributedPointIndex + SALSAUtility.PointStart_Process;
-                if (ManxcatMDS.PointStatus[GlobalPointIndex1] != 0) {
-                    continue;
-                }
-                int OriginalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex1];
-                if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex1] < SALSAUtility.SALSASHIFT) {
-                    continue;
-                }
-                for (int GlobalPointIndex2 = 0; GlobalPointIndex2 < SALSAUtility.PointCount_Global; GlobalPointIndex2++) {
-                    if (GlobalPointIndex2 == GlobalPointIndex1) {
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint; DistributedPointIndex++) {
+                    int notlonely = 0;
+                    int GlobalPointIndex1 = DistributedPointIndex + SALSAUtility.PointStart_Process;
+                    if (ManxcatMDS.PointStatus[GlobalPointIndex1] != 0) {
                         continue;
                     }
-                    int OriginalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex2];
-                    if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex2] < SALSAUtility.SALSASHIFT) {
+                    int OriginalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex1];
+                    if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex1] < SALSAUtility.SALSASHIFT) {
                         continue;
                     }
-                    double tmp = SALSAParallelism.getDistanceValue(GlobalPointIndex1, GlobalPointIndex2);
-                    if (tmp < -0.5) {
+                    for (int GlobalPointIndex2 = 0; GlobalPointIndex2 < SALSAUtility.PointCount_Global; GlobalPointIndex2++) {
+                        if (GlobalPointIndex2 == GlobalPointIndex1) {
+                            continue;
+                        }
+                        int OriginalPointIndex2 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex2];
+                        if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex2] < SALSAUtility.SALSASHIFT) {
+                            continue;
+                        }
+                        double tmp = SALSAParallelism.getDistanceValue(GlobalPointIndex1, GlobalPointIndex2);
+                        if (tmp < -0.5) {
+                            continue;
+                        }
+                        if (tmp < ManxcatMDS.MinimumDistance) {
+                            ++notlonely;
+                            FindNearbyPairs.addAPoint(threadIndex, 1.0);
+                        }
+                    }
+                    if (notlonely > 0) {
+                        FindCozyPoints.addAPoint(threadIndex, 1);
+                    }
+                    double MaxDistcePoint = SALSAParallelism.getDistanceValue(GlobalPointIndex1, Center);
+                    if (MaxDistcePoint < -0.5) {
                         continue;
                     }
-                    if (tmp < ManxcatMDS.MinimumDistance) {
-                        ++notlonely;
-                        FindNearbyPairs.addAPoint(threadIndex, 1.0);
-                    }
+                    FindxAxisCompute.addAPoint(threadIndex, GlobalPointIndex1, MaxDistcePoint);
                 }
-                if (notlonely > 0) {
-                    FindCozyPoints.addAPoint(threadIndex, 1);
-                }
-                double MaxDistcePoint = SALSAParallelism.getDistanceValue(GlobalPointIndex1, Center);
-                if (MaxDistcePoint < -0.5) {
-                    continue;
-                }
-                FindxAxisCompute.addAPoint(threadIndex, GlobalPointIndex1, MaxDistcePoint);
             }
+            );
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
         }
-        );
 
         FindxAxisCompute.sumOverThreadsAndMPI();
         FindCozyPoints.sumOverThreadsAndMPI();
@@ -944,32 +969,36 @@ public class ManxcatMDSBasicDataProcessing {
         GlobalReductions.FindMinorMaxValuewithIndex FindxyPlaneCompute = new GlobalReductions.FindMinorMaxValuewithIndex(
                 SALSAUtility.ThreadCount, 1);
 
-        forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-        {
-            int indexlen = SALSAUtility.PointsperThread[threadIndex];
-            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-            for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint; DistributedPointIndex++) {
-                int GlobalPointIndex1 = DistributedPointIndex + SALSAUtility.PointStart_Process;
-                int OriginalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex1];
-                if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex1] < SALSAUtility.SALSASHIFT) {
-                    continue;
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint; DistributedPointIndex++) {
+                    int GlobalPointIndex1 = DistributedPointIndex + SALSAUtility.PointStart_Process;
+                    int OriginalPointIndex1 = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex1];
+                    if (SALSAUtility.OriginalPointDisposition[OriginalPointIndex1] < SALSAUtility.SALSASHIFT) {
+                        continue;
+                    }
+                    if (ManxcatMDS.PointStatus[GlobalPointIndex1] != 0) {
+                        continue;
+                    }
+                    double tmp1 = SALSAParallelism.getDistanceValue(GlobalPointIndex1, Center);
+                    if (tmp1 < -0.5) {
+                        continue;
+                    }
+                    double tmp2 = SALSAParallelism.getDistanceValue(GlobalPointIndex1, xAxis);
+                    if (tmp2 < -0.5) {
+                        continue;
+                    }
+                    double MaxDistcePoint = tmp1 * tmp2;
+                    FindxyPlaneCompute.addAPoint(threadIndex, GlobalPointIndex1, MaxDistcePoint);
                 }
-                if (ManxcatMDS.PointStatus[GlobalPointIndex1] != 0) {
-                    continue;
-                }
-                double tmp1 = SALSAParallelism.getDistanceValue(GlobalPointIndex1, Center);
-                if (tmp1 < -0.5) {
-                    continue;
-                }
-                double tmp2 = SALSAParallelism.getDistanceValue(GlobalPointIndex1, xAxis);
-                if (tmp2 < -0.5) {
-                    continue;
-                }
-                double MaxDistcePoint = tmp1 * tmp2;
-                FindxyPlaneCompute.addAPoint(threadIndex, GlobalPointIndex1, MaxDistcePoint);
             }
+            );
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
         }
-        );
 
         FindxyPlaneCompute.sumOverThreadsAndMPI();
         xyPlane.argValue = FindxyPlaneCompute.TotalIndexValue;

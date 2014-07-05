@@ -1,14 +1,12 @@
 package salsa.mdsaschisq;
 
+import edu.rice.hj.runtime.config.HjConfiguration;
 import mpi.MPI;
 import mpi.MPIException;
 import salsa.common.DistanceReader;
 import salsa.mpi.MpiOps;
 
 import java.io.IOException;
-
-import static edu.rice.hj.HJ.finalizeHabanero;
-import static edu.rice.hj.HJ.initializeHabanero;
 
 /**
  * Set Parallelism related Parameters
@@ -46,12 +44,12 @@ public class SALSAParallelism {
         }
 
         // Set up threads
-        initializeHabanero();
+        HjConfiguration.initializeRuntime();
     }
 
     public static void TearDownParallelism() {
         // Finalize threads
-        finalizeHabanero();
+        HjConfiguration.finalizeRuntime();
         // End MPI
         MPI.Finalize();
     }

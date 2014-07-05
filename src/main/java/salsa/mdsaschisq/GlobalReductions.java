@@ -1,7 +1,9 @@
 package salsa.mdsaschisq;
 
+import edu.rice.hj.api.SuspendableException;
 import mpi.MPI;
-import static edu.rice.hj.HJ.forall;
+
+import static edu.rice.hj.Module1.forallChunked;
 
 public class GlobalReductions {
 
@@ -592,16 +594,20 @@ public class GlobalReductions {
 
         public final void sumOverThreadsAndMPI() {
             // Note - parallel for
-            forall(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
-                int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
-                int indexlength = ParallelArrayRanges[threadIndex].getLength();
-                for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
-                    TotalVectorSum[ArrayLoop] = 0.0;
-                    for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
-                        TotalVectorSum[ArrayLoop] += VectorSum[ThreadNo][ArrayLoop];
+            try {
+                forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
+                    int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
+                    int indexlength = ParallelArrayRanges[threadIndex].getLength();
+                    for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
+                        TotalVectorSum[ArrayLoop] = 0.0;
+                        for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
+                            TotalVectorSum[ArrayLoop] += VectorSum[ThreadNo][ArrayLoop];
+                        }
                     }
-                }
-            });
+                });
+            } catch (SuspendableException e) {
+                SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+            }
 
             if (SALSAUtility.MPI_Size > 1) {
                 SALSAUtility.StartSubTimer(SALSAUtility.MPIREDUCETiming1);
@@ -663,17 +669,21 @@ public class GlobalReductions {
         public final void sumOverThreadsAndMPI() {
             SALSAUtility.StartSubTimer(SALSAUtility.ThreadTiming);
             // Note - parallel for
-            forall(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
-                int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
-                int indexlength = ParallelArrayRanges[threadIndex].getLength();
-                for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
-                    double tmp = 0.0;
-                    for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
-                        tmp += VectorSum[ThreadNo][ArrayLoop];
+            try {
+                forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
+                    int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
+                    int indexlength = ParallelArrayRanges[threadIndex].getLength();
+                    for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
+                        double tmp = 0.0;
+                        for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
+                            tmp += VectorSum[ThreadNo][ArrayLoop];
+                        }
+                        TotalVectorSum[ArrayLoop] = tmp;
                     }
-                    TotalVectorSum[ArrayLoop] = tmp;
-                }
-            });
+                });
+            } catch (SuspendableException e) {
+                SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+            }
             SALSAUtility.StopSubTimer(SALSAUtility.ThreadTiming);
 
             if (SALSAUtility.MPI_Size > 1) {
@@ -750,16 +760,20 @@ public class GlobalReductions {
             }
 
             // Note - parallel for
-            forall(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
-                int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
-                int indexlength = ParallelArrayRanges[threadIndex].getLength();
-                for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
-                    TotalVectorSum[ArrayLoop] = 0.0;
-                    for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
-                        TotalVectorSum[ArrayLoop] += VectorSum[ThreadNo][ArrayLoop];
+            try {
+                forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
+                    int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
+                    int indexlength = ParallelArrayRanges[threadIndex].getLength();
+                    for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
+                        TotalVectorSum[ArrayLoop] = 0.0;
+                        for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
+                            TotalVectorSum[ArrayLoop] += VectorSum[ThreadNo][ArrayLoop];
+                        }
                     }
-                }
-            });
+                });
+            } catch (SuspendableException e) {
+                SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+            }
 
             if (SALSAUtility.MPI_Size > 1) {
                 SALSAUtility.StartSubTimer(SALSAUtility.MPIREDUCETiming1);

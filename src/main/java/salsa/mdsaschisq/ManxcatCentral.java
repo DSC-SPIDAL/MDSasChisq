@@ -2,6 +2,7 @@ package salsa.mdsaschisq;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import edu.rice.hj.api.SuspendableException;
 import mpi.MPI;
 import mpi.MPIException;
 import org.apache.commons.cli.*;
@@ -16,7 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.regex.Pattern;
 
-import static edu.rice.hj.HJ.forallChunked;
+import static edu.rice.hj.Module1.forallChunked;
 
 public class ManxcatCentral
 {
@@ -1917,53 +1918,57 @@ public class ManxcatCentral
 		}
 
 		// Parallel Local Calculation of Diagonal Scaling Elements
-		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-		{
-			int indexlen = SALSAUtility.PointsperThread[threadIndex];
-			int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-			for (int LocalToProcessIndex = beginpoint; LocalToProcessIndex < indexlen + beginpoint; LocalToProcessIndex++)
-			{
-				int GlobalIndex = LocalToProcessIndex + SALSAUtility.PointStart_Process;
-				for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
-				{
-					double tmp;
-					if (Hotsun.fullmatrixset)
-					{
-						if (Hotsun.FullSecondDerivative)
-						{
-							tmp = Math.abs(Solution.ExactFullMatrix[LocalToProcessIndex][LocalToProcessIndex][LocalVectorIndex][LocalVectorIndex]);
-						}
-						else
-						{
-							tmp = Math.abs(Solution.FullMatrix[LocalToProcessIndex][LocalToProcessIndex][LocalVectorIndex][LocalVectorIndex]);
-						}
-					}
-					else
-					{
-						if (Hotsun.FullSecondDerivative)
-						{
-							tmp = Math.abs(Solution.ExactDiagonalofMatrix[LocalToProcessIndex][LocalVectorIndex][LocalVectorIndex]);
-						}
-						else
-						{
-							tmp = Math.abs(Solution.DiagonalofMatrix[LocalToProcessIndex][LocalVectorIndex][LocalVectorIndex]);
-						}
-					}
-					TogoDiagVector.Marray[LocalToProcessIndex][LocalVectorIndex] = tmp;
-					if (Hotsun.FixedParameter[GlobalIndex][LocalVectorIndex])
-					{
-						TogoSqDgInvVector.Marray[LocalToProcessIndex][LocalVectorIndex] = 0.0;
-					}
-					else
-					{
-						TogoSqDgInvVector.Marray[LocalToProcessIndex][LocalVectorIndex] = 1.0 / Math.sqrt(tmp);
-					}
-				}
-			}
-		}
-	   );
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LocalToProcessIndex = beginpoint; LocalToProcessIndex < indexlen + beginpoint; LocalToProcessIndex++)
+                {
+                    int GlobalIndex = LocalToProcessIndex + SALSAUtility.PointStart_Process;
+                    for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
+                    {
+                        double tmp;
+                        if (Hotsun.fullmatrixset)
+                        {
+                            if (Hotsun.FullSecondDerivative)
+                            {
+                                tmp = Math.abs(Solution.ExactFullMatrix[LocalToProcessIndex][LocalToProcessIndex][LocalVectorIndex][LocalVectorIndex]);
+                            }
+                            else
+                            {
+                                tmp = Math.abs(Solution.FullMatrix[LocalToProcessIndex][LocalToProcessIndex][LocalVectorIndex][LocalVectorIndex]);
+                            }
+                        }
+                        else
+                        {
+                            if (Hotsun.FullSecondDerivative)
+                            {
+                                tmp = Math.abs(Solution.ExactDiagonalofMatrix[LocalToProcessIndex][LocalVectorIndex][LocalVectorIndex]);
+                            }
+                            else
+                            {
+                                tmp = Math.abs(Solution.DiagonalofMatrix[LocalToProcessIndex][LocalVectorIndex][LocalVectorIndex]);
+                            }
+                        }
+                        TogoDiagVector.Marray[LocalToProcessIndex][LocalVectorIndex] = tmp;
+                        if (Hotsun.FixedParameter[GlobalIndex][LocalVectorIndex])
+                        {
+                            TogoSqDgInvVector.Marray[LocalToProcessIndex][LocalVectorIndex] = 0.0;
+                        }
+                        else
+                        {
+                            TogoSqDgInvVector.Marray[LocalToProcessIndex][LocalVectorIndex] = 1.0 / Math.sqrt(tmp);
+                        }
+                    }
+                }
+            }
+);
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
-		// Convert into Global arrays
+        // Convert into Global arrays
 		if (SALSAUtility.MPI_Size <= 1)
 		{ // No MPI
 			SALSABLAS.CopyVector(Hotsun.diag, TogoDiagVector.Marray, TogoDiagVector.FirstPoint, TogoDiagVector.NumberofPoints);
@@ -2024,30 +2029,30 @@ public class ManxcatCentral
 			return;
 		}
 
-		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-		{
-			int indexlen = SALSAUtility.PointsperThread[threadIndex];
-			int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-			for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
-			{
-				for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
-				{
-					double tmp;
-					if (Hotsun.fullmatrixset)
-					{
-						tmp = Solution.FullMatrix[LongIndex][LongIndex][LocalVectorIndex][LocalVectorIndex];
-					}
-					else
-					{
-						tmp = Solution.DiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex];
-					}
-					Hotsun.perr[LongIndex][LocalVectorIndex] = NormalizeSQRTChisq / Math.sqrt(Solution.DiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex]);
-				}
-			}
-		}
-	   );
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+                    {
+                        int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                        int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                        for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                            for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++) {
+                                double tmp;
+                                if (Hotsun.fullmatrixset) {
+                                    tmp = Solution.FullMatrix[LongIndex][LongIndex][LocalVectorIndex][LocalVectorIndex];
+                                } else {
+                                    tmp = Solution.DiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex];
+                                }
+                                Hotsun.perr[LongIndex][LocalVectorIndex] = NormalizeSQRTChisq / Math.sqrt(
+                                        Solution.DiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex]);
+                            }
+                        }
+                    }
+            );
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
-	} // End CalculateParameterErrors()
+    } // End CalculateParameterErrors()
 
 	public static void AddSubtractMarquardtFactor(Desertwind Solution, double factor)
 	{
@@ -2080,31 +2085,35 @@ public class ManxcatCentral
 		}
 
 		// Parallel Addition (factor = 1.0) or Subtraction (factor = -1.0) of Marquardt A
-		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-		{
-			int indexlen = SALSAUtility.PointsperThread[threadIndex];
-			int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-			for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
-			{
-				int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
-				for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
-				{
-					if (Hotsun.fullmatrixset)
-					{
-						Solution.FullMatrix[LongIndex][LongIndex][LocalVectorIndex][LocalVectorIndex] += factor * Hotsun.Q * Hotsun.diag[GlobalIndex][LocalVectorIndex];
-						Solution.ExactFullMatrix[LongIndex][LongIndex][LocalVectorIndex][LocalVectorIndex] += factor * Hotsun.Q * Hotsun.diag[GlobalIndex][LocalVectorIndex];
-					}
-					else
-					{
-						Solution.DiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex] += factor * Hotsun.Q * Hotsun.diag[GlobalIndex][LocalVectorIndex];
-						Solution.ExactDiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex] += factor * Hotsun.Q * Hotsun.diag[GlobalIndex][LocalVectorIndex];
-					}
-				}
-			}
-		}
-	   );
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
+                {
+                    int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
+                    for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
+                    {
+                        if (Hotsun.fullmatrixset)
+                        {
+                            Solution.FullMatrix[LongIndex][LongIndex][LocalVectorIndex][LocalVectorIndex] += factor * Hotsun.Q * Hotsun.diag[GlobalIndex][LocalVectorIndex];
+                            Solution.ExactFullMatrix[LongIndex][LongIndex][LocalVectorIndex][LocalVectorIndex] += factor * Hotsun.Q * Hotsun.diag[GlobalIndex][LocalVectorIndex];
+                        }
+                        else
+                        {
+                            Solution.DiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex] += factor * Hotsun.Q * Hotsun.diag[GlobalIndex][LocalVectorIndex];
+                            Solution.ExactDiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex] += factor * Hotsun.Q * Hotsun.diag[GlobalIndex][LocalVectorIndex];
+                        }
+                    }
+                }
+            }
+);
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
-	} // End AddinMarquardtFactor
+    } // End AddinMarquardtFactor
 
 	public static void SteepestDescentSolution(Desertwind Solution, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct)
 	{
@@ -2123,23 +2132,27 @@ public class ManxcatCentral
 		{
 
 			// Parallel Calculation of Steepest Descent
-						forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-						{
-							int indexlen = SALSAUtility.PointsperThread[threadIndex];
-							int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-							for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
-							{
-								int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
-								for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
-								{
-									double tmp = Hotsun.sqdginv[GlobalIndex][LocalVectorIndex];
-									Solution.xshift[LongIndex][LocalVectorIndex] = Solution.first[LongIndex][LocalVectorIndex] * tmp;
-								}
-							}
-						}
-					   );
+            try {
+                forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+                {
+                    int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                    int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                    for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
+                    {
+                        int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
+                        for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
+                        {
+                            double tmp = Hotsun.sqdginv[GlobalIndex][LocalVectorIndex];
+                            Solution.xshift[LongIndex][LocalVectorIndex] = Solution.first[LongIndex][LocalVectorIndex] * tmp;
+                        }
+                    }
+                }
+);
+            } catch (SuspendableException e) {
+                SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+            }
 
-		}
+        }
 
 		// Convert xshift into a Global Vector
 		MakeVectorGlobal(Solution.xshift, Hotsun.UtilityGlobalVector1);
@@ -2212,56 +2225,60 @@ public class ManxcatCentral
 
 		GlobalReductions.FindDoubleSum FindxNorm = new GlobalReductions.FindDoubleSum(SALSAUtility.ThreadCount);
 
-		forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-		{
-			double localnorm = 0.0;
-			int indexlen = SALSAUtility.PointsperThread[threadIndex];
-			int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-			for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
-			{
-				int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
-				for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
-				{
-					if (Hotsun.FixedParameter[GlobalIndex][LocalVectorIndex])
-					{
-						Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] = 0;
-						continue;
-					}
-					if (method == 2)
-					{
-						Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] = Hotsun.BestSolution.param[LongIndex][LocalVectorIndex] - Hotsun.CurrentSolution.param[LongIndex][LocalVectorIndex];
-					}
-						double tmp;
-						if (Hotsun.fullmatrixset)
-						{
-							if (Hotsun.FullSecondDerivative)
-							{
-								tmp = Math.abs(Hotsun.CurrentSolution.ExactFullMatrix[LongIndex][LongIndex][LocalVectorIndex][LocalVectorIndex]);
-							}
-							else
-							{
-								tmp = Math.abs(Hotsun.CurrentSolution.FullMatrix[LongIndex][LongIndex][LocalVectorIndex][LocalVectorIndex]);
-							}
-						}
-						else
-						{
-							if (Hotsun.FullSecondDerivative)
-							{
-								tmp = Math.abs(Hotsun.CurrentSolution.ExactDiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex]);
-							}
-							else
-							{
-								tmp = Math.abs(Hotsun.CurrentSolution.DiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex]);
-							}
-						}
-						localnorm += Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] * Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] * tmp;
-				}
-			}
-			FindxNorm.addAPoint(threadIndex, localnorm);
-		}
-	   );
+        try {
+            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                double localnorm = 0.0;
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
+                {
+                    int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
+                    for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
+                    {
+                        if (Hotsun.FixedParameter[GlobalIndex][LocalVectorIndex])
+                        {
+                            Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] = 0;
+                            continue;
+                        }
+                        if (method == 2)
+                        {
+                            Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] = Hotsun.BestSolution.param[LongIndex][LocalVectorIndex] - Hotsun.CurrentSolution.param[LongIndex][LocalVectorIndex];
+                        }
+                            double tmp;
+                            if (Hotsun.fullmatrixset)
+                            {
+                                if (Hotsun.FullSecondDerivative)
+                                {
+                                    tmp = Math.abs(Hotsun.CurrentSolution.ExactFullMatrix[LongIndex][LongIndex][LocalVectorIndex][LocalVectorIndex]);
+                                }
+                                else
+                                {
+                                    tmp = Math.abs(Hotsun.CurrentSolution.FullMatrix[LongIndex][LongIndex][LocalVectorIndex][LocalVectorIndex]);
+                                }
+                            }
+                            else
+                            {
+                                if (Hotsun.FullSecondDerivative)
+                                {
+                                    tmp = Math.abs(Hotsun.CurrentSolution.ExactDiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex]);
+                                }
+                                else
+                                {
+                                    tmp = Math.abs(Hotsun.CurrentSolution.DiagonalofMatrix[LongIndex][LocalVectorIndex][LocalVectorIndex]);
+                                }
+                            }
+                            localnorm += Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] * Hotsun.CurrentSolution.xshift[LongIndex][LocalVectorIndex] * tmp;
+                    }
+                }
+                FindxNorm.addAPoint(threadIndex, localnorm);
+            }
+);
+        } catch (SuspendableException e) {
+            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        }
 
-		FindxNorm.sumOverThreadsAndMPI();
+        FindxNorm.sumOverThreadsAndMPI();
 		Hotsun.xnorm = FindxNorm.Total;
 
 	} // End Findxnorm
