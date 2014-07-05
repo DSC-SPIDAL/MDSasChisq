@@ -6,7 +6,7 @@
 
     <groupId>edu.indiana.salsahpc</groupId>
     <artifactId>mdsaschisq</artifactId>
-    <version>1.0-fastmpj1.0_6</version>
+    <version>1.0-ompi1.8.1</version>
 
     <dependencies>
         <dependency>
@@ -29,84 +29,11 @@
 
 
         <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>charts</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>ibvdev</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>jcommon</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>jfreechart</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>jgf-mpj</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>mpj-examples</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>mpj</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>mpj-test</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>niodev</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>runtime</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>smdev-shared</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>smdev-unshared</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>fastmpj</groupId>
-            <artifactId>xxdev</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jblas</groupId>
-            <artifactId>jblas</artifactId>
-            <version>1.2.3</version>
+            <groupId>ompi</groupId>
+            <artifactId>ompijavabinding</artifactId>
+            <version>1.8.1</version>
         </dependency>
     </dependencies>
-    <repositories>
-        <repository>
-            <id>FastMPJRepo</id>
-            <name>FastMPJRepo</name>
-            <url>file://${env.FMPJ_HOME}/lib/m2repo</url>
-        </repository>
-    </repositories>
 
     <build>
         <plugins>
