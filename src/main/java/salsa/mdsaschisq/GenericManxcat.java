@@ -1,6 +1,7 @@
 package salsa.mdsaschisq;
 
 import mpi.MPI;
+import mpi.MPIException;
 import org.jblas.*;
 
 //  Routines for Generic Manxcat with parallel computation of components for small number of parameters
@@ -61,7 +62,7 @@ public class GenericManxcat {
         ChisqFirstandSecond.initializeToZero(SummedoverProcessesAccum);
     }
 
-    public static void AddupChisqContributions(Desertwind TotalSolution) {
+    public static void AddupChisqContributions(Desertwind TotalSolution) throws MPIException {
         // Sum over Threads
         int NumberParms = SummedoverThreadsAccum.VectorSize;
         int SecondSize = SummedoverThreadsAccum.SecondSize;

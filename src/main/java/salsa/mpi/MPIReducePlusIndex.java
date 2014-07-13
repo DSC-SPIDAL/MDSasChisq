@@ -3,88 +3,89 @@ package salsa.mpi;
 import mpi.Datatype;
 import mpi.MPI;
 import mpi.MPIException;
-import mpi.User_Function;
+import mpi.UserFunction;
 
-import java.io.Serializable;
+import java.nio.ByteBuffer;
 
-public class MPIReducePlusIndex implements Serializable
+public class MPIReducePlusIndex
 {
-    private int index;
-    private double value;
+    private static final int indexOffset = 0;
+    private static final int valueOffset = 4;
+    static final int extent = 12;
+    private ByteBuffer buffer;
 
     public MPIReducePlusIndex(int index, double value)
     {
-        this.index = index;
-        this.value = value;
+        buffer = MPI.newByteBuffer(extent);
+        buffer.putInt(index).putDouble(value);
     }
 
+    public MPIReducePlusIndex(){}
+
     public int getIndex() {
-        return index;
+        return buffer.getInt(0);
     }
 
     public double getValue() {
-        return value;
+        return buffer.getDouble(4);
+    }
+
+    public ByteBuffer getBuffer() {
+        return buffer;
     }
 
     private static final String MPI_USER_FUNCTION_MIN_WITH_INDEX_INVALID_DATA_TYPE = "MPI User Function - MinWithIndex: Invalid data type";
     private static final String MPI_USER_FUNCTION_MAX_WITH_INDEX_INVALID_DATA_TYPE = "MPI User Function - MaxWithIndex: Invalid data type";
 
-    // Return Value and Index corresponding to minimum over all MPI Processes
-    static mpi.Op minWithIndex = new mpi.Op(new User_Function() {
-        @Override
-        public void Call(Object inVec, int inOffset, Object outVec, int outOffset, int count, Datatype datatype) throws
-                MPIException {
-            if (datatype == MPI.OBJECT){
-                Object [] inArr = (Object[]) inVec;
-                Object [] outArr = (Object[]) outVec;
-                int inDisplacement  = inOffset ;
-                int outDisplacement = outOffset ;
-                for (int i = 0; i < count; ++i, ++inDisplacement, ++outDisplacement){
-                    MPIReducePlusIndex inValue = (MPIReducePlusIndex)inArr[inDisplacement];
-                    MPIReducePlusIndex outValue = (MPIReducePlusIndex)outArr[outDisplacement];
-                    if (outValue.getIndex() < 0 || inValue.getValue() < outValue.getValue())
-                    {
-                        outArr[outDisplacement] = inValue;
-                    }
-                }
-            } else {
-                System.out.println(
-                        MPI_USER_FUNCTION_MIN_WITH_INDEX_INVALID_DATA_TYPE);
-                try {
-                    MPI.COMM_WORLD.Abort(1);
-                } catch (MPIException ignored){}
+    public static mpi.Op getMaxWithIndex() throws MPIException {
+        return new mpi.Op(new UserFunction() {
+            @Override
+            public void call(Object inVec, Object inOutVec, int count, Datatype datatype) throws MPIException {
+                // Nothing to do here
             }
 
-        }
-    }, true);
-
-    // Return Value and Index corresponding to maximum over all MPI Processes
-    static mpi.Op maxWithIndex = new mpi.Op(new User_Function() {
-        @Override
-        public void Call(Object inVec, int inOffset, Object outVec, int outOffset, int count, Datatype datatype) throws MPIException {
-            if (datatype == MPI.OBJECT){
-                Object [] inArr = (Object[]) inVec;
-                Object [] outArr = (Object[]) outVec;
-                int inDisplacement  = inOffset ;
-                int outDisplacement = outOffset ;
-                for (int i = 0; i < count; ++i, ++inDisplacement, ++outDisplacement){
-                    MPIReducePlusIndex inValue = (MPIReducePlusIndex)inArr[inDisplacement];
-                    MPIReducePlusIndex outValue = (MPIReducePlusIndex)outArr[outDisplacement];
-                    if (outValue.getIndex() < 0 || inValue.getValue() > outValue.getValue())
-                    {
-                        outArr[outDisplacement] = inValue;
-                    }
+            @Override
+            public void call(ByteBuffer in, ByteBuffer inOut, int count, Datatype datatype) throws MPIException {
+                if (count != extent) {
+                    System.out.println(
+                            MPI_USER_FUNCTION_MAX_WITH_INDEX_INVALID_DATA_TYPE);
+                    MPI.COMM_WORLD.abort(1);
                 }
-            } else {
-                System.out.println(
-                        MPI_USER_FUNCTION_MAX_WITH_INDEX_INVALID_DATA_TYPE);
-                try {
-                    MPI.COMM_WORLD.Abort(1);
-                } catch (MPIException ignored){}
+                int inOutIndex = inOut.getInt(indexOffset);
+                double inOutValue = inOut.getDouble(valueOffset);
+                double inValue = in.getDouble(valueOffset);
+                if (inOutIndex < 0 || inValue > inOutValue){
+                    inOut.putInt(indexOffset,in.getInt(indexOffset));
+                    inOut.putDouble(valueOffset,inValue);
+                }
+            }
+        }, true);
+    }
+
+    public static mpi.Op getMinWithIndex() throws MPIException{
+        return new mpi.Op(new UserFunction() {
+            @Override
+            public void call(Object inVec, Object inOutVec, int count, Datatype datatype) throws MPIException {
+                // Nothing to do here
             }
 
-        }
-    }, true);
+            @Override
+            public void call(ByteBuffer in, ByteBuffer inOut, int count, Datatype datatype) throws MPIException {
+                if (count != extent) {
+                    System.out.println(
+                            MPI_USER_FUNCTION_MIN_WITH_INDEX_INVALID_DATA_TYPE);
+                    MPI.COMM_WORLD.abort(1);
+                }
+                int inOutIndex = inOut.getInt(indexOffset);
+                double inOutValue = inOut.getDouble(valueOffset);
+                double inValue = in.getDouble(valueOffset);
+                if (inOutIndex < 0 || inValue < inOutValue){
+                    inOut.putInt(indexOffset,in.getInt(indexOffset));
+                    inOut.putDouble(valueOffset,inValue);
+                }
+            }
+        }, true);
+    }
 
     public enum  Op{
         MIN_WITH_INDEX, MAX_WITH_INDEX

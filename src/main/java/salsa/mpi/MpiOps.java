@@ -1,36 +1,35 @@
 package salsa.mpi;
 
-import com.google.common.base.Joiner;
 import mpi.Intracomm;
 import mpi.MPI;
 import mpi.MPIException;
 import mpi.Op;
-import salsa.mdsaschisq.MPI1DStringVectorPacket;
-import salsa.mdsaschisq.MPI2DDoubleVectorPacket;
 
-import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.IntBuffer;
+import java.util.Arrays;
+import java.util.stream.IntStream;
 
 public class MpiOps {
-    private int [] intBuff;
-    private double [] doubleBuff;
+    static final String ERR_RECV_UNSUPPORTED_MPIPACKET = "Unsupported receive operation on MPIPacket - Check receive type";
+
+    private IntBuffer intBuff, intBuff2;
+    private DoubleBuffer doubleBuff;
     private boolean [] booleanBuff;
-    private String [] stringBuff;
-    private MPIReducePlusIndex [] mpiReducePlusIndexBuff;
-    private Object [] objectSendBuff, objectRecvBuff;
 
     private Intracomm comm;
     private int size;
+    private int rank;
 
     public MpiOps(Intracomm comm) throws MPIException {
-        intBuff = new int[1];
-        doubleBuff = new double[1];
+        intBuff = MPI.newIntBuffer(1);
+        intBuff2 = MPI.newIntBuffer(1); // temporary int buffer used in sendRecv
+        doubleBuff = MPI.newDoubleBuffer(1);
         booleanBuff = new boolean[1];
-        stringBuff = new String[1];
-        mpiReducePlusIndexBuff = new MPIReducePlusIndex[1];
-        objectSendBuff = new Object[1];
-        objectRecvBuff = new Object[1];
         this.comm = comm;
-        size = comm.Size();
+        size = comm.getSize();
+        rank = comm.getRank();
     }
 
     public MpiOps() throws MPIException {
@@ -42,9 +41,9 @@ public class MpiOps {
         return allReduce(value, reduceOp, comm);
     }
     public int allReduce(int value, Op reduceOp, Intracomm comm) throws MPIException {
-        intBuff[0] = value;
-        comm.Allreduce(intBuff,0,intBuff,0,1,MPI.INT,reduceOp);
-        return intBuff[0];
+        intBuff.put(0,value);
+        comm.allReduce(intBuff, 1, MPI.INT, reduceOp);
+        return intBuff.get(0);
     }
 
     public void allReduce(int [] values, Op reduceOp) throws MPIException{
@@ -52,16 +51,16 @@ public class MpiOps {
     }
 
     public void allReduce(int [] values, Op reduceOp, Intracomm comm) throws MPIException {
-        comm.Allreduce(values,0,values,0,values.length,MPI.INT,reduceOp);
+        comm.allReduce(values, values.length, MPI.INT, reduceOp);
     }
 
     public double allReduce(double value, Op reduceOp) throws MPIException {
         return allReduce(value, reduceOp, comm);
     }
     public double allReduce(double value, Op reduceOp, Intracomm comm) throws MPIException {
-        doubleBuff[0] = value;
-        comm.Allreduce(doubleBuff,0,doubleBuff,0,1,MPI.DOUBLE,reduceOp);
-        return doubleBuff[0];
+        doubleBuff.put(0,value);
+        comm.allReduce(doubleBuff, 1, MPI.DOUBLE, reduceOp);
+        return doubleBuff.get(0);
     }
 
     public void allReduce(double [] values, Op reduceOp) throws MPIException{
@@ -69,7 +68,7 @@ public class MpiOps {
     }
 
     public void allReduce(double [] values, Op reduceOp, Intracomm comm) throws MPIException {
-        comm.Allreduce(values,0,values,0,values.length,MPI.DOUBLE,reduceOp);
+        comm.allReduce(values, values.length, MPI.DOUBLE, reduceOp);
     }
 
 
@@ -78,7 +77,7 @@ public class MpiOps {
     }
     public boolean allReduce(boolean value, Op reduceOp, Intracomm comm) throws MPIException {
         booleanBuff[0] = value;
-        comm.Allreduce(booleanBuff,0,booleanBuff,0,1,MPI.BOOLEAN,reduceOp);
+        comm.allReduce(booleanBuff, 1, MPI.BOOLEAN, reduceOp);
         return booleanBuff[0];
     }
 
@@ -87,11 +86,21 @@ public class MpiOps {
         return allReduce(value, comm);
     }
 
+    // TODO - Perf - Probably need to check performance
     public String allReduce(String value, Intracomm comm) throws MPIException {
-        stringBuff[0] = value;
-        String [] result = new String[comm.Size()];
-        comm.Allgather(stringBuff,0,1,MPI.OBJECT,result,0,1,MPI.OBJECT);
-        return Joiner.on("").join(result);
+        int [] lengths = new int[size];
+        int length = value.length();
+        lengths[rank] = length;
+        comm.allGather(lengths, 1, MPI.INT);
+        int [] displas = new int[size];
+        displas[0] = 0;
+        System.arraycopy(lengths, 0, displas, 1, size - 1);
+        Arrays.parallelPrefix(displas, (m, n) -> m + n);
+        int count = IntStream.of(lengths).sum(); // performs very similar to usual for loop, so no harm done
+        char [] recv = new char[count];
+        System.arraycopy(value.toCharArray(), 0,recv, displas[rank], length);
+        comm.allGatherv(recv, lengths, displas, MPI.CHAR);
+        return  new String(recv);
     }
 
 
@@ -101,13 +110,13 @@ public class MpiOps {
 
     public MPIReducePlusIndex allReduce(MPIReducePlusIndex value, MPIReducePlusIndex.Op reduceOp, Intracomm comm) throws MPIException {
 
-        mpiReducePlusIndexBuff[0] = value;
+        ByteBuffer buffer = value.getBuffer();
         if (reduceOp == MPIReducePlusIndex.Op.MAX_WITH_INDEX) {
-            comm.Allreduce(mpiReducePlusIndexBuff,0,mpiReducePlusIndexBuff,0,1,MPI.OBJECT,MPIReducePlusIndex.maxWithIndex);
+            comm.allReduce(buffer, MPIReducePlusIndex.extent, MPI.BYTE, MPIReducePlusIndex.getMaxWithIndex());
         } else if (reduceOp == MPIReducePlusIndex.Op.MIN_WITH_INDEX){
-            comm.Allreduce(mpiReducePlusIndexBuff,0,mpiReducePlusIndexBuff,0,1,MPI.OBJECT,MPIReducePlusIndex.minWithIndex);
+            comm.allReduce(buffer, MPIReducePlusIndex.extent, MPI.BYTE, MPIReducePlusIndex.getMinWithIndex());
         }
-        return mpiReducePlusIndexBuff[0];
+        return value;
     }
 
     /* AllGather */
@@ -120,8 +129,8 @@ public class MpiOps {
         allGather(value, result, comm);
     }
     public void allGather(int value, int[] result, Intracomm comm) throws MPIException {
-        intBuff[0] = value;
-        comm.Allgather(intBuff,0,1,MPI.INT,result,0,1,MPI.INT);
+        intBuff.put(0,value);
+        comm.allGather(intBuff, 1, MPI.INT, result, 1, MPI.INT);
     }
 
     public double [] allGather (double value) throws MPIException {
@@ -135,8 +144,8 @@ public class MpiOps {
     }
 
     public void allGather(double value, double [] result, Intracomm comm) throws MPIException {
-        doubleBuff[0] = value;
-        comm.Allgather(doubleBuff,0,1,MPI.DOUBLE,result, 0, 1, MPI.DOUBLE);
+        doubleBuff.put(0,value);
+        comm.allGather(doubleBuff, 1, MPI.DOUBLE, result, 1, MPI.DOUBLE);
     }
 
 
@@ -146,9 +155,9 @@ public class MpiOps {
     }
 
     public int broadcast(int value, int root, Intracomm comm) throws MPIException {
-        intBuff[0] = value;
-        comm.Bcast(intBuff,0,1,MPI.INT, root);
-        return intBuff[0];
+        intBuff.put(0, value);
+        comm.bcast(intBuff, 1, MPI.INT, root);
+        return intBuff.get(0);
     }
 
     public void broadcast(int[] values, int root) throws MPIException {
@@ -156,7 +165,7 @@ public class MpiOps {
     }
 
     public void broadcast(int[] values, int root, Intracomm comm) throws MPIException {
-        comm.Bcast(values, 0, values.length, MPI.INT, root);
+        comm.bcast(values, values.length, MPI.INT, root);
     }
 
     public double broadcast(double value, int root) throws MPIException {
@@ -164,9 +173,9 @@ public class MpiOps {
     }
 
     public double broadcast(double value, int root, Intracomm comm) throws MPIException {
-        doubleBuff[0] = value;
-        comm.Bcast(doubleBuff,0,1,MPI.DOUBLE,root);
-        return doubleBuff[0];
+        doubleBuff.put(0,value);
+        comm.bcast(doubleBuff, 1, MPI.DOUBLE, root);
+        return doubleBuff.get(0);
     }
 
     public void broadcast(double[] values, int root) throws MPIException {
@@ -174,7 +183,7 @@ public class MpiOps {
     }
 
     public void broadcast(double[] values, int root, Intracomm comm) throws MPIException {
-        comm.Bcast(values, 0, values.length, MPI.DOUBLE, root);
+        comm.bcast(values, values.length, MPI.DOUBLE, root);
     }
 
     public boolean broadcast(boolean value, int root) throws MPIException{
@@ -183,7 +192,7 @@ public class MpiOps {
 
     public boolean broadcast(boolean value, int root, Intracomm comm) throws MPIException {
         booleanBuff[0] = value;
-        comm.Bcast(booleanBuff,0,1,MPI.BOOLEAN,root);
+        comm.bcast(booleanBuff, 1, MPI.BOOLEAN, root);
         return booleanBuff[0];
     }
 
@@ -192,61 +201,93 @@ public class MpiOps {
     }
 
     public void broadcast(boolean[] values, int root, Intracomm comm) throws MPIException{
-        comm.Bcast(values, 0, values.length,MPI.BOOLEAN,root);
+        comm.bcast(values, values.length, MPI.BOOLEAN, root);
     }
 
-    public MPI1DStringVectorPacket broadcast(MPI1DStringVectorPacket value, int root) throws MPIException{
+    public MPIPacket broadcast(MPIPacket value, int root) throws MPIException{
         return broadcast(value, root, comm);
     }
 
-    public MPI1DStringVectorPacket broadcast(MPI1DStringVectorPacket value, int root, Intracomm comm) throws MPIException{
-        objectSendBuff[0] = value;
-        comm.Bcast(objectSendBuff,0,1,MPI.OBJECT,root);
-        return (MPI1DStringVectorPacket) objectSendBuff[0];
+    public MPIPacket broadcast(MPIPacket value, int root, Intracomm comm) throws MPIException{
+        comm.bcast(value.getBuffer(), value.getExtent(), MPI.BYTE, root);
+        return value;
     }
-
-    public MPI2DDoubleVectorPacket broadcast(MPI2DDoubleVectorPacket value, int root) throws MPIException{
-        return broadcast(value, root, comm);
-    }
-
-    public MPI2DDoubleVectorPacket broadcast(MPI2DDoubleVectorPacket value, int root, Intracomm comm) throws MPIException{
-        objectSendBuff[0] = value;
-        comm.Bcast(objectSendBuff,0,1,MPI.OBJECT,root);
-        return (MPI2DDoubleVectorPacket) objectSendBuff[0];
-    }
-
 
     /* Sendrecv */
-    public <T extends Serializable> T sendReceive(T sendValue, int dest, int destTag, int src, int srcTag){
-        return sendReceive(sendValue, dest, destTag, src, srcTag,comm);
+    public double[] sendReceive(double[] sendValue, int dest, int destTag, int src, int srcTag) throws MPIException {
+        return sendReceive(sendValue, dest, destTag, src, srcTag, comm);
     }
 
-    public <T extends Serializable> T sendReceive(T sendValue, int dest, int destTag, int src, int srcTag, Intracomm comm){
-        objectSendBuff[0] = sendValue;
-        comm.Sendrecv(objectSendBuff, 0, 1, MPI.OBJECT, dest, destTag, objectRecvBuff, 0, 1, MPI.OBJECT, src, srcTag);
-        return (T) objectRecvBuff[0]; // unavoidable (without tapping into reflection) unchecked cast  due to how Java generics work
+    public double[] sendReceive(double[] sendValue, int dest, int destTag, int src, int srcTag, Intracomm comm) throws MPIException {
+        int sendExtent = sendValue.length;
+        intBuff.put(0, sendExtent);
+        comm.sendRecv(intBuff,1,MPI.INT,dest,destTag,intBuff2,1,MPI.INT,src,srcTag);
+        int recvExtent = intBuff2.get(0);
+        double [] recvBuff = new double[recvExtent];
+        comm.sendRecv(sendValue, sendExtent, MPI.DOUBLE, dest, destTag, recvBuff, recvExtent, MPI.DOUBLE, src, srcTag);
+        return recvBuff;
+    }
+
+    public MPISecPacket sendReceive(MPISecPacket sendValue, int dest, int destTag, int src, int srcTag) throws MPIException {
+        return sendReceive(sendValue, dest, destTag, src, srcTag, comm);
+    }
+
+    public MPISecPacket sendReceive(MPISecPacket sendValue, int dest, int destTag, int src, int srcTag, Intracomm comm) throws MPIException {
+        int sendExtent = sendValue.getExtent();
+        intBuff.put(0, sendExtent);
+        comm.sendRecv(intBuff,1,MPI.INT,dest,destTag,intBuff2,1,MPI.INT,src,srcTag);
+        int recvExtent = intBuff2.get(0);
+        ByteBuffer recvBuff = MPI.newByteBuffer(recvExtent);
+        comm.sendRecv(sendValue.getBuffer(), sendExtent, MPI.BYTE, dest, destTag, recvBuff, recvExtent, MPI.BYTE, src,
+                srcTag);
+        return MPISecPacket.loadMPISecPacket(recvBuff, recvExtent);
+    }
+
+    public MPIPacket sendReceive(MPIPacket sendValue, int dest, int destTag, int src, int srcTag, MPIPacket.Type type) throws MPIException {
+        return sendReceive(sendValue, dest, destTag, src, srcTag,type, comm);
+    }
+
+    public MPIPacket sendReceive(MPIPacket sendValue, int dest, int destTag, int src, int srcTag, MPIPacket.Type type, Intracomm comm) throws MPIException {
+        int sendExtent = sendValue.getExtent();
+        intBuff.put(0, sendExtent);
+        comm.sendRecv(intBuff,1,MPI.INT,dest,destTag,intBuff2,1,MPI.INT,src,srcTag);
+        int recvExtent = intBuff2.get(0);
+        ByteBuffer recvBuff = MPI.newByteBuffer(recvExtent);
+        comm.sendRecv(sendValue.getBuffer(), sendExtent, MPI.BYTE, dest, destTag, recvBuff, recvExtent, MPI.BYTE, src,
+                srcTag);
+        return (type == MPIPacket.Type.Integer) ? MPIPacket.loadIntegerPacket(recvBuff) : MPIPacket.loadDoublePacket(recvBuff);
     }
 
 
     /* Send */
-    public <T extends Serializable> void send(T value, int dest, int tag){
+    public void send(MPIPacket value, int dest, int tag) throws MPIException {
         send(value, dest, tag, comm);
     }
 
-    public <T extends Serializable> void send(T value, int dest, int tag, Intracomm comm){
-        objectSendBuff[0] = value;
-        comm.Send(objectSendBuff,0,1,MPI.OBJECT,dest,tag);
+    public void send(MPIPacket value, int dest, int tag, Intracomm comm) throws MPIException {
+        int extent = value.getExtent();
+        intBuff.put(0, extent);
+        comm.send(intBuff,1,MPI.INT,dest,tag);
+        comm.send(value.getBuffer(), value.getExtent(), MPI.BYTE, dest, tag);
     }
 
 
     /* Receive */
-    public <T extends Serializable> T receive(int src, int tag){
-        return receive(src, tag, comm);
+    public MPIPacket receive(int src, int tag, MPIPacket.Type type) throws MPIException {
+        if (type == MPIPacket.Type.Integer) {
+            return MPIPacket.loadIntegerPacket(receive(src, tag, comm));
+        } else if (type == MPIPacket.Type.Double){
+            return MPIPacket.loadDoublePacket(receive(src, tag, comm));
+        }
+        throw new UnsupportedOperationException(ERR_RECV_UNSUPPORTED_MPIPACKET);
     }
 
-    public <T extends Serializable> T receive(int src, int tag, Intracomm comm){
-        comm.Recv(objectRecvBuff,0,1,MPI.OBJECT,src,tag);
-        return (T) objectRecvBuff[0]; // unavoidable (without tapping into reflection) unchecked cast  due to how Java generics work
+    private ByteBuffer receive(int src, int tag, Intracomm comm) throws MPIException {
+        comm.recv(intBuff,1,MPI.INT,src,tag);
+        int extent = intBuff.get(0);
+        ByteBuffer buffer = MPI.newByteBuffer(extent);
+        comm.recv(buffer, extent, MPI.BYTE, src, tag);
+        return buffer;
     }
 
 
@@ -256,7 +297,7 @@ public class MpiOps {
 
     }
     public void barrier(Intracomm comm) throws MPIException {
-        comm.Barrier();
+        comm.barrier();
     }
 
 

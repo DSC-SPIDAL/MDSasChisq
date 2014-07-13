@@ -58,7 +58,7 @@ public class ManxcatCentral
 	public static int IterationtorecalculateQLimits = 0; // Iteration after and including which calculating Q limits warranted
 	public static double LineFactorGuess = 1.0; // Initial Guess at Line Factor
 
-    static void main(String[] args) {
+    static void main(String[] args) throws MPIException {
         Optional<CommandLine> parserResult = parseCommandLineArguments(args, programOptions);
         if (!parserResult.isPresent()) {
             System.out.println(ManxcatConstants.ERR_PROGRAM_ARGUMENTS_PARSING_FAILED);
@@ -153,7 +153,7 @@ public class ManxcatCentral
 
             // Initial Processing Complete
             // Make certain all processes have processed original data before writing updated
-            SALSAUtility.MPI_communicator.Barrier();
+            SALSAUtility.mpiOps.barrier();
 
             // Set results directory
             String timestamp = dateFormatter.format(new Date());
@@ -184,7 +184,7 @@ public class ManxcatCentral
             }
 
             // Make certain all processes have processed original data before writing updated
-            SALSAUtility.MPI_communicator.Barrier();
+            SALSAUtility.mpiOps.barrier();
 
             //  Write out Current Summary and Updated Control File
             if ((SALSAUtility.MPIIOStrategy > 0) || (SALSAUtility.MPI_Rank == 0)) {
@@ -193,7 +193,7 @@ public class ManxcatCentral
 
 
             // Make certain all processes have processed original data before writing updated
-            SALSAUtility.MPI_communicator.Barrier();
+            SALSAUtility.mpiOps.barrier();
 
             if (ProcessingOption <= 90) {
                 /* Actually run application */
@@ -221,7 +221,7 @@ public class ManxcatCentral
                                               RotateManxcatMDS::WriteRotateMDS, GenericManxcat::FindQlimits,
                                               GenericManxcat::GlobalMatrixVectorProduct, RotateManxcatMDS::Sequel);
             }
-            SALSAUtility.MPI_communicator.Barrier();
+            SALSAUtility.mpiOps.barrier();
 
             String TimingMessage = "\nTiming ";
             for (int subtimer = 0; subtimer < SALSAUtility.NumberofSubTimings; subtimer++) {
@@ -239,7 +239,7 @@ public class ManxcatCentral
                 MetaDataIO.WriteResults_Cluster(config.SummaryOutputFileName, SALSAUtility.CosmicOutput);
                 SALSAUtility.WriteTiming_Cluster(config.TimingOutputFileName, config.RunSetLabel, config.RunNumber,
                                                  config.DistanceMatrixFile,
-                                                 MPI.Get_processor_name());
+                                                 MPI.getProcessorName());
                 ManxcatHtmlUtility.WriteHTML();
             }
         } catch (IOException e) {
@@ -337,7 +337,7 @@ public class ManxcatCentral
                                       Hotsun.WriteSolutionSignature WriteSolution,
                                       Hotsun.FindQlimitsSignature FindQlimits,
                                       Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct,
-                                      Hotsun.SequelSignature Sequel) {
+                                      Hotsun.SequelSignature Sequel) throws MPIException {
 		//  Set up Specific Manxcat Applicatin
 		InitializeApplication.invoke(); // Reads in Data
 
@@ -2347,8 +2347,7 @@ public class ManxcatCentral
 	//  GoldenSectionMethod 7   Consistent Data Cut on Chisq values
 	//  GoldenSectionMethod 8   Consistent Data Iteration Cut 
 
-	public static boolean LineSearch(Desertwind CurrentSolution, Desertwind OriginalSolution, tangible.RefObject<Integer> LineSearchMethod, tangible.RefObject<Double> LineFactor, tangible.RefObject<Double> ExtraDecrease, tangible.RefObject<Integer> LineIterations, Hotsun.CalcfgSignature Calcfg, double EstimatedLineFactor)
-	{
+	public static boolean LineSearch(Desertwind CurrentSolution, Desertwind OriginalSolution, tangible.RefObject<Integer> LineSearchMethod, tangible.RefObject<Double> LineFactor, tangible.RefObject<Double> ExtraDecrease, tangible.RefObject<Integer> LineIterations, Hotsun.CalcfgSignature Calcfg, double EstimatedLineFactor) throws MPIException {
 		SearchStuff Left = new SearchStuff();
 		SearchStuff Middle = new SearchStuff();
 		SearchStuff Right = new SearchStuff();
@@ -2499,8 +2498,7 @@ public class ManxcatCentral
 		return true;
 	} // End Line Search
 
-	public static boolean DerivativeSearch(SearchStuff Left, SearchStuff Middle, SearchStuff Right, tangible.RefObject<Integer> SearchMethod, tangible.RefObject<SearchStuff> Best, tangible.RefObject<Integer> Iterations, Hotsun.CalcfgSignature Calcfg)
-	{ // Do a derivative Secant search but never stray outside interval by requiring End point derivatives opposite sign
+	public static boolean DerivativeSearch(SearchStuff Left, SearchStuff Middle, SearchStuff Right, tangible.RefObject<Integer> SearchMethod, tangible.RefObject<SearchStuff> Best, tangible.RefObject<Integer> Iterations, Hotsun.CalcfgSignature Calcfg) throws MPIException { // Do a derivative Secant search but never stray outside interval by requiring End point derivatives opposite sign
 		//  Revert to Value search if problems
 
 
@@ -2580,8 +2578,7 @@ public class ManxcatCentral
 
 	} // End DerivativeSearch
 
-	public static boolean SimpleDerivativeSearch(SearchStuff OneSide, SearchStuff OtherSide, tangible.RefObject<Integer> SearchMethod, tangible.RefObject<SearchStuff> Best, tangible.RefObject<Integer> Iterations, Hotsun.CalcfgSignature Calcfg, SearchStuff NotUsed)
-	{
+	public static boolean SimpleDerivativeSearch(SearchStuff OneSide, SearchStuff OtherSide, tangible.RefObject<Integer> SearchMethod, tangible.RefObject<SearchStuff> Best, tangible.RefObject<Integer> Iterations, Hotsun.CalcfgSignature Calcfg, SearchStuff NotUsed) throws MPIException {
 		double x2 = OneSide.alpha;
 		double x3 = OtherSide.alpha;
 		double InitialRange = x3 - x2;
@@ -2602,7 +2599,7 @@ public class ManxcatCentral
 			boolean NewPointValueLarger = (NewPoint.value > OneSide.value);
             NewPointValueLarger = SALSAUtility.synchronizeMPIVariable(NewPointValueLarger);
 
-			if (NewPointValueLarger)
+            if (NewPointValueLarger)
 			{
 				if (NewPoint.deriv < 0)
 				{
@@ -2649,8 +2646,7 @@ public class ManxcatCentral
 	}
 
 
-	public static boolean GoldenSectionValueSearch(SearchStuff Left, SearchStuff Middle, SearchStuff Right, tangible.RefObject<Integer> GoldenSectionMethod, tangible.RefObject<SearchStuff> Best, tangible.RefObject<Integer> Iterations, Hotsun.CalcfgSignature Calcfg)
-	{ // Do a value search to find minimum assuming three values are set
+	public static boolean GoldenSectionValueSearch(SearchStuff Left, SearchStuff Middle, SearchStuff Right, tangible.RefObject<Integer> GoldenSectionMethod, tangible.RefObject<SearchStuff> Best, tangible.RefObject<Integer> Iterations, Hotsun.CalcfgSignature Calcfg) throws MPIException { // Do a value search to find minimum assuming three values are set
 		//  Return End point if this is minimum (Derivative search will not do this if End Point has positive derivative
 
 		double goldennumber = 1.618033989;
