@@ -1,12 +1,14 @@
 package salsa.mdsaschisq;
 
-import edu.rice.hj.runtime.config.HjConfiguration;
 import mpi.MPI;
 import mpi.MPIException;
 import salsa.common.DistanceReader;
 import salsa.mpi.MpiOps;
 
 import java.io.IOException;
+
+import static edu.rice.hj.Module0.finalizeHabanero;
+import static edu.rice.hj.Module0.initializeHabanero;
 
 /**
  * Set Parallelism related Parameters
@@ -20,8 +22,8 @@ public class SALSAParallelism {
         //  Set up MPI
         MPI.Init(args);
         SALSAUtility.MPI_communicator = MPI.COMM_WORLD; //initializing MPI world communicator
-        SALSAUtility.MPI_Rank = SALSAUtility.MPI_communicator.Rank(); // Rank of this process
-        SALSAUtility.MPI_Size = SALSAUtility.MPI_communicator.Size(); // Number of MPI Processes
+        SALSAUtility.MPI_Rank = SALSAUtility.MPI_communicator.getRank(); // Rank of this process
+        SALSAUtility.MPI_Size = SALSAUtility.MPI_communicator.getSize(); // Number of MPI Processes
         SALSAUtility.mpiOps = new MpiOps(SALSAUtility.MPI_communicator);
         // Set up MPI
         SALSAUtility.MPIperNodeCount = SALSAUtility.MPI_Size / SALSAUtility.NodeCount;
@@ -33,7 +35,7 @@ public class SALSAParallelism {
         }
 
         SALSAUtility.ParallelPattern = "Machine:" + MPI
-                .Get_processor_name() + " " + SALSAUtility.ThreadCount + "x" + SALSAUtility.MPIperNodeCount + "x" +
+                .getProcessorName() + " " + SALSAUtility.ThreadCount + "x" + SALSAUtility.MPIperNodeCount + "x" +
                 SALSAUtility.NodeCount;
         if (SALSAUtility.MPI_Rank == 0) {
             // TODO - distance type - short
@@ -44,12 +46,12 @@ public class SALSAParallelism {
         }
 
         // Set up threads
-        HjConfiguration.initializeRuntime();
+        initializeHabanero();
     }
 
-    public static void TearDownParallelism() {
+    public static void TearDownParallelism() throws MPIException {
         // Finalize threads
-        HjConfiguration.finalizeRuntime();
+        finalizeHabanero();
         // End MPI
         MPI.Finalize();
     }
@@ -96,7 +98,7 @@ public class SALSAParallelism {
     }
 
     //  Read Distance Data
-    public static void ReadDataFromFile(String fname) throws IOException {
+    public static void ReadDataFromFile(String fname) throws IOException, MPIException {
         if ((SALSAUtility.DebugPrintOption > 0) && (SALSAUtility.MPI_Rank == 0)) {
             SALSAUtility.SALSAPrint(1, "Starting to read data: " + " Distance Cut " + String
                     .format("%.3f", SALSAUtility.DistanceCut));

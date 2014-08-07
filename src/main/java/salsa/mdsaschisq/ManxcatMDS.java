@@ -2,6 +2,7 @@ package salsa.mdsaschisq;
 
 import com.google.common.base.Strings;
 import edu.rice.hj.api.SuspendableException;
+import mpi.MPIException;
 import tangible.RefObject;
 
 import java.io.BufferedReader;
@@ -51,7 +52,7 @@ public class ManxcatMDS {
     }
 
     //  Set Chisq version of MDS
-    public static void SetupMDSasChisq() {
+    public static void SetupMDSasChisq() throws MPIException {
         int NumberofPoints = SALSAUtility.PointCount_Global;
         Hotsun.ndata = NumberofPoints * (NumberofPoints - 1L) / 2L;
 
@@ -64,6 +65,8 @@ public class ManxcatMDS {
             SALSAParallelism.ReadDataFromFile(ManxcatCentral.config.DistanceMatrixFile);
         } catch (IOException e) {
             SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+        } catch (MPIException e) {
+            e.printStackTrace();
         }
 
         // If FindPointstoFix true, all fixed parameters are set to 0 UNLESS initialized differently
@@ -309,7 +312,7 @@ public class ManxcatMDS {
 
     } //  End SetupChisq
 
-    public static void Sequel() {
+    public static void Sequel() throws MPIException {
         /* Sequel of ManxcatMDS work */
 
         SALSAUtility.SALSAPrint(1, "\nStarting density and histogram generation");
@@ -712,7 +715,7 @@ public class ManxcatMDS {
         }
     }
 
-    public static boolean Calcfg(Desertwind Solution) {
+    public static boolean Calcfg(Desertwind Solution) throws MPIException {
         // Assume zerocr and first/DiagonalofMatrix are zeroed before call
         // Here we only calculate diagonal elements of Chisq matrix
 
@@ -1314,7 +1317,7 @@ public class ManxcatMDS {
     // Solve Matrix Equations
     //  The solution is rescaled so correct for native matrix
     //  However Diagonally scaled matrix used in solver as long as Hotsun.UseDiagonalScalinginSolvers = true
-    public static boolean SolveMatrix(double[][] Answer, Desertwind Solution) {
+    public static boolean SolveMatrix(double[][] Answer, Desertwind Solution) throws MPIException {
         // Scale RHS Vector
         MDSLinearAlgebra.DiagScaleVector(Hotsun.UtilityLocalVector1, Solution.first, Hotsun.sqdginv);
 
@@ -1341,7 +1344,7 @@ public class ManxcatMDS {
     }
 
     public static void FindQlimits(Desertwind Solution, RefObject<Double> Qhigh, RefObject<Double> Qlow,
-                                   RefObject<Integer> ReasontoStop1, RefObject<Integer> ReasontoStop2) {
+                                   RefObject<Integer> ReasontoStop1, RefObject<Integer> ReasontoStop2) throws MPIException {
         if (Hotsun.FullSecondDerivative) {
             RefObject<Double> tempRef_ChisqMatrixTrace = new RefObject<>(Hotsun.ChisqMatrixTrace);
             RefObject<Double> tempRef_ChisqMatrixNorm = new RefObject<>(Hotsun.ChisqMatrixNorm);

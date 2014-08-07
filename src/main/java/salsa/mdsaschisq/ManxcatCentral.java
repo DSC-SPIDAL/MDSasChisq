@@ -39,8 +39,6 @@ public class ManxcatCentral
 	//  Utility variables
 	public static MPI2DDoubleVectorPacket TogoDistributed2DDoubleVector; // Parameter Data to be sent on MPI transfers
 	public static MPI2DDoubleVectorPacket FromAfar2DDoubleVector; // Data received by MPI transfers
-	public static MPI1DStringVectorPacket TogoDistributed1DStringVector; // Parameter Data to be sent on MPI transfers
-	public static MPI1DStringVectorPacket FromAfar1DStringVector; // Data received by MPI transfers
 
 	public static MPI2DDoubleVectorPacket TogoDiagVector; // diag Data to be sent on MPI transfers
 	public static MPI2DDoubleVectorPacket TogoSqDgInvVector; // sqdiag Data to be sent on MPI transfers
@@ -115,8 +113,6 @@ public class ManxcatCentral
             if (Hotsun.DecomposeParameters) { // Set up MPI if parallel parameter
                 FromAfar2DDoubleVector = setup2DDoubleMPIPacket();
                 TogoDistributed2DDoubleVector = setup2DDoubleMPIPacket();
-                FromAfar1DStringVector = setup1DStringMPIPacket();
-                TogoDistributed1DStringVector = setup1DStringMPIPacket();
                 TogoDiagVector = setup2DDoubleMPIPacket();
                 TogoSqDgInvVector = setup2DDoubleMPIPacket();
             }
@@ -1802,20 +1798,7 @@ public class ManxcatCentral
         return togoVector;
     }
 
-    //  Set up 1D String MPI Packet
-    public static MPI1DStringVectorPacket setup1DStringMPIPacket() {
-        MPI1DStringVectorPacket togoVector = new MPI1DStringVectorPacket(SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
-        togoVector.FirstPoint = SALSAUtility.PointStart_Process;
-        togoVector.NumberofPoints = SALSAUtility.PointCount_Process;
-
-        if (SALSAUtility.PointCount_Process != SALSAUtility.PointCount_Largest) {
-            togoVector.Marray[SALSAUtility.PointCount_Largest - 1] = "";
-        }
-        return togoVector;
-    }
-
-
-	// Globalize distributed local copies with 2D Double
+    // Globalize distributed local copies with 2D Double
 	public static void MakeVectorGlobal(double[][] DistributedVector, double[][] GlobalVector)
 	{
 		if ((SALSAUtility.MPI_Size <= 1) || (!Hotsun.DecomposeParameters))
@@ -1841,33 +1824,6 @@ public class ManxcatCentral
 			SALSAUtility.StopSubTimer(SALSAUtility.MPISENDRECEIVETiming);
 		}
 	} // End MakeVectorGlobal() 2D Double
-
-	// Globalize distributed local copies with 1D String
-	public static void MakeVectorGlobal(String[] DistributedVector, String[] GlobalVector)
-	{
-		if (SALSAUtility.MPI_Size <= 1)
-		{
-			SALSABLAS.CopyVector(GlobalVector, DistributedVector, 0, Hotsun.Number_VectorParameters);
-		}
-		else
-		{
-			SALSABLAS.CopyVector(TogoDistributed1DStringVector.Marray, DistributedVector, 0, SALSAUtility.PointCount_Process);
-
-			SALSAUtility.StartSubTimer(SALSAUtility.MPISENDRECEIVETiming);
-
-			for (int MPICommunicationSteps = 0; MPICommunicationSteps < SALSAUtility.MPI_Size; MPICommunicationSteps++)
-			{
-				if (MPICommunicationSteps == SALSAUtility.MPI_Rank)
-				{
-					MPI1DStringVectorPacket.CopyMPI1DStringVectorPacket(FromAfar1DStringVector, TogoDistributed1DStringVector);
-				}
-                // Note - MPI Call - Broadcast - MPI1DStringVectorPacket
-                FromAfar1DStringVector= SALSAUtility.mpiOps.broadcast(FromAfar1DStringVector, MPICommunicationSteps);
-				SALSABLAS.CopyVector(GlobalVector, FromAfar1DStringVector.Marray, FromAfar1DStringVector.FirstPoint, FromAfar1DStringVector.NumberofPoints);
-			} // End loop over MPIrankcount
-			SALSAUtility.StopSubTimer(SALSAUtility.MPISENDRECEIVETiming);
-		}
-	} // End MakeVectorGlobal() with 1D String
 
 	//  Set up GLOBAL arrays Hotsun.diag and Hotsun.sqdginv
 	public static void SetupDiagonalScaling(Desertwind Solution)

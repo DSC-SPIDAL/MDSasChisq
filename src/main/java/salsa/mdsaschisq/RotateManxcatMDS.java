@@ -2,6 +2,7 @@ package salsa.mdsaschisq;
 
 import com.google.common.base.Strings;
 import edu.rice.hj.api.SuspendableException;
+import mpi.MPIException;
 import salsa.configuration.sections.MDSasChisqSection;
 
 import java.io.IOException;
@@ -295,7 +296,7 @@ public class RotateManxcatMDS {
 
     } // End SetupRotateMDS()
 
-    public static boolean Calcfg(Desertwind Solution) { // call Accum with value and derivative for each point
+    public static boolean Calcfg(Desertwind Solution) throws MPIException { // call Accum with value and derivative for each point
 
         boolean violat = false;
         double Scale = 1.0;
@@ -552,7 +553,7 @@ public class RotateManxcatMDS {
         }
     } // End VectorSum(double[] VTotal, double[] V2, double sign, double[] V1)
 
-    public static void InitializeParameters(Desertwind Solution, int CountStartingPoints) {
+    public static void InitializeParameters(Desertwind Solution, int CountStartingPoints) throws MPIException {
         // Inversion
         InvertSolution = false;
         if ((CountStartingPoints / 2) * 2 != CountStartingPoints) {

@@ -1,6 +1,7 @@
 package salsa.mdsaschisq;
 
 import edu.rice.hj.api.SuspendableException;
+import mpi.MPIException;
 
 import static edu.rice.hj.Module1.forallChunked;
 
@@ -464,7 +465,7 @@ public class SALSABLAS {
     }
 
     //  Form Vector Dot Product -- One Dimensional
-    public static double VectorScalarProduct(double[] VectorA, double[] VectorB) {
+    public static double VectorScalarProduct(double[] VectorA, double[] VectorB) throws MPIException {
         if (SALSAUtility.sequentialBLAS) {
             int LongDimension = VectorA.length;
 
@@ -500,7 +501,7 @@ public class SALSABLAS {
     }
 
     //  Form Vector Dot Product -- Two Dimensional
-    public static double VectorScalarProduct(double[][] VectorA, double[][] VectorB) {
+    public static double VectorScalarProduct(double[][] VectorA, double[][] VectorB) throws MPIException {
         int LocalVectorDimension = VectorB[0].length;
 
         if (LocalVectorDimension != VectorA[0].length) {

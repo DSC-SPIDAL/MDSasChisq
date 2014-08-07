@@ -2,6 +2,7 @@ package salsa.mdsaschisq;
 
 import edu.rice.hj.api.SuspendableException;
 import mpi.MPI;
+import mpi.MPIException;
 
 import static edu.rice.hj.Module1.forallChunked;
 
@@ -33,7 +34,7 @@ public class GlobalReductions {
             Orvalue[ThreadNo] = Orvalue[ThreadNo] || value;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 TotalOr = Orvalue[ThreadNo] || TotalOr;
@@ -75,7 +76,7 @@ public class GlobalReductions {
             Intvalue[ThreadNo] += value;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 TotalInt += Intvalue[ThreadNo];
@@ -133,7 +134,7 @@ public class GlobalReductions {
             Sum[ThreadNo][loopvalue] += 1.0;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 for (int loop = 0; loop < NumberinSum; loop++) {
@@ -177,7 +178,7 @@ public class GlobalReductions {
             Maxvalue[ThreadNo] = Math.max(Maxvalue[ThreadNo], value);
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 TotalMax = Math.max(TotalMax, Maxvalue[ThreadNo]);
@@ -227,7 +228,7 @@ public class GlobalReductions {
             square[ThreadNo] += value1 * value1;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 Totalmean += mean[ThreadNo];
@@ -289,7 +290,7 @@ public class GlobalReductions {
             TotalinThread[ThreadNo] += value1;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 Total += TotalinThread[ThreadNo];
@@ -332,7 +333,7 @@ public class GlobalReductions {
             mean[ThreadNo] += value1;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 Totalmean += mean[ThreadNo];
@@ -396,7 +397,7 @@ public class GlobalReductions {
             VectorSum[ThreadNo][position] += value1;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 for (int ArrayLoop = 0; ArrayLoop < ArraySize; ArrayLoop++) {
@@ -456,7 +457,7 @@ public class GlobalReductions {
             VectorMax[ThreadNo][position] = Math.max(VectorMax[ThreadNo][position], value1);
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 for (int ArrayLoop = 0; ArrayLoop < ArraySize; ArrayLoop++) {
@@ -531,7 +532,7 @@ public class GlobalReductions {
             VectorSum[ThreadNo][position] += value1;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 for (int ArrayLoop = 0; ArrayLoop < ArraySize; ArrayLoop++) {
@@ -592,7 +593,7 @@ public class GlobalReductions {
             }
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             // Note - parallel for
             try {
                 forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
@@ -666,7 +667,7 @@ public class GlobalReductions {
             }
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             SALSAUtility.StartSubTimer(SALSAUtility.ThreadTiming);
             // Note - parallel for
             try {
@@ -753,7 +754,7 @@ public class GlobalReductions {
             }
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
 
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
@@ -824,7 +825,7 @@ public class GlobalReductions {
             }
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 for (int ArrayLoop = 0; ArrayLoop < ArraySize; ArrayLoop++) {
@@ -892,7 +893,7 @@ public class GlobalReductions {
             IndexValue[ThreadNo] = indexposition;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 if (IndexValue[ThreadNo] < 0) {
                     continue;
@@ -996,7 +997,7 @@ public class GlobalReductions {
             CurrentWorstbythread[ThreadNo] = tempRef_Object.argValue;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
 
             for (int storeloop = 0; storeloop < Numbertofind; storeloop++) {
                 TotalMinValue[storeloop] = -1.0;
@@ -1161,7 +1162,7 @@ public class GlobalReductions {
             cross12[ThreadNo] += value1 * value2;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
                 TotalNumberofPoints += NumberofPoints[ThreadNo];
                 Totalmean1 += mean1[ThreadNo];
@@ -1259,7 +1260,7 @@ public class GlobalReductions {
             Sum[threadNo][row][col] += 1.0;
         }
 
-        public final void sumOverThreadsAndMPI() {
+        public final void sumOverThreadsAndMPI() throws MPIException {
             for (int threadNo = 0; threadNo < NumberOfThreads; threadNo++) {
                 TotalNumberofPoints += NumberOfPoints[threadNo];
                 for (int i = 0; i < OuterDimension; ++i) {

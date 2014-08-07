@@ -2,6 +2,7 @@ package salsa.mdsaschisq;
 
 import edu.rice.hj.api.SuspendableException;
 import mpi.MPI;
+import mpi.MPIException;
 
 import static edu.rice.hj.Module1.forallChunked;
 
@@ -11,7 +12,7 @@ public class ManxcatMDSBasicDataProcessing {
                                               tangible.RefObject<Double> MaxDistance,
                                               tangible.RefObject<Double> SigmaDistance,
                                               tangible.RefObject<Integer> TotalDisconnectedPoints,
-                                              tangible.RefObject<Double> TotalMissingDistances) {
+                                              tangible.RefObject<Double> TotalMissingDistances) throws MPIException {
 
         GlobalReductions.FindDoubleSum FindMissingDistances = new GlobalReductions.FindDoubleSum(
                 SALSAUtility.ThreadCount);
@@ -193,7 +194,7 @@ public class ManxcatMDSBasicDataProcessing {
                                                   tangible.RefObject<Double> MaxDistce,
                                                   tangible.RefObject<Double> SigmaDistance,
                                                   tangible.RefObject<Integer> TotalDisconnectedPoints,
-                                                  tangible.RefObject<Double> TotalMissingDistances) {
+                                                  tangible.RefObject<Double> TotalMissingDistances) throws MPIException {
         double initialAverageDistance = AverageDistance.argValue;
         double initialMaxDistance = MaxDistce.argValue;
         double initialSigmaDistance = SigmaDistance.argValue;
@@ -418,7 +419,7 @@ public class ManxcatMDSBasicDataProcessing {
     // Find Center defined as Point with minimum mean distance to other points
     // Form Histogram of distance Bin counts
     public static void FindCenter(tangible.RefObject<Integer> Center, tangible.RefObject<Double> Radius, double Histmin,
-                                  double Histmax, int NumberBins, tangible.RefObject<double[]> Bincounts) {
+                                  double Histmax, int NumberBins, tangible.RefObject<double[]> Bincounts) throws MPIException {
         GlobalReductions.FindMinorMaxValuewithIndex FindCenterCompute = new GlobalReductions.FindMinorMaxValuewithIndex(
                 SALSAUtility.ThreadCount, 0);
 
@@ -524,7 +525,7 @@ public class ManxcatMDSBasicDataProcessing {
                                             tangible.RefObject<Double> xmaxSelectedInter,
                                             tangible.RefObject<Double> yminSelectedInter,
                                             tangible.RefObject<Double> ymaxSelectedInter,
-                                            java.util.Hashtable originalPnumToCnumTable) {
+                                            java.util.Hashtable originalPnumToCnumTable) throws MPIException {
 		/* MinorMax objects with index though index is not used here */
         GlobalReductions.FindMinorMaxValuewithIndex FindXminWhole = new GlobalReductions.FindMinorMaxValuewithIndex(
                 SALSAUtility.ThreadCount, 0);
@@ -712,7 +713,7 @@ public class ManxcatMDSBasicDataProcessing {
                                              tangible.RefObject<Double> countWhole,
                                              tangible.RefObject<Double> countSelected,
                                              tangible.RefObject<Double> countSelectedInter,
-                                             java.util.Hashtable originalPnumToCnumTable) {
+                                             java.util.Hashtable originalPnumToCnumTable) throws MPIException {
         GlobalReductions.Find2DDoubleArraySum FindDensityMatrixWhole = new GlobalReductions.Find2DDoubleArraySum(
                 SALSAUtility.ThreadCount, SALSAUtility.Yres, SALSAUtility.Xres);
         GlobalReductions.Find2DDoubleArraySum FindDensityMatrixSelected = new GlobalReductions.Find2DDoubleArraySum(
@@ -899,7 +900,7 @@ public class ManxcatMDSBasicDataProcessing {
     public static void FindxAxis(int Center, tangible.RefObject<Integer> xAxis,
                                  tangible.RefObject<Double> MaxDistceGlobal,
                                  tangible.RefObject<Double> DistancesNearEachOther,
-                                 tangible.RefObject<Integer> NotLonelyPoints) {
+                                 tangible.RefObject<Integer> NotLonelyPoints) throws MPIException {
 
         GlobalReductions.FindDoubleSum FindNearbyPairs = new GlobalReductions.FindDoubleSum(SALSAUtility.ThreadCount);
         GlobalReductions.FindIntSum FindCozyPoints = new GlobalReductions.FindIntSum(SALSAUtility.ThreadCount);
@@ -965,7 +966,7 @@ public class ManxcatMDSBasicDataProcessing {
 
     //  Find point defining xy Plane
     public static void FindxyPlane(int Center, int xAxis, tangible.RefObject<Integer> xyPlane,
-                                   tangible.RefObject<Double> MaxDistceGlobal) {
+                                   tangible.RefObject<Double> MaxDistceGlobal) throws MPIException {
         GlobalReductions.FindMinorMaxValuewithIndex FindxyPlaneCompute = new GlobalReductions.FindMinorMaxValuewithIndex(
                 SALSAUtility.ThreadCount, 1);
 

@@ -1,6 +1,7 @@
 package salsa.mdsaschisq;
 
 import edu.rice.hj.api.SuspendableException;
+import mpi.MPIException;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,7 +10,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static edu.rice.hj.Module1.forallChunked;
+import static edu.rice.hj.Module0.forallChunked;
 
 public class MDSLinearAlgebra {
     public static double[][] DistributedNewIteratedVector = null; // LHS of Iteration Equation
@@ -51,7 +52,7 @@ public class MDSLinearAlgebra {
     //  MaxIndicator = 0 Find Maximum Eigenvalue of Matrix
     //  MaxIndicator = 1 Find Maximum Eigenvalue of (Maximizr - Matrix)
     public static int PowerIterate(Desertwind Solution, int MaxIndicator, double Maximizer,
-                                   tangible.RefObject<Double> PowerEigenvalue) {
+                                   tangible.RefObject<Double> PowerEigenvalue) throws MPIException {
         if (DistributedNewIteratedVector == null) {
             Initialize();
         }
@@ -146,7 +147,7 @@ public class MDSLinearAlgebra {
     public static boolean ConjugateGradientSolver(double[][] Answer, Desertwind Solution, boolean useexact,
                                                   double[][] GlobalxVector, double[][] DistributedRHS,
                                                   tangible.RefObject<Integer> NumberofIterations, int RealMatrixSize,
-                                                  double LimitonNormofR) {
+                                                  double LimitonNormofR) throws MPIException {
 
         boolean matrixsuccess = true;
 
@@ -312,7 +313,7 @@ public class MDSLinearAlgebra {
 
     //  Calculate Matrix Global Vector product storing as a distributed vector
     public static void FindTraceandNorm(double[][][] MatrixDiagonals, double[][] GlobalxVector,
-                                        tangible.RefObject<Double> Trace, tangible.RefObject<Double> Norm) {
+                                        tangible.RefObject<Double> Trace, tangible.RefObject<Double> Norm) throws MPIException {
         Trace.argValue = 0.0;
         Norm.argValue = 0.0;
         GlobalReductions.FindDoubleSum FindTrace = new GlobalReductions.FindDoubleSum(SALSAUtility.ThreadCount);
