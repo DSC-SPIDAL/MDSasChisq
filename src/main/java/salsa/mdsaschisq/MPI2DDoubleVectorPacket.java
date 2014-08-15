@@ -19,23 +19,11 @@ public class MPI2DDoubleVectorPacket{
         this.vectorDimension = vectorDimension;
     }
 
-    public class VectorType extends Struct{
-        int vectorOffset = addDou
-        @Override
-        protected Data newData() {
-            return new Data()
-        }
-
-        public class Data extends Struct.Data{
-
-        }
-    }
-
     public class MPI2DDoubleVectorPacketType extends Struct{
         private int firstPointOffset = addInt();
         private int numberOfPointsOffset = addInt();
 
-        private int mArrayOffset; // mArray represents a 2-dimensional
+        private int mArrayOffset = addDouble(maxLength * vectorDimension); // mArray represents a 2-dimensional double array flattened into a single dimension
 
 
         @Override
@@ -44,6 +32,22 @@ public class MPI2DDoubleVectorPacket{
         }
 
         public class Data extends Struct.Data{
+            public int getFirstPoint(){return getInt(firstPointOffset);}
+            public void setFirstPoint(int value){putInt(firstPointOffset, value);}
+
+            public int getNumberOfPoints(){return getInt(numberOfPointsOffset);}
+            public void setNumberOfPoints(int value){putInt(numberOfPointsOffset, value);}
+
+            public double getMarrayElementAt(int i, int j){
+                return getDouble(mArrayOffset, i*vectorDimension+j);
+            }
+            public void setMarrayElementAt(int i, int j, double value){
+                putDouble(mArrayOffset, i*vectorDimension+j, value);
+            }
+
+            public void loadMarray(double [][] from, Data to){
+
+            }
 
         }
     }
