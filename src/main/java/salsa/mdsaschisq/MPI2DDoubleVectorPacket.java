@@ -70,6 +70,8 @@ public class MPI2DDoubleVectorPacket{
                             "Inconsistent Dimensions - expected " + vectorDimension + " received " + from[0].length);
                 }
 
+
+
                 if (SALSAUtility.sequentialBLAS) {
                     for (int LongIndex = 0; LongIndex < TotalSize; LongIndex++) {
                         System.arraycopy(from[LongIndex], 0, VectorC[LongIndex + StartIndex], 0, vectorDimension);
