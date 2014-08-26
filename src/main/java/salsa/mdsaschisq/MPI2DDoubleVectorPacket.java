@@ -7,6 +7,7 @@ import mpi.Struct;
 
 import java.io.Serializable;
 import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
 
 import static edu.rice.hj.Module0.forallChunked;
 
@@ -15,92 +16,48 @@ import static edu.rice.hj.Module0.forallChunked;
  */
 
 public class MPI2DDoubleVectorPacket{
-    private MPI2DDoubleVectorPacketType.Data mpi2DDoubleVectorPacketTypeData;
+    private static final int firstPointOffset = 0;
+    private static final int numberOfPointsOffset = Integer.BYTES;
+    private static final int mArrayOffset = 2*Integer.BYTES;
 
-    private MPI2DDoubleVectorPacket(int maxLength, int vectorDimension) throws MPIException {
-        MPI2DDoubleVectorPacketType mpi2DDoubleVectorPacketType = new MPI2DDoubleVectorPacketType(maxLength, vectorDimension);
-        ByteBuffer buffer = MPI.newByteBuffer(mpi2DDoubleVectorPacketType.getExtent());
-        mpi2DDoubleVectorPacketTypeData = mpi2DDoubleVectorPacketType.getData(buffer);
+    private ByteBuffer buffer;
+    private int extent;
+    private int vectorDimension;
+
+    public MPI2DDoubleVectorPacket(int firstPoint, int numberOfPoints, int maxLength, int vectorDimension) throws MPIException {
+        this.vectorDimension = vectorDimension;
+        extent = (maxLength*vectorDimension)*Double.BYTES + 2*Integer.BYTES; // 2 is to add two integers to represent first point and number of points
+        buffer = MPI.newByteBuffer(extent);
+        buffer.putInt(firstPointOffset,firstPoint);
+        buffer.putInt(numberOfPointsOffset, numberOfPoints);
+
     }
 
-    public static MPI2DDoubleVectorPacketType.Data newMPI2DDoubleVectorPacket(int maxLength, int vectorDimension) throws MPIException {
-        return new MPI2DDoubleVectorPacket(maxLength, vectorDimension).mpi2DDoubleVectorPacketTypeData;
+    public void copyToMArray(double[][] from){
+        buffer.position(mArrayOffset);
+        DoubleBuffer dbuff = buffer.asDoubleBuffer();
+        // TODO - array to buffer copy - see if it's faster if HJ is used to copy elements individually in parallel than the sequential bulk method used here
+        for (double[] aFrom : from) {
+            dbuff.put(aFrom);
+        }
+    }
+
+    public double[][] getMArray(){
+        int numberOfPoints = buffer.getInt(numberOfPointsOffset);
+        double [][] array = new double[numberOfPoints][vectorDimension];
+        buffer.position(mArrayOffset);
+        DoubleBuffer dbuff = buffer.asDoubleBuffer();
+        for (int i = 0; i < numberOfPoints; i++) {
+           dbuff.get(array[i],0,vectorDimension);
+        }
+        return array;
+    }
+
+    public static void copy(MPI2DDoubleVectorPacket from, MPI2DDoubleVectorPacket to){
+        from.buffer
     }
 
 
 
-    public class MPI2DDoubleVectorPacketType extends Struct{
-        private int maxLength;
-        private int vectorDimension;
-        private int firstPointOffset = addInt();
-        private int numberOfPointsOffset = addInt();
 
-        private int mArrayOffset = addDouble(maxLength * vectorDimension); // mArray represents a 2-dimensional double array flattened into a single dimension
-
-        public MPI2DDoubleVectorPacketType(int maxLength, int vectorDimension) {
-            this.maxLength = maxLength;
-            this.vectorDimension = vectorDimension;
-        }
-
-
-        @Override
-        protected Data newData() {
-            return new Data();
-        }
-
-        public class Data extends Struct.Data{
-            public int getFirstPoint(){return getInt(firstPointOffset);}
-            public void setFirstPoint(int value){putInt(firstPointOffset, value);}
-
-            public int getNumberOfPoints(){return getInt(numberOfPointsOffset);}
-            public void setNumberOfPoints(int value){putInt(numberOfPointsOffset, value);}
-
-            public double getMarrayElementAt(int i, int j){
-                return getDouble(mArrayOffset, i*vectorDimension+j);
-            }
-            public void setMarrayElementAt(int i, int j, double value){
-                putDouble(mArrayOffset, i*vectorDimension+j, value);
-            }
-
-            public void loadMarray(double [][] from, int startIndex, int totalSize){
-                if (from == null || from.length == 0) return;
-
-                if (vectorDimension != from[0].length) {
-                    SALSAUtility.printAndThrowRuntimeException(
-                            "Inconsistent Dimensions - expected " + vectorDimension + " received " + from[0].length);
-                }
-
-
-
-                if (SALSAUtility.sequentialBLAS) {
-                    for (int LongIndex = 0; LongIndex < TotalSize; LongIndex++) {
-                        System.arraycopy(from[LongIndex], 0, VectorC[LongIndex + StartIndex], 0, vectorDimension);
-                    }
-                    return;
-                }
-
-                // Parallel VectorC = from
-                try {
-                    forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-                    {
-                        int indexlen = SALSAUtility.PointsperThread[threadIndex];
-                        int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-                        int endpoint = indexlen + beginpoint;
-                        if (endpoint > TotalSize) {
-                            endpoint = TotalSize;
-                        }
-                        if (threadIndex == (SALSAUtility.ThreadCount - 1)) {
-                            endpoint = TotalSize;
-                        }
-                        for (int LongIndex = beginpoint; LongIndex < endpoint; LongIndex++) {
-                            System.arraycopy(from[LongIndex], 0, VectorC[LongIndex + StartIndex], 0, vectorDimension);
-                        }
-                    });
-                } catch (SuspendableException e) {
-                    SALSAUtility.printAndThrowRuntimeException(e.getMessage());
-                }
-            }
-
-        }
-    }
 }
