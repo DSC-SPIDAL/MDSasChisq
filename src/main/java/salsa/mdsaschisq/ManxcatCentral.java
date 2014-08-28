@@ -8,6 +8,7 @@ import mpi.MPIException;
 import org.apache.commons.cli.*;
 import salsa.configuration.ConfigurationMgr;
 import salsa.configuration.sections.MDSasChisqSection;
+import salsa.mpi.MPI2DDoubleVectorPacket;
 
 import java.io.File;
 import java.io.IOException;
@@ -111,10 +112,14 @@ public class ManxcatCentral
             Hotsun.SetupManxcat();
 
             if (Hotsun.DecomposeParameters) { // Set up MPI if parallel parameter
-                FromAfar2DDoubleVector = setup2DDoubleMPIPacket();
-                TogoDistributed2DDoubleVector = setup2DDoubleMPIPacket();
-                TogoDiagVector = setup2DDoubleMPIPacket();
-                TogoSqDgInvVector = setup2DDoubleMPIPacket();
+                FromAfar2DDoubleVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointStart_Process,
+                        SALSAUtility.PointCount_Process, SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
+                TogoDistributed2DDoubleVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointStart_Process,
+                        SALSAUtility.PointCount_Process, SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
+                TogoDiagVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointStart_Process,
+                        SALSAUtility.PointCount_Process, SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
+                TogoSqDgInvVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointStart_Process,
+                        SALSAUtility.PointCount_Process, SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
             }
 
             //  Set up Timing
@@ -1779,24 +1784,8 @@ public class ManxcatCentral
 		Hotsun.doingderivtest = false;
 		Hotsun.zerocr = savechisq;
 		MakeVectorGlobal(Hotsun.CurrentSolution.param, Hotsun.GlobalParameter);
-		return;
 	} // End DoDerivTest()
 
-
-	//  Set up 2D Double MPI Packet
-    public static MPI2DDoubleVectorPacket setup2DDoubleMPIPacket() {
-        MPI2DDoubleVectorPacket togoVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
-        togoVector.FirstPoint = SALSAUtility.PointStart_Process;
-        togoVector.NumberofPoints = SALSAUtility.PointCount_Process;
-
-
-        if (SALSAUtility.PointCount_Process != SALSAUtility.PointCount_Largest) {
-            for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++) {
-                togoVector.Marray[SALSAUtility.PointCount_Largest - 1][LocalVectorIndex] = 0.0;
-            }
-        }
-        return togoVector;
-    }
 
     // Globalize distributed local copies with 2D Double
 	public static void MakeVectorGlobal(double[][] DistributedVector, double[][] GlobalVector)

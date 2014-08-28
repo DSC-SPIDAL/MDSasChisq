@@ -1,15 +1,11 @@
-package salsa.mdsaschisq;
+package salsa.mpi;
 
-import edu.rice.hj.api.SuspendableException;
 import mpi.MPI;
 import mpi.MPIException;
-import mpi.Struct;
+import salsa.mdsaschisq.SALSAUtility;
 
-import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
-
-import static edu.rice.hj.Module0.forallChunked;
 
 /**
  * Simple MPI Serializable packet for single double dimensional array
@@ -20,7 +16,7 @@ public class MPI2DDoubleVectorPacket{
     private static final int numberOfPointsOffset = Integer.BYTES;
     private static final int mArrayOffset = 2*Integer.BYTES;
 
-    private ByteBuffer buffer;
+    ByteBuffer buffer;
     private int extent;
     private int vectorDimension;
 
@@ -28,24 +24,28 @@ public class MPI2DDoubleVectorPacket{
         this.vectorDimension = vectorDimension;
         extent = (maxLength*vectorDimension)*Double.BYTES + 2*Integer.BYTES; // 2 is to add two integers to represent first point and number of points
         buffer = MPI.newByteBuffer(extent);
-        buffer.putInt(firstPointOffset,firstPoint);
-        buffer.putInt(numberOfPointsOffset, numberOfPoints);
+        buffer.limit(extent);
+        buffer.putInt(firstPointOffset,firstPoint).putInt(numberOfPointsOffset, numberOfPoints);
 
     }
 
     public void copyToMArray(double[][] from){
-        buffer.position(mArrayOffset);
+        if (from == null || from.length != buffer.getInt(numberOfPointsOffset) || from[0].length != vectorDimension){
+            SALSAUtility.printAndThrowRuntimeException("Error while copying double[][] to mArray");
+        }
+        buffer.position(mArrayOffset).limit(extent);
         DoubleBuffer dbuff = buffer.asDoubleBuffer();
         // TODO - array to buffer copy - see if it's faster if HJ is used to copy elements individually in parallel than the sequential bulk method used here
         for (double[] aFrom : from) {
             dbuff.put(aFrom);
         }
+        buffer.flip();
     }
 
     public double[][] getMArray(){
         int numberOfPoints = buffer.getInt(numberOfPointsOffset);
         double [][] array = new double[numberOfPoints][vectorDimension];
-        buffer.position(mArrayOffset);
+        buffer.position(mArrayOffset).limit(extent);
         DoubleBuffer dbuff = buffer.asDoubleBuffer();
         for (int i = 0; i < numberOfPoints; i++) {
            dbuff.get(array[i],0,vectorDimension);
@@ -54,7 +54,12 @@ public class MPI2DDoubleVectorPacket{
     }
 
     public static void copy(MPI2DDoubleVectorPacket from, MPI2DDoubleVectorPacket to){
-        from.buffer
+        int capacity = from.buffer.capacity();
+        from.buffer.position(0).limit(capacity);
+        to.buffer.position(0).limit(capacity);
+        to.buffer.put(from.buffer);
+        to.buffer.flip();
+        from.buffer.flip();
     }
 
 

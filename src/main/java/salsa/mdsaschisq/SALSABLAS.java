@@ -345,8 +345,8 @@ public class SALSABLAS {
         }
     }
 
-    //  Copy TotalSize local vectors from VectorA to VectorC starting in position 0 of VectorC and position
-    // StartIndex of VectorA
+    //  Copy TotalSize local vectors from VectorA to VectorC starting in position StartIndex of VectorC and position
+    // 0 of VectorA
     public static void CopyVector(double[][] VectorC, double[][] VectorA, int StartIndex, int TotalSize) {
         int LocalVectorDimension = VectorC[0].length;
 
@@ -384,8 +384,8 @@ public class SALSABLAS {
         }
     }
 
-    //  Copy TotalSize local vectors from VectorA to VectorC starting in position 0 of VectorC and position
-    // StartIndex of VectorA
+    //  Copy TotalSize local vectors from VectorA to VectorC starting in position StartIndex of VectorC and position
+    // 0 of VectorA
     public static void CopyVector(String[] VectorC, String[] VectorA, int StartIndex, int TotalSize) {
         if (SALSAUtility.sequentialBLAS) {
             System.arraycopy(VectorA, 0, VectorC, StartIndex, TotalSize);
@@ -412,8 +412,8 @@ public class SALSABLAS {
         }
     }
 
-    //  Copy TotalSize local vectors from VectorA to VectorC starting in position 0 of VectorC and position
-    // StartIndex of VectorA
+    //  Copy TotalSize local vectors from VectorA to VectorC starting in position StartIndex of VectorC and position
+    // 0 of VectorA
     public static void CopyVector(double[][][] VectorC, double[][][] VectorA, int StartIndex, int TotalSize) {
         int LocalVectorDimension1 = VectorC[0].length;
 
