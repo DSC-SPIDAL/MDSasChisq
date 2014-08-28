@@ -1305,8 +1305,7 @@ public class ManxcatCentral
 	//  ReasonToStop = 5 Boundary value limit reached
 	//  ReasonToStop = 6 Matrix Singular even though Q added
 
-	public static void EndupManxcat(int ReasonToStop, Hotsun.WriteSolutionSignature WriteSolution, Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct)
-	{
+	public static void EndupManxcat(int ReasonToStop, Hotsun.WriteSolutionSignature WriteSolution, Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct) throws MPIException {
 
 		if (Hotsun.isaved != 0)
 		{
@@ -1448,8 +1447,7 @@ public class ManxcatCentral
 
 	} // End EndupMancat(int ReasonToStop)
 
-	public static void WriteOutParameters(Hotsun.WriteSolutionSignature WriteSolution, Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct)
-	{
+	public static void WriteOutParameters(Hotsun.WriteSolutionSignature WriteSolution, Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct) throws MPIException {
 		//  Set up really best Solution
 		RestoreBestSolution(Hotsun.CurrentSolution, Hotsun.BestLoopedSolution);
 
@@ -1507,8 +1505,7 @@ public class ManxcatCentral
 
 	} // End WriteOutParameters
 
-	public static void WriteCoordinates(int Outputtype, Hotsun.WriteSolutionSignature WriteSolution)
-	{
+	public static void WriteCoordinates(int Outputtype, Hotsun.WriteSolutionSignature WriteSolution) throws MPIException {
 		String outputfiletype = "";
 		if (Outputtype == 0)
 		{
@@ -1538,11 +1535,9 @@ public class ManxcatCentral
             ActualOutputFileName = labelfilename + "SIMPLE" + endpart;
 			WriteSolution.invoke(ActualOutputFileName + outputfiletype, 1, Hotsun.GlobalParameter, Hotsun.UtilityGlobalVector1);
 		}
-		return;
 	}
 
-	public static void launchQlimits(Hotsun.FindQlimitsSignature FindQlimits)
-	{
+	public static void launchQlimits(Hotsun.FindQlimitsSignature FindQlimits) throws MPIException {
 		if ((Hotsun.numit == 0) || (Hotsun.numit >= ManxcatCentral.IterationtorecalculateQLimits))
 		{
 			ManxcatCentral.IterationtorecalculateQLimits = Hotsun.numit + Hotsun.QLimitscalculationInterval;
@@ -1575,12 +1570,9 @@ public class ManxcatCentral
 
 			Hotsun.IterationforQlimit = Hotsun.CurrentSolution.IterationCalculated;
 		}
-		return;
-
 	} // End launchQlimits
 
-	public static void CalculateChisqComponents(Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct, Desertwind FromSolution, double MultiplicationFactor)
-	{
+	public static void CalculateChisqComponents(Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct, Desertwind FromSolution, double MultiplicationFactor) throws MPIException {
 		int savecomponentflag = SALSAUtility.chisqcomponent;
 		SALSAUtility.chisqcomponent = 1;
 		double chisq1 = MultiplicationFactor * StandaAloneChisq(Calcfg, GlobalMatrixVectorProduct, FromSolution);
@@ -1600,8 +1592,7 @@ public class ManxcatCentral
 
 	} // End CalculateChisqComponents()
 
-	public static double StandaAloneChisq(Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct, Desertwind FromSolution)
-	{
+	public static double StandaAloneChisq(Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct, Desertwind FromSolution) throws MPIException {
 		double savechisq = Hotsun.zerocr;
 		Hotsun.zerocr = 0.0;
 		boolean SaveFullSecondDerivative = Hotsun.FullSecondDerivative;
@@ -1639,8 +1630,7 @@ public class ManxcatCentral
 
 	} // End standalone chisq calculation
 
-	public static void DoDerivTest(Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct)
-	{
+	public static void DoDerivTest(Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct) throws MPIException {
 		if (SALSAUtility.MPI_Size > 1)
 		{
 			return;
@@ -1788,15 +1778,14 @@ public class ManxcatCentral
 
 
     // Globalize distributed local copies with 2D Double
-	public static void MakeVectorGlobal(double[][] DistributedVector, double[][] GlobalVector)
-	{
+	public static void MakeVectorGlobal(double[][] DistributedVector, double[][] GlobalVector) throws MPIException {
 		if ((SALSAUtility.MPI_Size <= 1) || (!Hotsun.DecomposeParameters))
 		{
 			SALSABLAS.CopyVector(GlobalVector, DistributedVector, 0, Hotsun.Number_VectorParameters);
 		}
 		else
 		{
-			SALSABLAS.CopyVector(TogoDistributed2DDoubleVector.Marray, DistributedVector, 0, SALSAUtility.PointCount_Process);
+            TogoDistributed2DDoubleVector.copyToMArray(DistributedVector, SALSAUtility.PointCount_Process);
 
 			SALSAUtility.StartSubTimer(SALSAUtility.MPISENDRECEIVETiming);
 
@@ -1804,19 +1793,20 @@ public class ManxcatCentral
 			{
 				if (MPICommunicationSteps == SALSAUtility.MPI_Rank)
 				{
-					MPI2DDoubleVectorPacket.CopyMPI2DDoubleVectorPacket(FromAfar2DDoubleVector, TogoDistributed2DDoubleVector);
+                    // Note. arguments for copy are in correct order (from and to)
+                    // irrespective of their naming (Togo.. and From..), which may make you think they are in wrong order
+					MPI2DDoubleVectorPacket.copy(TogoDistributed2DDoubleVector, FromAfar2DDoubleVector);
 				}
                 // Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
                 FromAfar2DDoubleVector = SALSAUtility.mpiOps.broadcast(FromAfar2DDoubleVector, MPICommunicationSteps);
-				SALSABLAS.CopyVector(GlobalVector, FromAfar2DDoubleVector.Marray, FromAfar2DDoubleVector.FirstPoint, FromAfar2DDoubleVector.NumberofPoints);
+                FromAfar2DDoubleVector.copyMArrayTo(GlobalVector, FromAfar2DDoubleVector.getFirstPoint());
 			} // End loop over MPIrankcount
 			SALSAUtility.StopSubTimer(SALSAUtility.MPISENDRECEIVETiming);
 		}
 	} // End MakeVectorGlobal() 2D Double
 
 	//  Set up GLOBAL arrays Hotsun.diag and Hotsun.sqdginv
-	public static void SetupDiagonalScaling(Desertwind Solution)
-	{
+	public static void SetupDiagonalScaling(Desertwind Solution) throws MPIException {
 		if (!Hotsun.DecomposeParameters)
 		{
 			for (int LongIndex = 0; LongIndex < Hotsun.Number_VectorParameters; LongIndex++)
@@ -1896,14 +1886,14 @@ public class ManxcatCentral
                                 tmp = Math.abs(Solution.DiagonalofMatrix[LocalToProcessIndex][LocalVectorIndex][LocalVectorIndex]);
                             }
                         }
-                        TogoDiagVector.Marray[LocalToProcessIndex][LocalVectorIndex] = tmp;
+                        TogoDiagVector.setMArrayElementAt(LocalToProcessIndex,LocalVectorIndex,tmp);
                         if (Hotsun.FixedParameter[GlobalIndex][LocalVectorIndex])
                         {
-                            TogoSqDgInvVector.Marray[LocalToProcessIndex][LocalVectorIndex] = 0.0;
+                            TogoSqDgInvVector.setMArrayElementAt(LocalToProcessIndex,LocalVectorIndex, 0.0);
                         }
                         else
                         {
-                            TogoSqDgInvVector.Marray[LocalToProcessIndex][LocalVectorIndex] = 1.0 / Math.sqrt(tmp);
+                            TogoSqDgInvVector.setMArrayElementAt(LocalToProcessIndex,LocalVectorIndex, 1.0 / Math.sqrt(tmp));
                         }
                     }
                 }
@@ -1916,8 +1906,8 @@ public class ManxcatCentral
         // Convert into Global arrays
 		if (SALSAUtility.MPI_Size <= 1)
 		{ // No MPI
-			SALSABLAS.CopyVector(Hotsun.diag, TogoDiagVector.Marray, TogoDiagVector.FirstPoint, TogoDiagVector.NumberofPoints);
-			SALSABLAS.CopyVector(Hotsun.sqdginv, TogoSqDgInvVector.Marray, TogoSqDgInvVector.FirstPoint, TogoSqDgInvVector.NumberofPoints);
+            TogoDiagVector.copyMArrayTo(Hotsun.diag, TogoDiagVector.getFirstPoint());
+            TogoSqDgInvVector.copyMArrayTo(Hotsun.sqdginv, TogoSqDgInvVector.getFirstPoint());
 		}
 		else
 		{
@@ -1927,20 +1917,24 @@ public class ManxcatCentral
 
 				if (MPICommunicationSteps == SALSAUtility.MPI_Rank)
 				{
-					MPI2DDoubleVectorPacket.CopyMPI2DDoubleVectorPacket(FromAfar2DDoubleVector, TogoDiagVector);
+                    // Note. arguments for copy are in correct order (from and to)
+                    // irrespective of their naming (Togo.. and From..), which may make you think they are in wrong order
+					MPI2DDoubleVectorPacket.copy(TogoDiagVector, FromAfar2DDoubleVector);
 				}
 
                 // Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
                 FromAfar2DDoubleVector = SALSAUtility.mpiOps.broadcast(FromAfar2DDoubleVector, MPICommunicationSteps);
-				SALSABLAS.CopyVector(Hotsun.diag, FromAfar2DDoubleVector.Marray, FromAfar2DDoubleVector.FirstPoint, FromAfar2DDoubleVector.NumberofPoints);
+                FromAfar2DDoubleVector.copyMArrayTo(Hotsun.diag, FromAfar2DDoubleVector.getFirstPoint());
 
 				if (MPICommunicationSteps == SALSAUtility.MPI_Rank)
 				{
-					MPI2DDoubleVectorPacket.CopyMPI2DDoubleVectorPacket(FromAfar2DDoubleVector, TogoSqDgInvVector);
+                    // Note. arguments for copy are in correct order (from and to)
+                    // irrespective of their naming (Togo.. and From..), which may make you think they are in wrong order
+					MPI2DDoubleVectorPacket.copy(TogoSqDgInvVector, FromAfar2DDoubleVector);
 				}
                 // Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
                 FromAfar2DDoubleVector = SALSAUtility.mpiOps.broadcast(FromAfar2DDoubleVector, MPICommunicationSteps);
-				SALSABLAS.CopyVector(Hotsun.sqdginv, FromAfar2DDoubleVector.Marray, FromAfar2DDoubleVector.FirstPoint, FromAfar2DDoubleVector.NumberofPoints);
+                FromAfar2DDoubleVector.copyMArrayTo(Hotsun.sqdginv, FromAfar2DDoubleVector.getFirstPoint());
 				SALSAUtility.StopSubTimer(SALSAUtility.MPISENDRECEIVETiming);
 			} // End loop over MPIrankcount
 		}
@@ -2060,8 +2054,7 @@ public class ManxcatCentral
 
     } // End AddinMarquardtFactor
 
-	public static void SteepestDescentSolution(Desertwind Solution, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct)
-	{
+	public static void SteepestDescentSolution(Desertwind Solution, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct) throws MPIException {
 		if (!Hotsun.DecomposeParameters)
 		{ // Sequential Calculation of Steepest Descent
 			for (int LongIndex = 0; LongIndex < Hotsun.Number_VectorParameters; LongIndex++)
@@ -2117,8 +2110,7 @@ public class ManxcatCentral
 	//  Find xnorm
 	//  If method = 1 take existing xshift
 	//  If method = 2 first set xshift from Best - Current Solution
-	public static void Findxnorm(int method)
-	{
+	public static void Findxnorm(int method) throws MPIException {
 		if (!Hotsun.DecomposeParameters)
 		{
 			double localnorm = 0.0;
@@ -2229,8 +2221,7 @@ public class ManxcatCentral
 	} // End Findxnorm
 
 	// Even if diagonal scaling used in solver, this is not stored in DiagonalofMatrix or first
-	public static void FindPredictedChisqChange(Desertwind Solution, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct)
-	{
+	public static void FindPredictedChisqChange(Desertwind Solution, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct) throws MPIException {
 		// Calculate xnorm pred1 and pred2
 		Findxnorm(1);
 
@@ -2776,8 +2767,7 @@ public class ManxcatCentral
         return -1;
 	}
 
-	public static void ExistingCalcDeriv_LineSearch(double alpha, Desertwind SearchSolution, SearchStuff SearchPoint)
-	{ // Calculate value and derivative at a point where Calcfg has been called
+	public static void ExistingCalcDeriv_LineSearch(double alpha, Desertwind SearchSolution, SearchStuff SearchPoint) throws MPIException { // Calculate value and derivative at a point where Calcfg has been called
 
 		SearchPoint.alpha = alpha;
 		SearchPoint.value = SearchSolution.Chisquared;
@@ -2785,8 +2775,7 @@ public class ManxcatCentral
 		SearchPoint.deriv = -2.0 * SALSABLAS.VectorScalarProduct(SearchPoint.Solution.first, Hotsun.EndingLinePositionSolution.xshift);
 	} // End CalcDeriv_LineSearch at a point where Calcfg has been called
 
-	public static void NewCalcDeriv_LineSearch(double alpha, Desertwind NewSolution, SearchStuff SearchPoint, Hotsun.CalcfgSignature Calcfg)
-	{ // Calculate value and derivative at a point where Calcfg has NOT been called
+	public static void NewCalcDeriv_LineSearch(double alpha, Desertwind NewSolution, SearchStuff SearchPoint, Hotsun.CalcfgSignature Calcfg) throws MPIException { // Calculate value and derivative at a point where Calcfg has NOT been called
 
 		SearchPoint.Solution = NewSolution;
 
@@ -2864,8 +2853,7 @@ public class ManxcatCentral
 
 	} // End SaveBestSolution()
 
-	public static void RestoreBestSolution(Desertwind CurrentSolution, Desertwind BestSolution)
-	{
+	public static void RestoreBestSolution(Desertwind CurrentSolution, Desertwind BestSolution) throws MPIException {
 		CopySolution(CurrentSolution, BestSolution);
 		Hotsun.zerocr = Hotsun.zeromn;
 

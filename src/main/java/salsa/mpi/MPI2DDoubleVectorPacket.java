@@ -17,7 +17,7 @@ public class MPI2DDoubleVectorPacket{
     private static final int mArrayOffset = 2*Integer.BYTES;
 
     ByteBuffer buffer;
-    private int extent;
+    int extent;
     private int vectorDimension;
 
     public MPI2DDoubleVectorPacket(int firstPoint, int numberOfPoints, int maxLength, int vectorDimension) throws MPIException {
@@ -29,28 +29,30 @@ public class MPI2DDoubleVectorPacket{
 
     }
 
-    public void copyToMArray(double[][] from){
-        if (from == null || from.length != buffer.getInt(numberOfPointsOffset) || from[0].length != vectorDimension){
+    public void copyToMArray(double[][] from, int numberOfPoints){
+        if (from == null || numberOfPoints != buffer.getInt(numberOfPointsOffset) || from[0].length != vectorDimension){
             SALSAUtility.printAndThrowRuntimeException("Error while copying double[][] to mArray");
+            return;
         }
         buffer.position(mArrayOffset).limit(extent);
         DoubleBuffer dbuff = buffer.asDoubleBuffer();
-        // TODO - array to buffer copy - see if it's faster if HJ is used to copy elements individually in parallel than the sequential bulk method used here
         for (double[] aFrom : from) {
             dbuff.put(aFrom);
         }
         buffer.flip();
     }
 
-    public double[][] getMArray(){
+    public void copyMArrayTo(double[][] to, int startIndex){
         int numberOfPoints = buffer.getInt(numberOfPointsOffset);
-        double [][] array = new double[numberOfPoints][vectorDimension];
         buffer.position(mArrayOffset).limit(extent);
         DoubleBuffer dbuff = buffer.asDoubleBuffer();
         for (int i = 0; i < numberOfPoints; i++) {
-           dbuff.get(array[i],0,vectorDimension);
+            dbuff.get(to[i+startIndex],0,vectorDimension);
         }
-        return array;
+    }
+
+    public void setMArrayElementAt(int i, int j, double value){
+        buffer.putDouble(i*vectorDimension+j, value);
     }
 
     public static void copy(MPI2DDoubleVectorPacket from, MPI2DDoubleVectorPacket to){
@@ -62,7 +64,7 @@ public class MPI2DDoubleVectorPacket{
         from.buffer.flip();
     }
 
-
-
-
+    public int getFirstPoint(){
+        return buffer.getInt(firstPointOffset);
+    }
 }

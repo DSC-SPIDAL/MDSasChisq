@@ -204,12 +204,12 @@ public class MpiOps {
         comm.bcast(values, values.length, MPI.BOOLEAN, root);
     }
 
-    public MPIPacket broadcast(MPIPacket value, int root) throws MPIException{
+    public MPI2DDoubleVectorPacket broadcast(MPI2DDoubleVectorPacket value, int root) throws MPIException{
         return broadcast(value, root, comm);
     }
 
-    public MPIPacket broadcast(MPIPacket value, int root, Intracomm comm) throws MPIException{
-        comm.bcast(value.getBuffer(), value.getExtent(), MPI.BYTE, root);
+    public MPI2DDoubleVectorPacket broadcast(MPI2DDoubleVectorPacket value, int root, Intracomm comm) throws MPIException{
+        comm.bcast(value.buffer, value.extent, MPI.BYTE, root);
         return value;
     }
 
@@ -227,69 +227,6 @@ public class MpiOps {
         comm.sendRecv(sendValue, sendExtent, MPI.DOUBLE, dest, destTag, recvBuff, recvExtent, MPI.DOUBLE, src, srcTag);
         return recvBuff;
     }
-
-    public MPISecPacket sendReceive(MPISecPacket sendValue, int dest, int destTag, int src, int srcTag) throws MPIException {
-        return sendReceive(sendValue, dest, destTag, src, srcTag, comm);
-    }
-
-    public MPISecPacket sendReceive(MPISecPacket sendValue, int dest, int destTag, int src, int srcTag, Intracomm comm) throws MPIException {
-        int sendExtent = sendValue.getExtent();
-        intBuff.put(0, sendExtent);
-        comm.sendRecv(intBuff,1,MPI.INT,dest,destTag,intBuff2,1,MPI.INT,src,srcTag);
-        int recvExtent = intBuff2.get(0);
-        ByteBuffer recvBuff = MPI.newByteBuffer(recvExtent);
-        comm.sendRecv(sendValue.getBuffer(), sendExtent, MPI.BYTE, dest, destTag, recvBuff, recvExtent, MPI.BYTE, src,
-                srcTag);
-        return MPISecPacket.loadMPISecPacket(recvBuff, recvExtent);
-    }
-
-    public MPIPacket sendReceive(MPIPacket sendValue, int dest, int destTag, int src, int srcTag, MPIPacket.Type type) throws MPIException {
-        return sendReceive(sendValue, dest, destTag, src, srcTag,type, comm);
-    }
-
-    public MPIPacket sendReceive(MPIPacket sendValue, int dest, int destTag, int src, int srcTag, MPIPacket.Type type, Intracomm comm) throws MPIException {
-        int sendExtent = sendValue.getExtent();
-        intBuff.put(0, sendExtent);
-        comm.sendRecv(intBuff,1,MPI.INT,dest,destTag,intBuff2,1,MPI.INT,src,srcTag);
-        int recvExtent = intBuff2.get(0);
-        ByteBuffer recvBuff = MPI.newByteBuffer(recvExtent);
-        comm.sendRecv(sendValue.getBuffer(), sendExtent, MPI.BYTE, dest, destTag, recvBuff, recvExtent, MPI.BYTE, src,
-                srcTag);
-        return (type == MPIPacket.Type.Integer) ? MPIPacket.loadIntegerPacket(recvBuff) : MPIPacket.loadDoublePacket(recvBuff);
-    }
-
-
-    /* Send */
-    public void send(MPIPacket value, int dest, int tag) throws MPIException {
-        send(value, dest, tag, comm);
-    }
-
-    public void send(MPIPacket value, int dest, int tag, Intracomm comm) throws MPIException {
-        int extent = value.getExtent();
-        intBuff.put(0, extent);
-        comm.send(intBuff,1,MPI.INT,dest,tag);
-        comm.send(value.getBuffer(), value.getExtent(), MPI.BYTE, dest, tag);
-    }
-
-
-    /* Receive */
-    public MPIPacket receive(int src, int tag, MPIPacket.Type type) throws MPIException {
-        if (type == MPIPacket.Type.Integer) {
-            return MPIPacket.loadIntegerPacket(receive(src, tag, comm));
-        } else if (type == MPIPacket.Type.Double){
-            return MPIPacket.loadDoublePacket(receive(src, tag, comm));
-        }
-        throw new UnsupportedOperationException(ERR_RECV_UNSUPPORTED_MPIPACKET);
-    }
-
-    private ByteBuffer receive(int src, int tag, Intracomm comm) throws MPIException {
-        comm.recv(intBuff,1,MPI.INT,src,tag);
-        int extent = intBuff.get(0);
-        ByteBuffer buffer = MPI.newByteBuffer(extent);
-        comm.recv(buffer, extent, MPI.BYTE, src, tag);
-        return buffer;
-    }
-
 
     /* Barrier */
     public void barrier() throws MPIException {
