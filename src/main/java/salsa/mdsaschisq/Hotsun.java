@@ -1,27 +1,29 @@
 package salsa.mdsaschisq;
 
+import mpi.MPIException;
+
 public class Hotsun
 {
 
 	/*  Delegate Functions needed for each application */
 	public static interface CalcfgSignature
 	{
-		boolean invoke(Desertwind Solution);
+		boolean invoke(Desertwind Solution) throws MPIException;
 	}
 
 	public static interface InitializeParametersSignature
 	{
-		void invoke(Desertwind Solution, int CountStartingPoints);
+		void invoke(Desertwind Solution, int CountStartingPoints) throws MPIException;
 	}
 
 	public static interface IntializeSignature
 	{
-		void invoke();
+		void invoke() throws MPIException;
 	}
 
 	public static interface SolveMatrixSignature
 	{
-		boolean invoke(double[][] Answer, Desertwind Solution);
+		boolean invoke(double[][] Answer, Desertwind Solution) throws MPIException;
 	}
 
 	public static interface WriteSolutionSignature
@@ -31,7 +33,7 @@ public class Hotsun
 
 	public static interface FindQlimitsSignature
 	{
-		void invoke(Desertwind Solution, tangible.RefObject<Double> Qhigh, tangible.RefObject<Double> Qlow, tangible.RefObject<Integer> ReasontoStop1, tangible.RefObject<Integer> ReasontoStop2);
+		void invoke(Desertwind Solution, tangible.RefObject<Double> Qhigh, tangible.RefObject<Double> Qlow, tangible.RefObject<Integer> ReasontoStop1, tangible.RefObject<Integer> ReasontoStop2) throws MPIException;
 	}
 
 	public static interface GlobalMatrixVectorProductSignature
@@ -41,7 +43,7 @@ public class Hotsun
 
 	public static interface SequelSignature
 	{
-		void invoke();
+		void invoke() throws MPIException;
 	}
 
 
