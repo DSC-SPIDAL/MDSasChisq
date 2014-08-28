@@ -308,7 +308,6 @@ public class ManxcatMDS {
                             Histmax) + " Binsize " + String.format("%.4E",
                             BinSize) + " #Counts with under/overflow\n" + histogramcounts);
         }
-        return;
 
     } //  End SetupChisq
 

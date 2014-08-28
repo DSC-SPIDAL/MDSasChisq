@@ -68,7 +68,6 @@ public class RotateManxcatMDS {
         Hotsun.ndata = SALSAUtility.PointCount_Global * PointVectorDimension;
         Hotsun.ParameterVectorDimension = 1;
         GenericManxcat.SetupGenericManxcat();
-        return;
 
     } // End SetupHotsunforMDS
 
@@ -234,7 +233,6 @@ public class RotateManxcatMDS {
             for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++) {
                 int OriginalIndex = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex];
                 RotationPointProperties[OriginalIndex].x = fudgex * SALSAUtility.GlobalPointProperties[OriginalIndex].x;
-                ;
                 RotationPointProperties[OriginalIndex].y = fudgey * SALSAUtility.GlobalPointProperties[OriginalIndex].y;
                 RotationPointProperties[OriginalIndex].z = fudgez * SALSAUtility.GlobalPointProperties[OriginalIndex].z;
                 RotationPointProperties[OriginalIndex].valuesset = SALSAUtility.GlobalPointProperties[OriginalIndex].valuesset;
@@ -244,7 +242,6 @@ public class RotateManxcatMDS {
         //  Set up operational data
         FirstData = new double[SALSAUtility.PointCount_Global][]; // Initial point data
         SecondData = new double[SALSAUtility.PointCount_Global][]; // Second point data
-        ;
         FirstMean = new double[PointVectorDimension]; // Mean of initial point data
         SecondMean = new double[PointVectorDimension];
         for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++) {
@@ -555,10 +552,7 @@ public class RotateManxcatMDS {
 
     public static void InitializeParameters(Desertwind Solution, int CountStartingPoints) throws MPIException {
         // Inversion
-        InvertSolution = false;
-        if ((CountStartingPoints / 2) * 2 != CountStartingPoints) {
-            InvertSolution = true;
-        }
+        InvertSolution = (CountStartingPoints / 2) * 2 != CountStartingPoints;
 
         for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < PointVectorDimension; LocalVectorIndex1++) {
             for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < PointVectorDimension; LocalVectorIndex2++) {
@@ -629,7 +623,6 @@ public class RotateManxcatMDS {
         /* Sequel of RotateManxcatMDS work */
 
         // At the moment do nothing.
-        return;
     }
 
     public static double CalculateScale(double InputParm) {

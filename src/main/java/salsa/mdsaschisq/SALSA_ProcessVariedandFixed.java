@@ -1,6 +1,7 @@
 package salsa.mdsaschisq;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 public class SALSA_ProcessVariedandFixed
 {
@@ -548,9 +549,8 @@ public class SALSA_ProcessVariedandFixed
                                     " Number of Varied Points " + SALSAUtility.NumberVariedPoints + " Fixed Points "
                                             + SALSAUtility.NumberFixedPoints + " Not Used " + NotUsed);
 		}
-		return;
 
-	} // End setupFixedandVaried()
+    } // End setupFixedandVaried()
 
 	public static void RedistributePoints()
 	{ //  Redistribute Points if needed for Load Balancing
@@ -822,8 +822,7 @@ public class SALSA_ProcessVariedandFixed
 				newlabel = "Undefined Family2";
 			}
 			UsedPointFileProperties.FamilyName2 = newlabel;
-			return;
-		}
+        }
 
 	} // End SetLabelsfromFile
 
@@ -970,7 +969,8 @@ public class SALSA_ProcessVariedandFixed
 			calltype = "Fixed";
 		}
 		NumberinVariedorFixedPointList.argValue = 0;
-		String[] ItemsinToDecode = ToDecode.split(java.util.regex.Pattern.quote(new char[] {','}.toString()), -1);
+        Pattern pattern = Pattern.compile("[,]");
+		String[] ItemsinToDecode = pattern.split(ToDecode);
 		if (ItemsinToDecode.length <= 0)
 		{
 			SALSAUtility.printAndThrowRuntimeException("No " + calltype + " Points Selected for Extraction with string " + ToDecode);

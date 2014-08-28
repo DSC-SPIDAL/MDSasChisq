@@ -505,12 +505,7 @@ public class ManxcatCentral
 
 						Hotsun.UseDiagonalScaling = Hotsun.UseDiagonalScalinginSolvers;
 
-						Hotsun.FullSecondDerivative = false;
-
-						if (config.FullSecondDerivativeOption == 1)
-						{
-							Hotsun.FullSecondDerivative = true;
-						}
+                        Hotsun.FullSecondDerivative = config.FullSecondDerivativeOption == 1;
 
 						if (Hotsun.UseDiagonalScaling)
 						{
@@ -1541,12 +1536,8 @@ public class ManxcatCentral
 		if ((Hotsun.numit == 0) || (Hotsun.numit >= ManxcatCentral.IterationtorecalculateQLimits))
 		{
 			ManxcatCentral.IterationtorecalculateQLimits = Hotsun.numit + Hotsun.QLimitscalculationInterval;
-			Hotsun.FullSecondDerivative = false;
 
-			if (ManxcatCentral.config.FullSecondDerivativeOption == 1)
-			{
-				Hotsun.FullSecondDerivative = true;
-			}
+            Hotsun.FullSecondDerivative = ManxcatCentral.config.FullSecondDerivativeOption == 1;
 
 			Hotsun.UseDiagonalScaling = Hotsun.UseDiagonalScalinginSolvers;
 
@@ -1602,11 +1593,7 @@ public class ManxcatCentral
 		boolean SaveAddMarquardtQDynamically = Hotsun.AddMarquardtQDynamically;
 		Hotsun.AddMarquardtQDynamically = false;
 		boolean saveCalcFixedCrossFixed = SALSAUtility.CalcFixedCrossFixed;
-		SALSAUtility.CalcFixedCrossFixed = true;
-		if (SALSAUtility.StoredDistanceOption == 3)
-		{
-			SALSAUtility.CalcFixedCrossFixed = false;
-		}
+        SALSAUtility.CalcFixedCrossFixed = SALSAUtility.StoredDistanceOption != 3;
 
 		ZeroSolution(Hotsun.SearchSolution1);
 		int Numberparms = Hotsun.Number_VectorParameters;
@@ -2849,9 +2836,8 @@ public class ManxcatCentral
 		CopySolution(BestSolution, CurrentSolution);
 		Hotsun.zeromn = Hotsun.zerocr;
 		Hotsun.Qbest = Hotsun.Q;
-		return;
 
-	} // End SaveBestSolution()
+    } // End SaveBestSolution()
 
 	public static void RestoreBestSolution(Desertwind CurrentSolution, Desertwind BestSolution) throws MPIException {
 		CopySolution(CurrentSolution, BestSolution);

@@ -388,7 +388,6 @@ public class ManxcatMDSDataProcessing {
                 }
             }
             CategoryIndex[PointIndex] = minlabel + CurrentFamily;
-            continue;
         }
 
         int[] FamilyCounts = new int[CountFamilies];
