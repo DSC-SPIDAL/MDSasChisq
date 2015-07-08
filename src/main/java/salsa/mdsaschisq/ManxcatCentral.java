@@ -57,7 +57,7 @@ public class ManxcatCentral
 	public static int IterationtorecalculateQLimits = 0; // Iteration after and including which calculating Q limits warranted
 	public static double LineFactorGuess = 1.0; // Initial Guess at Line Factor
 
-    static void main(String[] args) throws MPIException {
+    public static void main(String[] args) throws MPIException {
         Optional<CommandLine> parserResult = parseCommandLineArguments(args, programOptions);
         if (!parserResult.isPresent()) {
             System.out.println(ManxcatConstants.ERR_PROGRAM_ARGUMENTS_PARSING_FAILED);

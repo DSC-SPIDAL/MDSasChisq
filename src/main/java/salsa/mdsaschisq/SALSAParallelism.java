@@ -26,32 +26,33 @@ public class SALSAParallelism {
         SALSAUtility.MPI_Size = SALSAUtility.MPI_communicator.getSize(); // Number of MPI Processes
         SALSAUtility.mpiOps = new MpiOps(SALSAUtility.MPI_communicator);
         // Set up MPI
-        SALSAUtility.MPIperNodeCount = SALSAUtility.MPI_Size / SALSAUtility.NodeCount;
+        SALSAUtility.MPIperNodeCount =
+            SALSAUtility.MPI_Size / SALSAUtility.NodeCount;
         ManxcatCentral.config.MPIperNodeCount = SALSAUtility.MPIperNodeCount;
 
-        if ((SALSAUtility.MPIperNodeCount * SALSAUtility.NodeCount) != SALSAUtility.MPI_Size) {
+        if ((SALSAUtility.MPIperNodeCount * SALSAUtility.NodeCount) !=
+            SALSAUtility.MPI_Size) {
             SALSAUtility.printAndThrowRuntimeException(
-                    "Inconsistent MPI counts Nodes " + SALSAUtility.NodeCount + " Size " + SALSAUtility.MPI_Size);
+                "Inconsistent MPI counts Nodes " + SALSAUtility.NodeCount +
+                " Size " + SALSAUtility.MPI_Size);
         }
 
-        SALSAUtility.ParallelPattern = "Machine:" + MPI
-                .getProcessorName() + " " + SALSAUtility.ThreadCount + "x" + SALSAUtility.MPIperNodeCount + "x" +
-                SALSAUtility.NodeCount;
+        SALSAUtility.ParallelPattern = "Machine:" + MPI.getProcessorName() +
+                                       " " +
+                                       SALSAUtility.ThreadCount + "x" + SALSAUtility.MPIperNodeCount +
+                                       "x" +
+                                       SALSAUtility.NodeCount;
         if (SALSAUtility.MPI_Rank == 0) {
             // TODO - distance type - short
-            SALSAUtility.SALSAPrint(0,
-                                    " Distance Data Type: " + (ManxcatCentral.config.dataTypeSize == 2 ? "short" :
-                                            ManxcatCentral.config.dataTypeSize));
+            SALSAUtility.SALSAPrint(
+                0, " Distance Data Type: " +
+                   (ManxcatCentral.config.dataTypeSize == 2 ? "short"
+                                                            : ManxcatCentral.config.dataTypeSize));
             SALSAUtility.SALSAPrint(0, SALSAUtility.ParallelPattern);
         }
-
-        // Set up threads
-        initializeHabanero();
     }
 
     public static void TearDownParallelism() throws MPIException {
-        // Finalize threads
-        finalizeHabanero();
         // End MPI
         MPI.Finalize();
     }

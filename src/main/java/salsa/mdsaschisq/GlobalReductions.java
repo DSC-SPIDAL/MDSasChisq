@@ -4,6 +4,7 @@ import edu.rice.hj.api.SuspendableException;
 import mpi.MPI;
 import mpi.MPIException;
 
+import static edu.rice.hj.Module0.launchHabaneroApp;
 import static edu.rice.hj.Module1.forallChunked;
 
 public class GlobalReductions {
