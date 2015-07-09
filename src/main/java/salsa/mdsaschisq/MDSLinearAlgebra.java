@@ -10,7 +10,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static edu.rice.hj.Module0.forallChunked;
+import static edu.rice.hj.Module0.launchHabaneroApp;
+import static edu.rice.hj.Module1.forallChunked;
 
 public class MDSLinearAlgebra {
     public static double[][] DistributedNewIteratedVector = null; // LHS of Iteration Equation
@@ -257,26 +258,24 @@ public class MDSLinearAlgebra {
         int LocalVectorDimension = ScaledDistributedVector[0].length;
 
         // Parallel Setting
-        try {
-            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-                    {
-                        int indexlen = SALSAUtility.PointsperThread[threadIndex];
-                        int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-                        for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                            int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
-                            for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
-                                if (Hotsun.FixedParameter[GlobalIndex][LocalVectorIndex]) {
-                                    ScaledDistributedVector[LongIndex][LocalVectorIndex] = 0.0;
-                                } else {
-                                    ScaledDistributedVector[LongIndex][LocalVectorIndex] = OldDistributedVector[LongIndex][LocalVectorIndex] * GlobalScalingVector[GlobalIndex][LocalVectorIndex];
-                                }
+
+        launchHabaneroApp(() -> forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+                {
+                    int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                    int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                    for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                        int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
+                        for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
+                            if (Hotsun.FixedParameter[GlobalIndex][LocalVectorIndex]) {
+                                ScaledDistributedVector[LongIndex][LocalVectorIndex] = 0.0;
+                            } else {
+                                ScaledDistributedVector[LongIndex][LocalVectorIndex] = OldDistributedVector[LongIndex][LocalVectorIndex] * GlobalScalingVector[GlobalIndex][LocalVectorIndex];
                             }
                         }
                     }
-            );
-        } catch (SuspendableException e) {
-            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
-        }
+                }
+        ));
+
     }
 
 
@@ -319,104 +318,99 @@ public class MDSLinearAlgebra {
         GlobalReductions.FindDoubleSum FindTrace = new GlobalReductions.FindDoubleSum(SALSAUtility.ThreadCount);
         GlobalReductions.FindDoubleMax FindNorm = new GlobalReductions.FindDoubleMax(SALSAUtility.ThreadCount);
 
-        try {
-            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-                    {
-    //	Start Code to calculate Trace and Norm
-                        double LocalTrace = 0.0;
-                        double LocalNorm = 0.0;
-                        double WeightFunction1 = 0, WeightFunction2 = 0;
-                        int indexlen = SALSAUtility.PointsperThread[threadIndex];
-                        int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-                        for (int LongIndex1 = beginpoint; LongIndex1 < indexlen + beginpoint; LongIndex1++) {
-                            int GlobalIndex1 = LongIndex1 + SALSAUtility.PointStart_Process;
-                            for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < Hotsun.ParameterVectorDimension; LocalVectorIndex1++) {
-                                if (Hotsun.FixedParameter[GlobalIndex1][LocalVectorIndex1]) {
+        launchHabaneroApp(() -> forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+                {
+//	Start Code to calculate Trace and Norm
+                    double LocalTrace = 0.0;
+                    double LocalNorm = 0.0;
+                    double WeightFunction1 = 0, WeightFunction2 = 0;
+                    int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                    int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                    for (int LongIndex1 = beginpoint; LongIndex1 < indexlen + beginpoint; LongIndex1++) {
+                        int GlobalIndex1 = LongIndex1 + SALSAUtility.PointStart_Process;
+                        for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < Hotsun.ParameterVectorDimension; LocalVectorIndex1++) {
+                            if (Hotsun.FixedParameter[GlobalIndex1][LocalVectorIndex1]) {
+                                continue;
+                            }
+                            double RowNorm = 0.0;
+                            for (int GlobalIndex2 = 0; GlobalIndex2 < SALSAUtility.PointCount_Global; GlobalIndex2++) {
+                                tangible.RefObject<Double> tempRef_WeightFunction1 = new tangible.RefObject<>(
+                                        WeightFunction1);
+                                tangible.RefObject<Double> tempRef_WeightFunction2 = new tangible.RefObject<>(
+                                        WeightFunction2);
+                                boolean tempVar = !ManxcatMDS.SetChisqWeights(GlobalIndex1, GlobalIndex2,
+                                        tempRef_WeightFunction1, tempRef_WeightFunction2);
+                                WeightFunction1 = tempRef_WeightFunction1.argValue;
+                                WeightFunction2 = tempRef_WeightFunction2.argValue;
+                                if (tempVar) {
                                     continue;
                                 }
-                                double RowNorm = 0.0;
-                                for (int GlobalIndex2 = 0; GlobalIndex2 < SALSAUtility.PointCount_Global; GlobalIndex2++) {
-                                    tangible.RefObject<Double> tempRef_WeightFunction1 = new tangible.RefObject<>(
-                                            WeightFunction1);
-                                    tangible.RefObject<Double> tempRef_WeightFunction2 = new tangible.RefObject<>(
-                                            WeightFunction2);
-                                    boolean tempVar = !ManxcatMDS.SetChisqWeights(GlobalIndex1, GlobalIndex2,
-                                            tempRef_WeightFunction1, tempRef_WeightFunction2);
-                                    WeightFunction1 = tempRef_WeightFunction1.argValue;
-                                    WeightFunction2 = tempRef_WeightFunction2.argValue;
-                                    if (tempVar) {
+                                double DistanceFudge1 = 1.0;
+                                double DistanceFudge2 = 1.0;
+                                double SquaredDistance = 0.0;
+                                double funcl = 0.0;
+                                if (GlobalIndex1 != GlobalIndex2) {
+                                    for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < Hotsun.ParameterVectorDimension; LocalVectorIndex2++) {
+                                        double tmp1 = GlobalxVector[GlobalIndex1][LocalVectorIndex2] - GlobalxVector[GlobalIndex2][LocalVectorIndex2];
+                                        SquaredDistance += tmp1 * tmp1;
+                                    }
+                                    double ActualDistance = SquaredDistance;
+                                    if (ManxcatMDS.DistanceFormula == 1) {
+                                        SquaredDistance += ManxcatMDS.SQUAREMinimumDistance;
+                                        ActualDistance = Math.sqrt(SquaredDistance);
+                                        DistanceFudge1 = 0.5 / ActualDistance;
+                                        DistanceFudge2 = DistanceFudge1 / SquaredDistance;
+                                    }
+                                    funcl = WeightFunction1 - WeightFunction2 * ActualDistance;
+                                }
+                                for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < Hotsun.ParameterVectorDimension; LocalVectorIndex2++) {
+                                    if (Hotsun.FixedParameter[GlobalIndex2][LocalVectorIndex2]) {
                                         continue;
                                     }
-                                    double DistanceFudge1 = 1.0;
-                                    double DistanceFudge2 = 1.0;
-                                    double SquaredDistance = 0.0;
-                                    double funcl = 0.0;
-                                    if (GlobalIndex1 != GlobalIndex2) {
-                                        for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < Hotsun.ParameterVectorDimension; LocalVectorIndex2++) {
-                                            double tmp1 = GlobalxVector[GlobalIndex1][LocalVectorIndex2] - GlobalxVector[GlobalIndex2][LocalVectorIndex2];
-                                            SquaredDistance += tmp1 * tmp1;
+                                    double MatrixElement;
+                                    if (GlobalIndex1 == GlobalIndex2) {
+                                        MatrixElement = MatrixDiagonals[LongIndex1][LocalVectorIndex1][LocalVectorIndex2];
+                                        if (Hotsun.UseDiagonalScaling) {
+                                            MatrixElement *= Hotsun.sqdginv[GlobalIndex1][LocalVectorIndex1] * Hotsun.sqdginv[GlobalIndex1][LocalVectorIndex2];
                                         }
-                                        double ActualDistance = SquaredDistance;
-                                        if (ManxcatMDS.DistanceFormula == 1) {
-                                            SquaredDistance += ManxcatMDS.SQUAREMinimumDistance;
-                                            ActualDistance = Math.sqrt(SquaredDistance);
-                                            DistanceFudge1 = 0.5 / ActualDistance;
-                                            DistanceFudge2 = DistanceFudge1 / SquaredDistance;
+                                        if (Hotsun.AddMarquardtQDynamically && (LocalVectorIndex1 == LocalVectorIndex2)) {
+                                            MatrixElement += Hotsun.Q;
                                         }
-                                        funcl = WeightFunction1 - WeightFunction2 * ActualDistance;
+                                        if (LocalVectorIndex1 == LocalVectorIndex2) {
+                                            LocalTrace += Math.abs(MatrixElement);
+                                        }
+                                    } else {
+                                        double correction = 0.0;
+                                        double VectorCrossProduct = (GlobalxVector[GlobalIndex1][LocalVectorIndex1] - GlobalxVector[GlobalIndex2][LocalVectorIndex1]) * (GlobalxVector[GlobalIndex1][LocalVectorIndex2] - GlobalxVector[GlobalIndex2][LocalVectorIndex2]);
+                                        MatrixElement = -8.0 * VectorCrossProduct * DistanceFudge1 * DistanceFudge1 * WeightFunction2 * WeightFunction2;
+                                        if (Hotsun.FullSecondDerivative) {
+                                            if ((ManxcatMDS.DistanceFormula == 2) && (LocalVectorIndex1 == LocalVectorIndex2)) {
+                                                correction = 4.0 * funcl * WeightFunction2;
+                                            }
+                                            if ((ManxcatMDS.DistanceFormula == 1) && (LocalVectorIndex1 == LocalVectorIndex2)) {
+                                                correction = 4.0 * funcl * WeightFunction2 * DistanceFudge1;
+                                            }
+                                            if (ManxcatMDS.DistanceFormula == 1) {
+                                                correction += -4.0 * funcl * VectorCrossProduct * WeightFunction2 * DistanceFudge2;
+                                            }
+                                            MatrixElement += correction;
+                                        }
+                                        if (Hotsun.UseDiagonalScaling) {
+                                            MatrixElement *= Hotsun.sqdginv[GlobalIndex1][LocalVectorIndex1] * Hotsun.sqdginv[GlobalIndex2][LocalVectorIndex2];
+                                        }
                                     }
-                                    for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < Hotsun.ParameterVectorDimension; LocalVectorIndex2++) {
-                                        if (Hotsun.FixedParameter[GlobalIndex2][LocalVectorIndex2]) {
-                                            continue;
-                                        }
-                                        double MatrixElement;
-                                        if (GlobalIndex1 == GlobalIndex2) {
-                                            MatrixElement = MatrixDiagonals[LongIndex1][LocalVectorIndex1][LocalVectorIndex2];
-                                            if (Hotsun.UseDiagonalScaling) {
-                                                MatrixElement *= Hotsun.sqdginv[GlobalIndex1][LocalVectorIndex1] * Hotsun.sqdginv[GlobalIndex1][LocalVectorIndex2];
-                                            }
-                                            if (Hotsun.AddMarquardtQDynamically && (LocalVectorIndex1 == LocalVectorIndex2)) {
-                                                MatrixElement += Hotsun.Q;
-                                            }
-                                            if (LocalVectorIndex1 == LocalVectorIndex2) {
-                                                LocalTrace += Math.abs(MatrixElement);
-                                            }
-                                        } else {
-                                            double correction = 0.0;
-                                            double VectorCrossProduct = (GlobalxVector[GlobalIndex1][LocalVectorIndex1] - GlobalxVector[GlobalIndex2][LocalVectorIndex1]) * (GlobalxVector[GlobalIndex1][LocalVectorIndex2] - GlobalxVector[GlobalIndex2][LocalVectorIndex2]);
-                                            MatrixElement = -8.0 * VectorCrossProduct * DistanceFudge1 * DistanceFudge1 * WeightFunction2 * WeightFunction2;
-                                            if (Hotsun.FullSecondDerivative) {
-                                                if ((ManxcatMDS.DistanceFormula == 2) && (LocalVectorIndex1 == LocalVectorIndex2)) {
-                                                    correction = 4.0 * funcl * WeightFunction2;
-                                                }
-                                                if ((ManxcatMDS.DistanceFormula == 1) && (LocalVectorIndex1 == LocalVectorIndex2)) {
-                                                    correction = 4.0 * funcl * WeightFunction2 * DistanceFudge1;
-                                                }
-                                                if (ManxcatMDS.DistanceFormula == 1) {
-                                                    correction += -4.0 * funcl * VectorCrossProduct * WeightFunction2 * DistanceFudge2;
-                                                }
-                                                MatrixElement += correction;
-                                            }
-                                            if (Hotsun.UseDiagonalScaling) {
-                                                MatrixElement *= Hotsun.sqdginv[GlobalIndex1][LocalVectorIndex1] * Hotsun.sqdginv[GlobalIndex2][LocalVectorIndex2];
-                                            }
-                                        }
-                                        RowNorm += Math.abs(MatrixElement);
-                                    }
-                                }
-                                if (LocalNorm < RowNorm) {
-                                    LocalNorm = RowNorm;
+                                    RowNorm += Math.abs(MatrixElement);
                                 }
                             }
+                            if (LocalNorm < RowNorm) {
+                                LocalNorm = RowNorm;
+                            }
                         }
-                        FindTrace.addAPoint(threadIndex, LocalTrace);
-                        FindNorm.addAPoint(threadIndex, LocalNorm);
                     }
-            );
-        } catch (SuspendableException e) {
-            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
-        }
-
+                    FindTrace.addAPoint(threadIndex, LocalTrace);
+                    FindNorm.addAPoint(threadIndex, LocalNorm);
+                }
+        ));
         FindTrace.sumOverThreadsAndMPI();
         FindNorm.sumOverThreadsAndMPI();
 

@@ -28,6 +28,8 @@ public class MDSasChisqSection {
             Selectedvariedpointfile = p.getProperty("Selectedvariedpointfile","");
             Selectedfixedpointfile = p.getProperty("Selectedfixedpointfile","");
             RotationLabelsFileName = p.getProperty("RotationLabelsFileName","");
+            finalRotationFileName = p.getProperty("finalRotationFileName");
+            finalRotationPointCount = Integer.parseInt(p.getProperty("finalRotationPointCount"));
             CoordinateWriteFrequency = Integer.parseInt(p.getProperty("CoordinateWriteFrequency","0"));
             IndexFile = p.getProperty("IndexFile","");
             DataPoints = Integer.parseInt(p.getProperty("DataPoints","0"));
@@ -228,6 +230,8 @@ public class MDSasChisqSection {
     public String Selectedvariedpointfile;
     public String Selectedfixedpointfile;
     public String RotationLabelsFileName;
+    public String finalRotationFileName;
+    public int finalRotationPointCount;
     public int CoordinateWriteFrequency;
     public String IndexFile;
     public int DataPoints;

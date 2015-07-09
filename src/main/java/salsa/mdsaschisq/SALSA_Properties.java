@@ -175,6 +175,7 @@ public class SALSA_Properties {
                         }
                     }
                 } catch (RuntimeException e) {
+                    e.printStackTrace();
                     SALSAUtility.printAndThrowRuntimeException(
                             "Failed to load data array " + inputLineStr + " " + " " + NumberofPoints.argValue + " " +
                                     newLabelNumber + " " + e

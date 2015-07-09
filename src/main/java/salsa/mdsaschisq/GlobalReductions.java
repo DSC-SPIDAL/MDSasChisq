@@ -596,20 +596,17 @@ public class GlobalReductions {
 
         public final void sumOverThreadsAndMPI() throws MPIException {
             // Note - parallel for
-            try {
-                forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
-                    int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
-                    int indexlength = ParallelArrayRanges[threadIndex].getLength();
-                    for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
-                        TotalVectorSum[ArrayLoop] = 0.0;
-                        for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
-                            TotalVectorSum[ArrayLoop] += VectorSum[ThreadNo][ArrayLoop];
-                        }
+
+            launchHabaneroApp(() ->forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
+                int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
+                int indexlength = ParallelArrayRanges[threadIndex].getLength();
+                for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
+                    TotalVectorSum[ArrayLoop] = 0.0;
+                    for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
+                        TotalVectorSum[ArrayLoop] += VectorSum[ThreadNo][ArrayLoop];
                     }
-                });
-            } catch (SuspendableException e) {
-                SALSAUtility.printAndThrowRuntimeException(e.getMessage());
-            }
+                }
+            }));
 
             if (SALSAUtility.MPI_Size > 1) {
                 SALSAUtility.StartSubTimer(SALSAUtility.MPIREDUCETiming1);
@@ -671,21 +668,19 @@ public class GlobalReductions {
         public final void sumOverThreadsAndMPI() throws MPIException {
             SALSAUtility.StartSubTimer(SALSAUtility.ThreadTiming);
             // Note - parallel for
-            try {
-                forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
-                    int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
-                    int indexlength = ParallelArrayRanges[threadIndex].getLength();
-                    for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
-                        double tmp = 0.0;
-                        for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
-                            tmp += VectorSum[ThreadNo][ArrayLoop];
-                        }
-                        TotalVectorSum[ArrayLoop] = tmp;
+
+            launchHabaneroApp(() ->forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
+                int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
+                int indexlength = ParallelArrayRanges[threadIndex].getLength();
+                for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
+                    double tmp = 0.0;
+                    for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
+                        tmp += VectorSum[ThreadNo][ArrayLoop];
                     }
-                });
-            } catch (SuspendableException e) {
-                SALSAUtility.printAndThrowRuntimeException(e.getMessage());
-            }
+                    TotalVectorSum[ArrayLoop] = tmp;
+                }
+            }));
+
             SALSAUtility.StopSubTimer(SALSAUtility.ThreadTiming);
 
             if (SALSAUtility.MPI_Size > 1) {
@@ -762,20 +757,18 @@ public class GlobalReductions {
             }
 
             // Note - parallel for
-            try {
-                forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
-                    int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
-                    int indexlength = ParallelArrayRanges[threadIndex].getLength();
-                    for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
-                        TotalVectorSum[ArrayLoop] = 0.0;
-                        for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
-                            TotalVectorSum[ArrayLoop] += VectorSum[ThreadNo][ArrayLoop];
-                        }
+
+            launchHabaneroApp(() ->forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
+                int beginindex = ParallelArrayRanges[threadIndex].getStartIndex();
+                int indexlength = ParallelArrayRanges[threadIndex].getLength();
+                for (int ArrayLoop = beginindex; ArrayLoop < beginindex + indexlength; ArrayLoop++) {
+                    TotalVectorSum[ArrayLoop] = 0.0;
+                    for (int ThreadNo = 0; ThreadNo < NumberofThreads; ThreadNo++) {
+                        TotalVectorSum[ArrayLoop] += VectorSum[ThreadNo][ArrayLoop];
                     }
-                });
-            } catch (SuspendableException e) {
-                SALSAUtility.printAndThrowRuntimeException(e.getMessage());
-            }
+                }
+            }));
+
 
             if (SALSAUtility.MPI_Size > 1) {
                 SALSAUtility.StartSubTimer(SALSAUtility.MPIREDUCETiming1);

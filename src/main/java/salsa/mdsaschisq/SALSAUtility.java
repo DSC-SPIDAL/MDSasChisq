@@ -42,6 +42,7 @@ public class SALSAUtility {
     public static int PointCount_Global = 0; // Total number of used points summed over all threads and processes; same as Hotsun.Number_Vectors
     // This includes varied and fixed points but not ignored points-- it is = NumberFixedPoints + NumberVariedPoints
     // It can include deleted points if some removed
+    public static int PointCount_Transforming_File = 0;
     public static int PointCount_Process = 0; // Total number of points summed over all threads in this process
     public static int PointCount_Largest = 0; // Largest number of points in all processes
     public static int PointStart_Process = 0; //    First data point in this process

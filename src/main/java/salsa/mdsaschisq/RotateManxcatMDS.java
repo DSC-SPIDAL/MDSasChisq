@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static edu.rice.hj.Module0.launchHabaneroApp;
 import static edu.rice.hj.Module1.forallChunked;
 
 public class RotateManxcatMDS {
@@ -30,10 +31,13 @@ public class RotateManxcatMDS {
     // 3 Scale (Negative if Reflection in x-axis)
 
     public static SALSAFileProperties RotationFileProperties;
+    public static SALSAFileProperties finalRotationFileProperties;
     public static SALSADataPointProperties[] RotationPointProperties;
+    public static SALSADataPointProperties[] finalRotationPointProperties;
 
     public static double[][] FirstData; // Initial point data
     public static double[][] SecondData; // Second point data
+    public static double[][] ThirdData;
     public static double[] FirstMean; // Mean of initial point data
     public static double[] SecondMean; // Mean of initial point data
 
@@ -171,11 +175,16 @@ public class RotateManxcatMDS {
         // Now Read Points to be Rotated
         // Set up Values of Used Points from Rotation File
         int RotationFileType = -1;
+        int finalRotationFileType = -1;
         RotationFileProperties = new SALSAFileProperties();
         RotationPointProperties = new SALSADataPointProperties[SALSAUtility.NumberOriginalPoints];
+        finalRotationFileProperties = new SALSAFileProperties();
+        finalRotationPointProperties = new SALSADataPointProperties[SALSAUtility.PointCount_Transforming_File];
         if (RotationOption_GenerateTestInput == 0) {
             int RotationNumberofPoints = -1;
+            int finalRotationNumberofPoints = -1;
             String RotationFileName = ManxcatCentral.config.RotationLabelsFileName;
+            String finalRotationFileName = ManxcatCentral.config.finalRotationFileName;
             if (RotationFileName.contains("SIMPLE")) {
                 RotationFileProperties.LocalPointStartIndex = 1;
             }
@@ -187,6 +196,7 @@ public class RotateManxcatMDS {
                     RotationNumberofPoints);
             SALSA_Properties.ReadDataPointFile(RotationFileName, tempRef_RotationFileType, RotationFileProperties,
                     tempRef_RotationPointProperties, tempRef_RotationNumberofPoints);
+
             RotationFileType = tempRef_RotationFileType.argValue;
             RotationPointProperties = tempRef_RotationPointProperties.argValue;
             RotationNumberofPoints = tempRef_RotationNumberofPoints.argValue;
@@ -202,6 +212,31 @@ public class RotateManxcatMDS {
                 SALSAUtility.printAndThrowRuntimeException(" Points to rotate Not set");
 
             }
+
+
+            tangible.RefObject<Integer> tempRef_FinalRotationFileType = new tangible.RefObject<Integer>(finalRotationFileType);
+            tangible.RefObject<SALSADataPointProperties[]> tempRef_FinalRotationPointProperties = new tangible.RefObject<SALSADataPointProperties[]>(
+                    finalRotationPointProperties);
+            tangible.RefObject<Integer> tempRef_FinalRotationNumberofPoints = new tangible.RefObject<Integer>(
+                    finalRotationNumberofPoints);
+            SALSA_Properties.ReadDataPointFile(finalRotationFileName, tempRef_FinalRotationFileType,
+                    finalRotationFileProperties, tempRef_FinalRotationPointProperties, tempRef_FinalRotationNumberofPoints);
+            finalRotationFileType = tempRef_FinalRotationFileType.argValue;
+            finalRotationPointProperties = tempRef_FinalRotationPointProperties.argValue;
+            finalRotationNumberofPoints = tempRef_FinalRotationFileType.argValue;
+            if ((SALSAUtility.PointCount_Transforming_File < finalRotationNumberofPoints) || (finalRotationFileProperties.NumberOriginalPoints != SALSAUtility.PointCount_Transforming_File)) {
+                SALSAUtility.printAndThrowRuntimeException(
+                        " Inconsistent Rotation File Point Counts " + finalRotationNumberofPoints + " or " +
+                                RotationFileProperties.NumberOriginalPoints + " Expected is " + SALSAUtility
+                                .PointCount_Transforming_File
+                );
+
+            }
+            if (!SALSA_ProcessVariedandFixed.AreValuesSet(finalRotationPointProperties)) {
+                SALSAUtility.printAndThrowRuntimeException(" Points to rotate Not set");
+
+            }
+
         } // End normal case when we read file of points to be rotated
         else { // Generate file to be Rotated
             RotationFileType = InitializationFileType;
@@ -242,6 +277,7 @@ public class RotateManxcatMDS {
         //  Set up operational data
         FirstData = new double[SALSAUtility.PointCount_Global][]; // Initial point data
         SecondData = new double[SALSAUtility.PointCount_Global][]; // Second point data
+        ThirdData = new double[SALSAUtility.PointCount_Transforming_File][]; // Second point data
         FirstMean = new double[PointVectorDimension]; // Mean of initial point data
         SecondMean = new double[PointVectorDimension];
         for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++) {
@@ -249,12 +285,19 @@ public class RotateManxcatMDS {
             SecondData[GlobalPointIndex] = new double[PointVectorDimension];
         }
 
+        for (int i = 0; i < SALSAUtility.PointCount_Transforming_File; i++) {
+            ThirdData[i] = new double[PointVectorDimension];
+        }
+
         //  Process Data
         tangible.RefObject<Double> tempRef_FirstScale = new tangible.RefObject<Double>(FirstScale);
-        ProcessPointData(SALSAUtility.GlobalPointProperties, FirstData, FirstMean, tempRef_FirstScale);
+        ProcessPointData(SALSAUtility.GlobalPointProperties, FirstData, FirstMean,
+                tempRef_FirstScale, SALSAUtility.PointCount_Global);
         FirstScale = tempRef_FirstScale.argValue;
         tangible.RefObject<Double> tempRef_SecondScale = new tangible.RefObject<Double>(SecondScale);
-        ProcessPointData(RotationPointProperties, SecondData, SecondMean, tempRef_SecondScale);
+        ProcessPointData(RotationPointProperties, SecondData, SecondMean,
+                tempRef_SecondScale, SALSAUtility.PointCount_Global);
+        ProcessPointDataN(finalRotationPointProperties, ThirdData, SALSAUtility.PointCount_Transforming_File);
         SecondScale = tempRef_SecondScale.argValue;
         ScalePosition = 6;
         if (PointVectorDimension == 2) {
@@ -393,70 +436,67 @@ public class RotateManxcatMDS {
         GenericManxcat.ReInitializeAccum();
 
         //  Finally Loop over entries in Chisq
-        try {
-            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
-                        double[][] DerivativeFl = new double[PointVectorDimension][];
-                        for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                            DerivativeFl[LocalVectorIndex] = new double[Hotsun.npar];
-                        }
-                        int indexlen = SALSAUtility.PointsperThread[threadIndex];
-                        int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-                        for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint; DistributedPointIndex++) {
-                            int GlobalIndex = SALSAUtility.PointStart_Process + DistributedPointIndex;
-                            // Setting weight to Math.Sqrt(1.0/SALSAUtility.PointCount_Global)* Fudge Factor/FirstScale
-                            double weight = Math.sqrt(
-                                    1.0 / SALSAUtility.PointCount_Global) * ManxcatCentral.ChisqFunctionCalcMultiplier / FirstScale;
-                            // RotationOption =0 is simple least squares sum; RotationOption = 1 implies use fractional errors
-                            if (RotationOption == 1) {
-                                double size = 0.0;
-                                for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                                    size += FirstData[GlobalIndex][LocalVectorIndex] * FirstData[GlobalIndex][LocalVectorIndex];
-                                }
-                                size = Math.sqrt(size);
-                                size = Math.max(MinimumDistance, size);
-                                weight *= FirstScale / size;
-                            }
-                            double[] ValueFl = new double[PointVectorDimension];
-                            MatrixVectorProduct(ValueFl, Rotation, SecondData[GlobalIndex]);
-                            VectorSum(ValueFl, Translation, +1.0, ValueFl);
-                            VectorSum(ValueFl, ValueFl, -1.0, FirstData[GlobalIndex]);
-                            for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                                ValueFl[LocalVectorIndex] *= weight;
-                            }
-                            for (int ipar = 0; ipar < Hotsun.npar; ipar++) {
-                                if (ipar < PointVectorDimension) {
-                                    for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                                        DerivativeFl[LocalVectorIndex][ipar] = weight * DerivTranslation[ipar][LocalVectorIndex];
-                                    }
-                                } else {
-                                    double[] tempvector = new double[PointVectorDimension];
-                                    MatrixVectorProduct(tempvector, DerivRotationScale[ipar], SecondData[GlobalIndex]);
-                                    for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                                        DerivativeFl[LocalVectorIndex][ipar] = weight * tempvector[LocalVectorIndex];
-                                    }
-                                }
-                            }
-                            for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-                                GenericManxcat.Accum(threadIndex, ValueFl[LocalVectorIndex],
-                                        DerivativeFl[LocalVectorIndex]);
-                                if (GlobalIndex <= 0) {
-                                    String deriv = "";
-                                    for (int ipar = 0; ipar < Hotsun.npar; ipar++) {
-                                        deriv += String.format("%.4E", DerivativeFl[LocalVectorIndex][ipar]) + " ";
-                                    }
-                                    // SALSAUtility.SALSAPrint(0, "Val " +  ValueFl[LocalVectorIndex].ToString("f4") + " Drv " + deriv);
-                                    GenericManxcat.AccumDebug(GlobalIndex);
-                                }
-                                if (GlobalIndex > (SALSAUtility.PointCount_Global - 2)) {
-                                    GenericManxcat.AccumDebug(GlobalIndex);
-                                }
-                            }
-                        }
-                    }
-            );
-        } catch (SuspendableException e) {
-            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
-        }
+            launchHabaneroApp(() -> forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) -> {
+                         double[][] DerivativeFl = new double[PointVectorDimension][];
+                         for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                             DerivativeFl[LocalVectorIndex] = new double[Hotsun.npar];
+                         }
+                         int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                         int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                         for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint; DistributedPointIndex++) {
+                             int GlobalIndex = SALSAUtility.PointStart_Process + DistributedPointIndex;
+                             // Setting weight to Math.Sqrt(1.0/SALSAUtility.PointCount_Global)* Fudge Factor/FirstScale
+                             double weight = Math.sqrt(
+                                     1.0 / SALSAUtility.PointCount_Global) * ManxcatCentral.ChisqFunctionCalcMultiplier / FirstScale;
+                             // RotationOption =0 is simple least squares sum; RotationOption = 1 implies use fractional errors
+                             if (RotationOption == 1) {
+                                 double size = 0.0;
+                                 for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                                     size += FirstData[GlobalIndex][LocalVectorIndex] * FirstData[GlobalIndex][LocalVectorIndex];
+                                 }
+                                 size = Math.sqrt(size);
+                                 size = Math.max(MinimumDistance, size);
+                                 weight *= FirstScale / size;
+                             }
+                             double[] ValueFl = new double[PointVectorDimension];
+                             MatrixVectorProduct(ValueFl, Rotation, SecondData[GlobalIndex]);
+                             VectorSum(ValueFl, Translation, +1.0, ValueFl);
+                             VectorSum(ValueFl, ValueFl, -1.0, FirstData[GlobalIndex]);
+                             for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                                 ValueFl[LocalVectorIndex] *= weight;
+                             }
+                             for (int ipar = 0; ipar < Hotsun.npar; ipar++) {
+                                 if (ipar < PointVectorDimension) {
+                                     for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                                         DerivativeFl[LocalVectorIndex][ipar] = weight * DerivTranslation[ipar][LocalVectorIndex];
+                                     }
+                                 } else {
+                                     double[] tempvector = new double[PointVectorDimension];
+                                     MatrixVectorProduct(tempvector, DerivRotationScale[ipar], SecondData[GlobalIndex]);
+                                     for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                                         DerivativeFl[LocalVectorIndex][ipar] = weight * tempvector[LocalVectorIndex];
+                                     }
+                                 }
+                             }
+                             for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                                 GenericManxcat.Accum(threadIndex, ValueFl[LocalVectorIndex],
+                                         DerivativeFl[LocalVectorIndex]);
+                                 if (GlobalIndex <= 0) {
+                                     String deriv = "";
+                                     for (int ipar = 0; ipar < Hotsun.npar; ipar++) {
+                                         deriv += String.format("%.4E", DerivativeFl[LocalVectorIndex][ipar]) + " ";
+                                     }
+                                     // SALSAUtility.SALSAPrint(0, "Val " +  ValueFl[LocalVectorIndex].ToString("f4") + " Drv " + deriv);
+                                     GenericManxcat.AccumDebug(GlobalIndex);
+                                 }
+                                 if (GlobalIndex > (SALSAUtility.PointCount_Global - 2)) {
+                                     GenericManxcat.AccumDebug(GlobalIndex);
+                                 }
+                             }
+                         }
+                     }
+             ));
+
 
         // Add up MPI and Thread Contributions
         GenericManxcat.AddupChisqContributions(Solution);
@@ -724,16 +764,42 @@ public class RotateManxcatMDS {
             } catch (IOException e) {
                 SALSAUtility.printAndThrowRuntimeException("Failed writing data" + e);
             }
+
+            try (PrintWriter sw = new PrintWriter(
+                    Files.newBufferedWriter(Paths.get(fname + "full.txt"), Charset.defaultCharset()))) {
+
+                double[] FullTranslation = new double[PointVectorDimension];
+                double[][] FullRotation = new double[PointVectorDimension][PointVectorDimension];
+                SetupFinalTransforamation(param, FullTranslation, FullRotation);
+
+                for (int UsedDataPoint = 0; UsedDataPoint < SALSAUtility.PointCount_Transforming_File; UsedDataPoint++) {
+                    double[] Vector = new double[PointVectorDimension];
+                    MatrixVectorProduct(Vector, FullRotation, ThirdData[UsedDataPoint]);
+                    VectorSum(Vector, FullTranslation, +1.0, Vector);
+
+                    String Coordinates = "";
+                    int SingleCluster = 1;
+
+                    for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                        Coordinates += String.format("%.4E", Vector[LocalVectorIndex]) + "\t";
+                    }
+                    sw.println(String.format(UsedDataPoint + 1 + "\t" + Coordinates + SingleCluster));
+                }
+
+                sw.close();
+            } catch (IOException e) {
+                SALSAUtility.printAndThrowRuntimeException("Failed writing data" + e);
+            }
         }
     }
 
     // Scale is now sqrt of average squared distance from mean of distribution
     public static void ProcessPointData(SALSADataPointProperties[] DataFile, double[][] NewPointArray,
-                                        double[] PointMean, tangible.RefObject<Double> Scale) {
+                                        double[] PointMean, tangible.RefObject<Double> Scale, int count) {
         for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
             PointMean[LocalVectorIndex] = 0.0;
         }
-        for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++) {
+        for (int GlobalPointIndex = 0; GlobalPointIndex < count; GlobalPointIndex++) {
             int OriginalIndex = SALSAUtility.UsedPointtoOriginalPointMap[GlobalPointIndex];
             PointMean[0] += DataFile[OriginalIndex].x;
             PointMean[1] += DataFile[OriginalIndex].y;
@@ -746,11 +812,11 @@ public class RotateManxcatMDS {
             }
         }
         for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
-            PointMean[LocalVectorIndex] /= SALSAUtility.PointCount_Global;
+            PointMean[LocalVectorIndex] /= count;
         }
 
         Scale.argValue = 0.0;
-        for (int GlobalPointIndex = 0; GlobalPointIndex < SALSAUtility.PointCount_Global; GlobalPointIndex++) {
+        for (int GlobalPointIndex = 0; GlobalPointIndex < count; GlobalPointIndex++) {
             double tmp1 = 0.0;
             for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
                 double tmp2 = NewPointArray[GlobalPointIndex][LocalVectorIndex] - PointMean[LocalVectorIndex];
@@ -758,8 +824,20 @@ public class RotateManxcatMDS {
             }
             Scale.argValue += tmp1;
         }
-        Scale.argValue = Math.sqrt(Scale.argValue / SALSAUtility.PointCount_Global);
+        Scale.argValue = Math.sqrt(Scale.argValue / count);
 
+    } // End ProcessPointData
+
+    // Scale is now sqrt of average squared distance from mean of distribution
+    public static void ProcessPointDataN(SALSADataPointProperties[] DataFile, double[][] NewPointArray,
+                                        int count) {
+        for (int GlobalPointIndex = 0; GlobalPointIndex < count; GlobalPointIndex++) {
+            NewPointArray[GlobalPointIndex][0] = DataFile[GlobalPointIndex].x;
+            NewPointArray[GlobalPointIndex][1] = DataFile[GlobalPointIndex].y;
+            if (PointVectorDimension > 2) {
+                NewPointArray[GlobalPointIndex][2] = DataFile[GlobalPointIndex].z;
+            }
+        }
     } // End ProcessPointData
 
     public static void SetupFinalTransforamation(double[][] param, double[] Translation,
