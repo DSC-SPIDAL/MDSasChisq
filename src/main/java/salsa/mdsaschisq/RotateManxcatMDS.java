@@ -544,11 +544,13 @@ public class RotateManxcatMDS {
         RotateMatricies(Rtemp1, R2, R1);
         RotateMatricies(Rtemp2, R3, Rtemp1);
         RotateMatricies(RTotal, Cosmic, Rtemp2);
-        for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < PointVectorDimension; LocalVectorIndex1++) {
-            for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < PointVectorDimension; LocalVectorIndex2++) {
-                RTotal[LocalVectorIndex1][LocalVectorIndex2] *= Scaling;
-            }
-        }
+
+        // TODO: REMOVED scaling
+//        for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < PointVectorDimension; LocalVectorIndex1++) {
+//            for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < PointVectorDimension; LocalVectorIndex2++) {
+//                RTotal[LocalVectorIndex1][LocalVectorIndex2] *= Scaling;
+//            }
+//        }
 
     } // End SetTotalRotation(double[,] RTotal, double Scaling, double[,] Cosmic, double[,] R3, double[,] R2, double[,] R1)
 
