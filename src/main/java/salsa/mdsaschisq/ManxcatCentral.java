@@ -245,7 +245,7 @@ public class ManxcatCentral
                 ManxcatHtmlUtility.WriteHTML();
             }
         } catch (IOException e) {
-            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
+            throw new RuntimeException(e);
         } finally {
             SALSAParallelism.TearDownParallelism();
         }
