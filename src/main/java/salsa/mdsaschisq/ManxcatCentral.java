@@ -563,7 +563,8 @@ public class ManxcatCentral
 
 				if (wefailed)
 				{
-					break;
+                    System.out.println("We failed....");
+                    break;
 				}
 
 				// We only reach here if Matrix Solved Correctly by Steepest Descent or Marquardt
