@@ -1456,8 +1456,8 @@ public class ManxcatCentral
 		{
 			if (Hotsun.InitializationLoops > 1)
 			{
-				String firstcomment = "Best Initial Condition " + Hotsun.BestChisqLoop + " out of " + Hotsun
-                        .InitializationLoops;
+				String firstcomment = "\nBest Initial Condition " + Hotsun.BestChisqLoop + " out of " + Hotsun
+                        .InitializationLoops + " Best Chisq " + (ChisqPrintConstant * Hotsun.InitLoopChisq[Hotsun.BestChisqLoop]);
 				if (SALSAUtility.MPI_Rank == 0)
 				{
 					SALSAUtility.SALSAPrint(1, firstcomment);
