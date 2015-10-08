@@ -546,14 +546,13 @@ public class RotateManxcatMDS {
         RotateMatricies(RTotal, Cosmic, Rtemp2);
 
         // TODO: REMOVED scaling
-//        if (scale && Scaling < 0) {
+        if (scale && Scaling < 0) {
             for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < PointVectorDimension; LocalVectorIndex1++) {
                 for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < PointVectorDimension; LocalVectorIndex2++) {
                     RTotal[LocalVectorIndex1][LocalVectorIndex2] *= -1.0;
                 }
             }
-//        }
-
+        }
     }
 
     public static void SetTotalRotation(double[][] RTotal, double Scaling, double[][] Cosmic, double[][] R3,
@@ -565,13 +564,11 @@ public class RotateManxcatMDS {
         RotateMatricies(RTotal, Cosmic, Rtemp2);
 
         // TODO: REMOVED scaling
-//        if (Scaling < 0) {
-            for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < PointVectorDimension; LocalVectorIndex1++) {
-                for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < PointVectorDimension; LocalVectorIndex2++) {
-                    RTotal[LocalVectorIndex1][LocalVectorIndex2] *= -1.0;
-                }
+        for (int LocalVectorIndex1 = 0; LocalVectorIndex1 < PointVectorDimension; LocalVectorIndex1++) {
+            for (int LocalVectorIndex2 = 0; LocalVectorIndex2 < PointVectorDimension; LocalVectorIndex2++) {
+                RTotal[LocalVectorIndex1][LocalVectorIndex2] *= Scaling;
             }
-//        }
+        }
     } // End SetTotalRotation(double[,] RTotal, double Scaling, double[,] Cosmic, double[,] R3, double[,] R2, double[,] R1)
 
     public static void SetTotalRotation(double[][] RTotal, double Scaling, double[][] Cosmic, double[][] R1) {
@@ -888,7 +885,7 @@ public class RotateManxcatMDS {
             SetRotationMatrix(SubRotation[LocalRotationIndex], LocalRotationIndex,
                     param[PointVectorDimension + LocalRotationIndex][0], false);
         }
-        SetTotalRotation(Rotation, Scale, CurrentCosmicScaling, SubRotation[2], SubRotation[1], SubRotation[0]);
+        SetTotalRotation(Rotation, Scale, CurrentCosmicScaling, SubRotation[2], SubRotation[1], SubRotation[0], true);
 
     } // End SetupFinalTransformation
 
