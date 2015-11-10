@@ -5,10 +5,12 @@ import edu.rice.hj.api.SuspendableException;
 import mpi.MPIException;
 import salsa.configuration.sections.MDSasChisqSection;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static edu.rice.hj.Module0.launchHabaneroApp;
@@ -40,6 +42,8 @@ public class RotateManxcatMDS {
     public static double[][] ThirdData;
     public static double[] FirstMean; // Mean of initial point data
     public static double[] SecondMean; // Mean of initial point data
+    public static double[] PointWeights; // Intrinsic weight of each point
+    public static int WeightingOption = 0; // Weight Option
 
     public static int ScaleOption = 0;
     public static int RotationOption = 0;
@@ -324,6 +328,12 @@ public class RotateManxcatMDS {
             MinimumDistance = ManxcatCentral.config.MinimumDistance;
         }
 
+        //  Set up Weights
+        PointWeights = new double[SALSAUtility.PointCount_Global];
+        WeightingOption = ManxcatCentral.config.WeightingOption;
+        System.out.println("Weights are being set...........................................................................................................................................");
+        SetupWeightings(PointWeights);
+
         String firstM = "";
         String secondM = "";
         for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
@@ -335,6 +345,64 @@ public class RotateManxcatMDS {
                         SecondScale) + " First Mean " + firstM + " Second Mean " + secondM);
 
     } // End SetupRotateMDS()
+
+    public static void SetupWeightings(double[] WeightsasRead) {
+        if (WeightingOption == 0) {
+            for (int Globalindex = 0; Globalindex < SALSAUtility.PointCount_Global; Globalindex++) {
+                WeightsasRead[Globalindex] = 1.0;
+            }
+            return;
+        }
+
+        String WeightFileName = ManxcatCentral.config.WeightingFileName;
+
+        double sumofweights = 0.0;
+        int NumberofLines = 0;
+
+        Path weightFilePath = Paths.get(WeightFileName);
+        if (!Files.exists(weightFilePath)) {
+            SALSAUtility.printAndThrowRuntimeException("File " + WeightFileName + " does not exists.");
+        } else {
+            try (BufferedReader reader = Files.newBufferedReader(weightFilePath, Charset.defaultCharset())) {
+
+                // Read contents of a file, line by line, into a string
+                String inputLineStr;
+                while ((inputLineStr = reader.readLine()) != null) {
+                    inputLineStr = inputLineStr.trim();
+
+                    if (inputLineStr.length() < 1) {
+                        continue; //replace empty line
+                    }
+
+                    WeightsasRead[NumberofLines] = Double.parseDouble(inputLineStr);
+                    sumofweights += WeightsasRead[NumberofLines];
+                    ++NumberofLines;
+                }
+                reader.close();
+            } catch (IOException e) {
+                SALSAUtility.printAndThrowRuntimeException(
+                        "Failed to read data from " + WeightFileName + " " + e.toString());
+            }
+        }
+
+        if (NumberofLines != SALSAUtility.PointCount_Global) {
+            SALSAUtility.printAndThrowRuntimeException(
+                    "Incorrect Weight count read " + NumberofLines + " Expected " + SALSAUtility.PointCount_Global);
+        }
+        double AveragetoOne = NumberofLines / sumofweights;
+        double minweight = sumofweights;
+        double maxweight = 0.0;
+
+        for (int Globalindex = 0; Globalindex < SALSAUtility.PointCount_Global; Globalindex++) {
+            WeightsasRead[Globalindex] *= AveragetoOne;
+            minweight = Math.min(minweight, WeightsasRead[Globalindex]);
+            maxweight = Math.max(maxweight, WeightsasRead[Globalindex]);
+        }
+        SALSAUtility.SALSAPrint(1,
+                "File " + WeightFileName + " Non trivial Point Weights Maximum " + String.format("%.3f",
+                        maxweight) + " Minimum " + String.format("%.4E", minweight)
+        );
+    }
 
     public static boolean Calcfg(Desertwind Solution) throws MPIException { // call Accum with value and derivative for each point
 
@@ -446,8 +514,13 @@ public class RotateManxcatMDS {
                          for (int DistributedPointIndex = beginpoint; DistributedPointIndex < indexlen + beginpoint; DistributedPointIndex++) {
                              int GlobalIndex = SALSAUtility.PointStart_Process + DistributedPointIndex;
                              // Setting weight to Math.Sqrt(1.0/SALSAUtility.PointCount_Global)* Fudge Factor/FirstScale
-                             double weight = Math.sqrt(
-                                     1.0 / SALSAUtility.PointCount_Global) * ManxcatCentral.ChisqFunctionCalcMultiplier / FirstScale;
+                             double weight = 1;
+                             if (WeightingOption > 0) {
+                                weight = PointWeights[GlobalIndex];
+                             } else {
+                                 weight = Math.sqrt(
+                                         1.0 / SALSAUtility.PointCount_Global) * ManxcatCentral.ChisqFunctionCalcMultiplier / FirstScale;
+                             }
                              // RotationOption =0 is simple least squares sum; RotationOption = 1 implies use fractional errors
                              if (RotationOption == 1) {
                                  double size = 0.0;
@@ -456,13 +529,20 @@ public class RotateManxcatMDS {
                                  }
                                  size = Math.sqrt(size);
                                  size = Math.max(MinimumDistance, size);
-                                 weight *= FirstScale / size;
+                                 if (WeightingOption > 0) {
+                                     weight = PointWeights[GlobalIndex];
+                                 } else {
+                                     weight *= FirstScale / size;
+                                 }
                              }
                              double[] ValueFl = new double[PointVectorDimension];
                              MatrixVectorProduct(ValueFl, Rotation, SecondData[GlobalIndex]);
                              VectorSum(ValueFl, Translation, +1.0, ValueFl);
                              VectorSum(ValueFl, ValueFl, -1.0, FirstData[GlobalIndex]);
-                             for (int LocalVectorIndex = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
+                             for (int LocalVectorIndex
+
+
+                                  = 0; LocalVectorIndex < PointVectorDimension; LocalVectorIndex++) {
                                  ValueFl[LocalVectorIndex] *= weight;
                              }
                              for (int ipar = 0; ipar < Hotsun.npar; ipar++) {

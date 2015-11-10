@@ -207,6 +207,7 @@ public class ManxcatMDS {
         //  Set up Weights
         PointWeights = new double[SALSAUtility.PointCount_Global];
         WeightingOption = ManxcatCentral.config.WeightingOption;
+        System.out.println("Weights are being set...........................................................................................................................................");
         SetupWeightings(PointWeights);
 
         double DistancesNearEachOther = 0.0;
