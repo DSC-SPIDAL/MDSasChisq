@@ -12,6 +12,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.WatchEvent;
 
 import static edu.rice.hj.Module0.launchHabaneroApp;
 import static edu.rice.hj.Module1.forallChunked;
@@ -331,8 +332,13 @@ public class RotateManxcatMDS {
         //  Set up Weights
         PointWeights = new double[SALSAUtility.PointCount_Global];
         WeightingOption = ManxcatCentral.config.WeightingOption;
-        System.out.println("Weights are being set...........................................................................................................................................");
         SetupWeightings(PointWeights);
+        if (WeightingOption <= 0) {
+            System.out.println("************* Weights are not set ***************");
+        } else {
+            System.out.println("************** Weights are set ****************");
+
+        }
 
         String firstM = "";
         String secondM = "";
