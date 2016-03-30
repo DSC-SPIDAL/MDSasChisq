@@ -971,7 +971,7 @@ public class RotateManxcatMDS {
             SetRotationMatrix(SubRotation[LocalRotationIndex], LocalRotationIndex,
                     param[PointVectorDimension + LocalRotationIndex][0], false);
         }
-        SetTotalRotation(Rotation, Scale, CurrentCosmicScaling, SubRotation[2], SubRotation[1], SubRotation[0], true);
+        SetTotalRotation(Rotation, Scale, CurrentCosmicScaling, SubRotation[2], SubRotation[1], SubRotation[0]);
 
     } // End SetupFinalTransformation
 
