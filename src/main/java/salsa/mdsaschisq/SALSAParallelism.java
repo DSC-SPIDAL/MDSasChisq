@@ -1,5 +1,6 @@
 package salsa.mdsaschisq;
 
+import edu.indiana.soic.spidal.common.BinaryReader2D;
 import mpi.MPI;
 import mpi.MPIException;
 import salsa.common.DistanceReader;
@@ -135,12 +136,23 @@ public class SALSAParallelism {
         }
 
         if (Oneread) {
+            // Note. changing distance reader to BinaryReader2D
+/*
             SALSAUtility.PointDistances = DistanceReader.readRowRangeAsShort(fname, SALSAUtility.PointStart_Process,
                                                                              SALSAUtility.PointStart_Process +
                                                                                      SALSAUtility.PointCount_Process
                                                                                      - 1,
                                                                              colcount,
                                                                              SALSAUtility.endianness);
+*/
+
+            final edu.indiana.soic.spidal.common.Range rowRange =
+                new edu.indiana.soic.spidal.common.Range(
+                    SALSAUtility.PointStart_Process,
+                    SALSAUtility.PointStart_Process
+                    + SALSAUtility.PointCount_Process - 1);
+            SALSAUtility.PointDistances = BinaryReader2D.readRowRange(fname, rowRange, colcount, SALSAUtility.endianness, true, null, 1);
+
             int numberofcolumns = SALSAUtility.PointCount_Global;
             for (int GlobalPointIndex = SALSAUtility.PointStart_Process; GlobalPointIndex < SALSAUtility
                     .PointStart_Process + SALSAUtility.PointCount_Process; GlobalPointIndex++) {
@@ -216,8 +228,13 @@ public class SALSAParallelism {
                     rowtoread = SALSAUtility.ActualtoNaiveUsedOrder[rowtoread];
                 }
                 SALSAUtility.PointDistances[rowtostore] = new short[colcount];
-                buffer = DistanceReader.readRowRangeAsShort(fname, rowtoread, rowtoread, colcount,
-                                                            SALSAUtility.endianness);
+
+                // Note. changing distance reader to BinaryReader2D
+                /*buffer = DistanceReader.readRowRangeAsShort(fname, rowtoread, rowtoread, colcount,
+                                                            SALSAUtility.endianness);*/
+                buffer = BinaryReader2D.readRowRange(fname, new edu.indiana.soic
+                    .spidal.common.Range(rowtoread, rowtoread), colcount, SALSAUtility.endianness, true, null, 1);
+
                 // Store buffer in PointDistances
                 for (int colIndex = 0; colIndex < colsread; colIndex++) {
                     int coltostore = colIndex;
