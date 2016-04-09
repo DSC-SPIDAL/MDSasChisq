@@ -63,6 +63,8 @@ public class MDSLinearAlgebra {
         //  Set up Initial Power Vectors
         SetInitialPowerVector(DistributedNewIteratedVector);
         double AdotA = SALSABLAS.VectorScalarProduct(DistributedNewIteratedVector, DistributedNewIteratedVector);
+        // TODO - Debugs
+        SALSAUtility.debugPrintCameHere(" in PowerIterate() after VectorScalarProduct() -- 1");
 
         int somethingtodo = 0;
         int PowerIterationCount = 0;
@@ -74,9 +76,13 @@ public class MDSLinearAlgebra {
             double OldNorm = 1.0 / Math.sqrt(AdotA);
             SALSABLAS.LinearCombineVector(DistributedOldIteratedVector, OldNorm, DistributedNewIteratedVector, 0.0,
                     DistributedNewIteratedVector);
+            // TODO - Debugs
+            SALSAUtility.debugPrintCameHere(" in PowerIterate() after LinearCombineVector() -- 1");
 
             //  Make a Global Vector of DistributedOldIteratedVector
             ManxcatCentral.MakeVectorGlobal(DistributedOldIteratedVector, GlobalOldIteratedVector);
+            // TODO - Debugs
+            SALSAUtility.debugPrintCameHere(" in PowerIterate() after MakeVectorGlobal() -- 1");
 
             //  Form Chisq Matrix Product with Old Vector
             if (Hotsun.FullSecondDerivative) {
@@ -85,6 +91,8 @@ public class MDSLinearAlgebra {
             } else {
                 ManxcatMDS.GlobalMatrixVectorProduct(DistributedNewIteratedVector, Solution, false,
                         Hotsun.GlobalParameter, GlobalOldIteratedVector);
+                // TODO - Debugs
+                SALSAUtility.debugPrintCameHere(" in PowerIterate() after GlobalMatrixVectorProduct() -- 1");
             }
 
             //  Correct case MaxIndicator = 1
