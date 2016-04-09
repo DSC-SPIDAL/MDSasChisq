@@ -34,7 +34,8 @@ public class MPI2DDoubleVectorPacket{
             SALSAUtility.printAndThrowRuntimeException("Error while copying double[][] to mArray");
             return;
         }
-        buffer.position(mArrayOffset).limit(extent);
+//        buffer.position(mArrayOffset).limit(extent);
+        buffer.position(mArrayOffset);
         DoubleBuffer dbuff = buffer.asDoubleBuffer();
         for (double[] aFrom : from) {
             dbuff.put(aFrom);
@@ -44,7 +45,8 @@ public class MPI2DDoubleVectorPacket{
 
     public void copyMArrayTo(double[][] to, int startIndex){
         int numberOfPoints = buffer.getInt(numberOfPointsOffset);
-        buffer.position(mArrayOffset).limit(extent);
+//        buffer.position(mArrayOffset).limit(extent);
+        buffer.position(mArrayOffset);
         DoubleBuffer dbuff = buffer.asDoubleBuffer();
         for (int i = 0; i < numberOfPoints; i++) {
             dbuff.get(to[i+startIndex],0,vectorDimension);
