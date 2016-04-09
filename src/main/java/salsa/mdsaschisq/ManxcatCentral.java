@@ -354,7 +354,7 @@ public class ManxcatCentral
 			ZeroSolution(Hotsun.CurrentSolution);
 
 			// TODO - Debugs
-			SALSAUtility.debugPrintCameHere(" *** in ManxcatControl before MakeVectorGlobal Hotsun.GlobalParameter[100][1]=" + Hotsun.GlobalParameter[100][1] + " current[begin][1]=" + Hotsun.CurrentSolution.param[SALSAUtility.PointStart_Process][1]);
+			SALSAUtility.debugPrintCameHere(" *** in ManxcatControl before MakeVectorGlobal Hotsun.GlobalParameter[100][1]=" + Hotsun.GlobalParameter[100][1] + " current[13][1]=" + Hotsun.CurrentSolution.param[13][1],-2);
 			MakeVectorGlobal(Hotsun.CurrentSolution.param, Hotsun.GlobalParameter);
 			// TODO - Debugs
 			SALSAUtility.debugPrintCameHere(" *** in ManxcatControl after MakeVectorGlobal Hotsun.GlobalParameter[100][1]=" + Hotsun.GlobalParameter[100][1]);
