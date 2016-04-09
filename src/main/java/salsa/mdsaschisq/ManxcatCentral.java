@@ -352,7 +352,12 @@ public class ManxcatCentral
 			Hotsun.numit = 0;
 			InitializeParameters.invoke(Hotsun.CurrentSolution, Hotsun.InitializationLoopCount);
 			ZeroSolution(Hotsun.CurrentSolution);
+
+			// TODO - Debugs
+			SALSAUtility.debugPrintCameHere(" *** in ManxcatControl before MakeVectorGlobal Hotsun.GlobalParameter[100][1]=" + Hotsun.GlobalParameter[100][1]);
 			MakeVectorGlobal(Hotsun.CurrentSolution.param, Hotsun.GlobalParameter);
+			// TODO - Debugs
+			SALSAUtility.debugPrintCameHere(" *** in ManxcatControl after MakeVectorGlobal Hotsun.GlobalParameter[100][1]=" + Hotsun.GlobalParameter[100][1]);
 			GlobalParameterSet = true; // Set Indicator  that Global Parameters are set
 
 			SALSAUtility.StartSubTimer(2);
