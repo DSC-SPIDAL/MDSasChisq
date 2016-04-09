@@ -140,9 +140,12 @@ public class SALSAUtility {
     public static void debugPrintCameHere(String args){
         debugPrintCameHere(args, true);
     }
-    public static void debugPrintCameHere(String args, boolean onlyRankZero){
-        if (onlyRankZero && MPI_Rank != 0) return;
+    public static void debugPrintCameHere(String args, int onRank) {
+        if (onRank != -1 && MPI_Rank != onRank) return;
         System.out.println("***Rank=" + MPI_Rank + " Came here " + (!Strings.isNullOrEmpty(args) ? args : ""));
+    }
+    public static void debugPrintCameHere(String args, boolean onlyRankZero){
+        debugPrintCameHere(args, onlyRankZero ? 0 : -1);
     }
 
     public static void SetupDistanceWeights() {
