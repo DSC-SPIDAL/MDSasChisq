@@ -1911,7 +1911,16 @@ public class ManxcatCentral
 				{
                     // Note. arguments for copy are in correct order (from and to)
                     // irrespective of their naming (Togo.. and From..), which may make you think they are in wrong order
-					MPI2DDoubleVectorPacket.copy(TogoDiagVector, FromAfar2DDoubleVector);
+                    // TODO - Debugs
+                    System.out.println(
+                        "**TOGO Rank=" + SALSAUtility.MPI_Rank + " pointStart="
+                        + TogoDiagVector.getFirstPoint());
+
+                    MPI2DDoubleVectorPacket.copy(TogoDiagVector, FromAfar2DDoubleVector);
+
+                    System.out.println(
+                        "**FromAFar Rank=" + SALSAUtility.MPI_Rank + " pointStart="
+                        + FromAfar2DDoubleVector.getFirstPoint());
 				}
 
                 // Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
