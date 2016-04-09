@@ -368,7 +368,7 @@ public class ManxcatCentral
 
 			ManxcatCentral.launchQlimits(FindQlimits); // Find limits on Q
 			// TODO - Debugs
-			SALSAUtility.debugPrintCameHere(" after FindQlimits");
+			SALSAUtility.debugPrintCameHere(" after launchQlimits()");
 
 			Hotsun.ichsav = -1; // changed from = 1 in old Fortran which seems wrong
 			Hotsun.chsave[0] = Hotsun.zerocr; // Unnecessary
@@ -1549,7 +1549,10 @@ public class ManxcatCentral
 
 			if (Hotsun.UseDiagonalScaling)
 			{
+				// TODO - Debugs
+				SALSAUtility.debugPrintCameHere(" in launchQlimits() before SetupDiagonalScaling");
 				SetupDiagonalScaling(Hotsun.CurrentSolution);
+				SALSAUtility.debugPrintCameHere(" in launchQlimits() after SetupDiagonalScaling");
 			}
 			Hotsun.AddMarquardtQDynamically = false;
 
