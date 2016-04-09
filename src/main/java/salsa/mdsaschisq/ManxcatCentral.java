@@ -359,6 +359,9 @@ public class ManxcatCentral
 			violat = Calcfg.invoke(Hotsun.CurrentSolution);
 			SALSAUtility.StopSubTimer(2);
 
+			// TODO - Debugs
+			SALSAUtility.debugPrintCameHere(" after Calcfg.invoke() Hotsun.zerocr=" + Hotsun.zerocr);
+
 			Hotsun.tcalcfg = SALSAUtility.SubDurations[2];
 			Hotsun.tsolve = 0.0;
 			Hotsun.teigen = 0.0;
