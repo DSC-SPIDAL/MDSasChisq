@@ -136,7 +136,7 @@ public class MDSLinearAlgebra {
                 SALSAUtility.debugPrintCameHere(" in PowerIterate() before broadcast poweritrcount=" + PowerIterationCount + " somethingtodo=" + somethingtodo, 0);
 
                 // Note - MPI Call - Broadcast - int
-                SALSAUtility.mpiOps.broadcast(somethingtodo, 0);
+                somethingtodo = SALSAUtility.mpiOps.broadcast(somethingtodo, 0);
 
                 // TODO - Debugs
                 SALSAUtility.debugPrintCameHere(" in PowerIterate() after broadcast poweritrcount=" + PowerIterationCount + " somethingtodo=" + somethingtodo, 2);
