@@ -1101,6 +1101,10 @@ public class ManxcatMDS {
                                 Solution.param[LongIndex][LocalVectorIndex] = Double.parseDouble(
                                         split[LocalVectorIndex + 1]);
                             }
+
+                            // TODO - Debugs
+                            SALSAUtility.debugPrintCameHere(" in InitializeParameters Solution.param[beginpoint][1]=" + Solution.param[beginpoint][1], -2);
+
                         }
                         if (ManxcatCentral.config.InitializationOption == 2) {
                             if (!SALSAUtility.GlobalPointProperties[GlobalIndex].valuesset) {
