@@ -1364,7 +1364,7 @@ public class ManxcatMDS {
         ReasontoStop1.argValue = MDSLinearAlgebra.PowerIterate(Solution, 0, 0.0, tempRef_PowerEigenvalue1);
         PowerEigenvalue1 = tempRef_PowerEigenvalue1.argValue;
         // TODO - Debugs
-        SALSAUtility.debugPrintCameHere(" in FindQlimits() after PowerIterate() -- 1");
+        SALSAUtility.debugPrintCameHere(" in FindQlimits() after PowerIterate() -- 1",false);
 
         if (ReasontoStop1.argValue > 0) {
             Hotsun.TotalPowerIterations += ReasontoStop1.argValue;
