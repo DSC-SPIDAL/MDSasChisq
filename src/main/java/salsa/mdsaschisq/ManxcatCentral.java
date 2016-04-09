@@ -367,6 +367,8 @@ public class ManxcatCentral
 			Hotsun.EigenvalueIndicator2 = 0;
 
 			ManxcatCentral.launchQlimits(FindQlimits); // Find limits on Q
+			// TODO - Debugs
+			SALSAUtility.debugPrintCameHere(" after FindQlimits");
 
 			Hotsun.ichsav = -1; // changed from = 1 in old Fortran which seems wrong
 			Hotsun.chsave[0] = Hotsun.zerocr; // Unnecessary

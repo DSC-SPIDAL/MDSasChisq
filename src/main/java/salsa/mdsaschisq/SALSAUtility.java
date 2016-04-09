@@ -136,6 +136,11 @@ public class SALSAUtility {
     public static ByteOrder endianness;
 
 
+    // TODO - Debugs
+    public static void debugPrintCameHere(String args){
+        System.out.println("***Rank=" + MPI_Rank + " Came here " + (!Strings.isNullOrEmpty(args) ? args : ""));
+    }
+
     public static void SetupDistanceWeights() {
         // Set up Distance Weights
         if (!Strings.isNullOrEmpty(ManxcatCentral.config.DistanceWeightsCuts)) {
