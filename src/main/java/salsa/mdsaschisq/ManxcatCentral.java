@@ -1567,7 +1567,7 @@ public class ManxcatCentral
 			FindQlimits.invoke(Hotsun.CurrentSolution, tempRef_Qhigh, tempRef_Qlow, tempRef_EigenvalueIndicator1, tempRef_EigenvalueIndicator2);
 			// TODO - Debugs
 
-			SALSAUtility.debugPrintCameHere(" in launchQlimits() before FindQlimits.invoke()");
+			SALSAUtility.debugPrintCameHere(" in launchQlimits() after FindQlimits.invoke()");
 			Hotsun.Qhigh = tempRef_Qhigh.argValue;
 			Hotsun.Qlow = tempRef_Qlow.argValue;
 			Hotsun.EigenvalueIndicator1 = tempRef_EigenvalueIndicator1.argValue;
