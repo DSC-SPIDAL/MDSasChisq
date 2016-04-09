@@ -1341,8 +1341,14 @@ public class ManxcatMDS {
         } else {
             RefObject<Double> tempRef_ChisqMatrixTrace2 = new RefObject<Double>(Hotsun.ChisqMatrixTrace);
             RefObject<Double> tempRef_ChisqMatrixNorm2 = new RefObject<Double>(Hotsun.ChisqMatrixNorm);
+
+            // TODO - Debugs
+            SALSAUtility.debugPrintCameHere(" in FindQlimits() before FindTraceandNorm()");
             MDSLinearAlgebra.FindTraceandNorm(Solution.DiagonalofMatrix, Hotsun.GlobalParameter,
                     tempRef_ChisqMatrixTrace2, tempRef_ChisqMatrixNorm2);
+            // TODO - Debugs
+            SALSAUtility.debugPrintCameHere(" in FindQlimits() after FindTraceandNorm()");
+
             Hotsun.ChisqMatrixTrace = tempRef_ChisqMatrixTrace2.argValue;
             Hotsun.ChisqMatrixNorm = tempRef_ChisqMatrixNorm2.argValue;
         }
@@ -1352,9 +1358,13 @@ public class ManxcatMDS {
         double PowerEigenvalue1 = 0.0;
         ReasontoStop2.argValue = -3;
 
+        // TODO - Debugs
+        SALSAUtility.debugPrintCameHere(" in FindQlimits() before PowerIterate() -- 1");
         RefObject<Double> tempRef_PowerEigenvalue1 = new RefObject<Double>(PowerEigenvalue1);
         ReasontoStop1.argValue = MDSLinearAlgebra.PowerIterate(Solution, 0, 0.0, tempRef_PowerEigenvalue1);
         PowerEigenvalue1 = tempRef_PowerEigenvalue1.argValue;
+        // TODO - Debugs
+        SALSAUtility.debugPrintCameHere(" in FindQlimits() after PowerIterate() -- 1");
 
         if (ReasontoStop1.argValue > 0) {
             Hotsun.TotalPowerIterations += ReasontoStop1.argValue;
@@ -1370,10 +1380,14 @@ public class ManxcatMDS {
             return;
         }
 
+        // TODO - Debugs
+        SALSAUtility.debugPrintCameHere(" in FindQlimits() before PowerIterate() -- 2");
         double PowerEigenvalue2 = 0.0;
         RefObject<Double> tempRef_PowerEigenvalue2 = new RefObject<Double>(PowerEigenvalue2);
         ReasontoStop2.argValue = MDSLinearAlgebra.PowerIterate(Solution, 1, Qhigh.argValue, tempRef_PowerEigenvalue2);
         PowerEigenvalue2 = tempRef_PowerEigenvalue2.argValue;
+        // TODO - Debugs
+        SALSAUtility.debugPrintCameHere(" in FindQlimits() after PowerIterate() -- 2");
 
         if (ReasontoStop2.argValue > 0) {
             Hotsun.TotalPowerIterations += ReasontoStop2.argValue;
