@@ -77,7 +77,7 @@ public class MDSLinearAlgebra {
             SALSABLAS.LinearCombineVector(DistributedOldIteratedVector, OldNorm, DistributedNewIteratedVector, 0.0,
                     DistributedNewIteratedVector);
             // TODO - Debugs
-            SALSAUtility.debugPrintCameHere(" in PowerIterate() after LinearCombineVector() -- 1", 2);
+            SALSAUtility.debugPrintCameHere(" in PowerIterate() after LinearCombineVector() -- 1 poweritrcount=" + PowerIterationCount, 2);
 
             //  Make a Global Vector of DistributedOldIteratedVector
             ManxcatCentral.MakeVectorGlobal(DistributedOldIteratedVector, GlobalOldIteratedVector);
