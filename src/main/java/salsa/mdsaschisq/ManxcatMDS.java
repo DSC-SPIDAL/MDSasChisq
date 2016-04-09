@@ -1,7 +1,6 @@
 package salsa.mdsaschisq;
 
 import com.google.common.base.Strings;
-import edu.rice.hj.api.SuspendableException;
 import mpi.MPIException;
 import tangible.RefObject;
 
@@ -808,6 +807,12 @@ public class ManxcatMDS {
                              }
 
                              double funcl = WeightFunction1 - ActualDistance * WeightFunction2;
+                             // TODO - Debugs
+                             SALSAUtility.debugPrintCameHere(
+                                 "   in Calcfg.invoke() after func1 "
+                                 + "assignment thread="
+                                 + threadIndex + " row=" + LocalToProcessIndex1
+                                 + " col=" + GlobalIndex2 + " func1=" + funcl);
                              double symmetryweight = 1.0;
 
                              if (symmetrize) {
