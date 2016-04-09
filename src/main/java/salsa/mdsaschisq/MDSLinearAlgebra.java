@@ -136,10 +136,14 @@ public class MDSLinearAlgebra {
                 SALSAUtility.StopSubTimer(SALSAUtility.MPIBROADCASTTiming);
             }
             if (PowerIterationCount >= Hotsun.PowerIterationLimit) {
+                // TODO - Debugs
+                SALSAUtility.debugPrintCameHere(" in PowerIterate() about to exit 1 poweritrcount=" + PowerIterationCount);
                 somethingtodo = -2;
                 break;
             }
             if (somethingtodo == 0) {
+                // TODO - Debugs
+                SALSAUtility.debugPrintCameHere(" in PowerIterate() about to exit 2 poweritrcount=" + PowerIterationCount);
                 somethingtodo = PowerIterationCount;
                 break;
             }
