@@ -870,6 +870,9 @@ public class ManxcatMDS {
                              }
                          }
                      }
+
+                     // TODO - Debugs
+                     SALSAUtility.debugPrintCameHere("   in Calcfg.invoke() thread=" + threadIndex + " localzerocr=" + localzerocr, -2);
                      Findzerocr.addAPoint(threadIndex, localzerocr);
                  }
          ));
