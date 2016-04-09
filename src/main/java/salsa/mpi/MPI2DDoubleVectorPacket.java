@@ -68,12 +68,16 @@ public class MPI2DDoubleVectorPacket{
     }
 
     public static void copy(MPI2DDoubleVectorPacket from, MPI2DDoubleVectorPacket to){
-        int capacity = from.buffer.capacity();
+        from.buffer.position(0);
+        to.buffer.position(0);
+        to.buffer.put(from.buffer);
+
+        /*int capacity = from.buffer.capacity();
         from.buffer.position(0).limit(capacity);
         to.buffer.position(0).limit(capacity);
         to.buffer.put(from.buffer);
         to.buffer.flip();
-        from.buffer.flip();
+        from.buffer.flip();*/
     }
 
     public int getFirstPoint(){
