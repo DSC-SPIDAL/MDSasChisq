@@ -360,7 +360,7 @@ public class ManxcatCentral
 			SALSAUtility.StopSubTimer(2);
 
 			// TODO - Debugs
-			SALSAUtility.debugPrintCameHere(" after Calcfg.invoke() Hotsun.zerocr=" + Hotsun.zerocr);
+			SALSAUtility.debugPrintCameHere(" after Calcfg.invoke() Hotsun.zerocr=" + Hotsun.zerocr, -2);
 
 			Hotsun.tcalcfg = SALSAUtility.SubDurations[2];
 			Hotsun.tsolve = 0.0;
