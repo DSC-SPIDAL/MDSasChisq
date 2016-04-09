@@ -286,26 +286,22 @@ public class MDSLinearAlgebra {
         java.util.Random Randobject = new java.util.Random();
 
         // Parallel Setting
-        try {
-            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-                    {
-                        int indexlen = SALSAUtility.PointsperThread[threadIndex];
-                        int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-                        for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                            int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
-                            for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
-                                if (Hotsun.FixedParameter[GlobalIndex][LocalVectorIndex]) {
-                                    TobeSet[LongIndex][LocalVectorIndex] = 0.0;
-                                } else {
-                                    TobeSet[LongIndex][LocalVectorIndex] = Randobject.nextDouble();
-                                }
+        launchHabaneroApp(() ->forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+                {
+                    int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                    int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                    for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                        int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
+                        for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
+                            if (Hotsun.FixedParameter[GlobalIndex][LocalVectorIndex]) {
+                                TobeSet[LongIndex][LocalVectorIndex] = 0.0;
+                            } else {
+                                TobeSet[LongIndex][LocalVectorIndex] = Randobject.nextDouble();
                             }
                         }
                     }
-            );
-        } catch (SuspendableException e) {
-            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
-        }
+                }
+        ));
 
     } // // End SetInitialPowerVector(double[][] TobeSet)
 

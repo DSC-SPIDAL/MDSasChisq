@@ -133,20 +133,16 @@ public class SALSABLAS {
         }
 
         // Parallel Initialization
-        try {
-            forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
-            {
-                int indexlen = SALSAUtility.PointsperThread[threadIndex];
-                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
-                    for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
-                        TobeZeroed[LongIndex][LocalVectorIndex] = 0;
-                    }
+        launchHabaneroApp(() ->forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+        {
+            int indexlen = SALSAUtility.PointsperThread[threadIndex];
+            int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+            for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++) {
+                for (int LocalVectorIndex = 0; LocalVectorIndex < LocalVectorDimension; LocalVectorIndex++) {
+                    TobeZeroed[LongIndex][LocalVectorIndex] = 0;
                 }
-            });
-        } catch (SuspendableException e) {
-            SALSAUtility.printAndThrowRuntimeException(e.getMessage());
-        }
+            }
+        }));
     }
 
     // Set one dimensional Boolean Array

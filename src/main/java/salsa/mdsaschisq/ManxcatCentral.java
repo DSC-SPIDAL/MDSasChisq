@@ -2059,25 +2059,20 @@ public class ManxcatCentral
 		{
 
 			// Parallel Calculation of Steepest Descent
-            try {
-                forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            launchHabaneroApp(() ->forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
                 {
-                    int indexlen = SALSAUtility.PointsperThread[threadIndex];
-                    int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-                    for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
+                    int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
+                    for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
                     {
-                        int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
-                        for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
-                        {
-                            double tmp = Hotsun.sqdginv[GlobalIndex][LocalVectorIndex];
-                            Solution.xshift[LongIndex][LocalVectorIndex] = Solution.first[LongIndex][LocalVectorIndex] * tmp;
-                        }
+                        double tmp = Hotsun.sqdginv[GlobalIndex][LocalVectorIndex];
+                        Solution.xshift[LongIndex][LocalVectorIndex] = Solution.first[LongIndex][LocalVectorIndex] * tmp;
                     }
                 }
-);
-            } catch (SuspendableException e) {
-                SALSAUtility.printAndThrowRuntimeException(e.getMessage());
-            }
+            }));
 
         }
 
