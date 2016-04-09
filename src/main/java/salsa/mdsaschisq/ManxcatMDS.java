@@ -1381,7 +1381,7 @@ public class ManxcatMDS {
         }
 
         // TODO - Debugs
-        SALSAUtility.debugPrintCameHere(" in FindQlimits() before PowerIterate() -- 2");
+        SALSAUtility.debugPrintCameHere(" in FindQlimits() before PowerIterate() -- 2", false);
         double PowerEigenvalue2 = 0.0;
         RefObject<Double> tempRef_PowerEigenvalue2 = new RefObject<Double>(PowerEigenvalue2);
         ReasontoStop2.argValue = MDSLinearAlgebra.PowerIterate(Solution, 1, Qhigh.argValue, tempRef_PowerEigenvalue2);
