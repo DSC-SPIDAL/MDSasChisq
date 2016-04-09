@@ -117,12 +117,7 @@ public class ManxcatCentral
                         SALSAUtility.PointCount_Process, SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
                 TogoDistributed2DDoubleVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointStart_Process,
                         SALSAUtility.PointCount_Process, SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
-                // TODO - Debugs
-                System.out.println(
-                    "Rank=" + SALSAUtility.MPI_Rank + " pointStart="
-                    + SALSAUtility.PointStart_Process + " pointCount="
-                    + SALSAUtility.PointCount_Process + " pointCountLargest="
-                    + SALSAUtility.PointCount_Largest + " vecDim=" + Hotsun.ParameterVectorDimension);
+
                 TogoDiagVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointStart_Process,
                         SALSAUtility.PointCount_Process, SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
                 TogoSqDgInvVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointStart_Process,
@@ -1911,16 +1906,7 @@ public class ManxcatCentral
 				{
                     // Note. arguments for copy are in correct order (from and to)
                     // irrespective of their naming (Togo.. and From..), which may make you think they are in wrong order
-                    // TODO - Debugs
-                    System.out.println(
-                        "**TOGO Rank=" + SALSAUtility.MPI_Rank + " pointStart="
-                        + TogoDiagVector.getFirstPoint());
-
                     MPI2DDoubleVectorPacket.copy(TogoDiagVector, FromAfar2DDoubleVector);
-
-                    System.out.println(
-                        "**FromAFar Rank=" + SALSAUtility.MPI_Rank + " pointStart="
-                        + FromAfar2DDoubleVector.getFirstPoint());
 				}
 
                 // Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket

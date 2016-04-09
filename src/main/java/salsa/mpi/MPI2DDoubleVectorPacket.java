@@ -43,18 +43,6 @@ public class MPI2DDoubleVectorPacket{
     }
 
     public void copyMArrayTo(double[][] to, int startIndex){
-        try {
-            int rank = MPI.COMM_WORLD.getRank();
-            // TODO - Debugs
-            System.out.println(
-                "Rank=" + rank + " to=[" + to.length + "][" + to[0].length
-                + "]" + " startIdx=" + startIndex + " numberOfPoints=" + buffer.getInt(numberOfPointsOffset));
-        }
-        catch (MPIException e) {
-            e.printStackTrace();
-        }
-
-
         int numberOfPoints = buffer.getInt(numberOfPointsOffset);
         buffer.position(mArrayOffset).limit(extent);
         DoubleBuffer dbuff = buffer.asDoubleBuffer();
