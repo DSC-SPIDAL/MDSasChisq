@@ -141,11 +141,11 @@ public class SALSAUtility {
         debugPrintCameHere(args, true);
     }
     public static void debugPrintCameHere(String args, int onRank) {
-        if (onRank != -1 && MPI_Rank != onRank) return;
+        if (onRank != -2 && MPI_Rank != onRank) return;
         System.out.println("***Rank=" + MPI_Rank + " Came here " + (!Strings.isNullOrEmpty(args) ? args : ""));
     }
     public static void debugPrintCameHere(String args, boolean onlyRankZero){
-        debugPrintCameHere(args, onlyRankZero ? 0 : -1);
+        debugPrintCameHere(args, onlyRankZero ? 0 : -2);
     }
 
     public static void SetupDistanceWeights() {
