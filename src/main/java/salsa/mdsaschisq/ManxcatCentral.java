@@ -368,7 +368,7 @@ public class ManxcatCentral
 
 			ManxcatCentral.launchQlimits(FindQlimits); // Find limits on Q
 			// TODO - Debugs
-			SALSAUtility.debugPrintCameHere(" after launchQlimits()");
+			SALSAUtility.debugPrintCameHere(" after launchQlimits()",-1);
 
 			Hotsun.ichsav = -1; // changed from = 1 in old Fortran which seems wrong
 			Hotsun.chsave[0] = Hotsun.zerocr; // Unnecessary
@@ -1550,10 +1550,10 @@ public class ManxcatCentral
 			if (Hotsun.UseDiagonalScaling)
 			{
 				// TODO - Debugs
-				SALSAUtility.debugPrintCameHere(" in launchQlimits() before SetupDiagonalScaling");
+				SALSAUtility.debugPrintCameHere(" in launchQlimits() before SetupDiagonalScaling",-1);
 				SetupDiagonalScaling(Hotsun.CurrentSolution);
 				// TODO - Debugs
-				SALSAUtility.debugPrintCameHere(" in launchQlimits() after SetupDiagonalScaling");
+				SALSAUtility.debugPrintCameHere(" in launchQlimits() after SetupDiagonalScaling",-1);
 			}
 			Hotsun.AddMarquardtQDynamically = false;
 
@@ -1563,11 +1563,11 @@ public class ManxcatCentral
 			tangible.RefObject<Integer> tempRef_EigenvalueIndicator1 = new tangible.RefObject<Integer>(Hotsun.EigenvalueIndicator1);
 			tangible.RefObject<Integer> tempRef_EigenvalueIndicator2 = new tangible.RefObject<Integer>(Hotsun.EigenvalueIndicator2);
 			// TODO - Debugs
-			SALSAUtility.debugPrintCameHere(" in launchQlimits() before FindQlimits.invoke()");
+			SALSAUtility.debugPrintCameHere(" in launchQlimits() before FindQlimits.invoke()",-1);
 			FindQlimits.invoke(Hotsun.CurrentSolution, tempRef_Qhigh, tempRef_Qlow, tempRef_EigenvalueIndicator1, tempRef_EigenvalueIndicator2);
 			// TODO - Debugs
 
-			SALSAUtility.debugPrintCameHere(" in launchQlimits() after FindQlimits.invoke()");
+			SALSAUtility.debugPrintCameHere(" in launchQlimits() after FindQlimits.invoke()",-1);
 			Hotsun.Qhigh = tempRef_Qhigh.argValue;
 			Hotsun.Qlow = tempRef_Qlow.argValue;
 			Hotsun.EigenvalueIndicator1 = tempRef_EigenvalueIndicator1.argValue;
