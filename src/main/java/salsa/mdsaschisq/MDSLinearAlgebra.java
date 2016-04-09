@@ -64,7 +64,7 @@ public class MDSLinearAlgebra {
         SetInitialPowerVector(DistributedNewIteratedVector);
         double AdotA = SALSABLAS.VectorScalarProduct(DistributedNewIteratedVector, DistributedNewIteratedVector);
         // TODO - Debugs
-        SALSAUtility.debugPrintCameHere(" in PowerIterate() after VectorScalarProduct() -- 1", 2);
+        SALSAUtility.debugPrintCameHere(" in PowerIterate() after VectorScalarProduct() -- 1", -1);
 
         int somethingtodo = 0;
         int PowerIterationCount = 0;
@@ -77,12 +77,12 @@ public class MDSLinearAlgebra {
             SALSABLAS.LinearCombineVector(DistributedOldIteratedVector, OldNorm, DistributedNewIteratedVector, 0.0,
                     DistributedNewIteratedVector);
             // TODO - Debugs
-            SALSAUtility.debugPrintCameHere(" in PowerIterate() after LinearCombineVector() -- 1 poweritrcount=" + PowerIterationCount, 2);
+            SALSAUtility.debugPrintCameHere(" in PowerIterate() after LinearCombineVector() -- 1 poweritrcount=" + PowerIterationCount, -1);
 
             //  Make a Global Vector of DistributedOldIteratedVector
             ManxcatCentral.MakeVectorGlobal(DistributedOldIteratedVector, GlobalOldIteratedVector);
             // TODO - Debugs
-            SALSAUtility.debugPrintCameHere(" in PowerIterate() after MakeVectorGlobal() -- 1", 2);
+            SALSAUtility.debugPrintCameHere(" in PowerIterate() after MakeVectorGlobal() -- 1", -1);
 
             //  Form Chisq Matrix Product with Old Vector
             if (Hotsun.FullSecondDerivative) {
@@ -92,7 +92,7 @@ public class MDSLinearAlgebra {
                 ManxcatMDS.GlobalMatrixVectorProduct(DistributedNewIteratedVector, Solution, false,
                         Hotsun.GlobalParameter, GlobalOldIteratedVector);
                 // TODO - Debugs
-                SALSAUtility.debugPrintCameHere(" in PowerIterate() after GlobalMatrixVectorProduct() -- 1", 2);
+                SALSAUtility.debugPrintCameHere(" in PowerIterate() after GlobalMatrixVectorProduct() -- 1", -1);
             }
 
             //  Correct case MaxIndicator = 1
@@ -133,25 +133,25 @@ public class MDSLinearAlgebra {
                 SALSAUtility.StartSubTimer(SALSAUtility.MPIBROADCASTTiming);
 
                 // TODO - Debugs
-                SALSAUtility.debugPrintCameHere(" in PowerIterate() before broadcast poweritrcount=" + PowerIterationCount + " somethingtodo=" + somethingtodo, 0);
+                SALSAUtility.debugPrintCameHere(" in PowerIterate() before broadcast poweritrcount=" + PowerIterationCount + " somethingtodo=" + somethingtodo, -1);
 
                 // Note - MPI Call - Broadcast - int
                 somethingtodo = SALSAUtility.mpiOps.broadcast(somethingtodo, 0);
 
                 // TODO - Debugs
-                SALSAUtility.debugPrintCameHere(" in PowerIterate() after broadcast poweritrcount=" + PowerIterationCount + " somethingtodo=" + somethingtodo, 2);
+                SALSAUtility.debugPrintCameHere(" in PowerIterate() after broadcast poweritrcount=" + PowerIterationCount + " somethingtodo=" + somethingtodo, -1);
 
                 SALSAUtility.StopSubTimer(SALSAUtility.MPIBROADCASTTiming);
             }
             if (PowerIterationCount >= Hotsun.PowerIterationLimit) {
                 // TODO - Debugs
-                SALSAUtility.debugPrintCameHere(" in PowerIterate() about to exit 1 poweritrcount=" + PowerIterationCount, false);
+                SALSAUtility.debugPrintCameHere(" in PowerIterate() about to exit 1 poweritrcount=" + PowerIterationCount, -1);
                 somethingtodo = -2;
                 break;
             }
             if (somethingtodo == 0) {
                 // TODO - Debugs
-                SALSAUtility.debugPrintCameHere(" in PowerIterate() about to exit 2 poweritrcount=" + PowerIterationCount, false);
+                SALSAUtility.debugPrintCameHere(" in PowerIterate() about to exit 2 poweritrcount=" + PowerIterationCount, -1);
                 somethingtodo = PowerIterationCount;
                 break;
             }
