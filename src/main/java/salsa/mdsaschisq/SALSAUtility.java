@@ -138,6 +138,10 @@ public class SALSAUtility {
 
     // TODO - Debugs
     public static void debugPrintCameHere(String args){
+        debugPrintCameHere(args, true);
+    }
+    public static void debugPrintCameHere(String args, boolean onlyRankZero){
+        if (onlyRankZero && MPI_Rank != 0) return;
         System.out.println("***Rank=" + MPI_Rank + " Came here " + (!Strings.isNullOrEmpty(args) ? args : ""));
     }
 
