@@ -73,11 +73,11 @@ public class MPI2DDoubleVectorPacket{
         buffer.position(mArrayOffset).limit(extent);
         DoubleBuffer dbuffer = buffer.asDoubleBuffer();
         for (int i = 0; i < numberOfPoints; ++i){
-            dbuffer.position((i+startIndex)*vecLength);
+            dbuffer.position(i*vecLength);
             dbuffer.get(vec);
             for (int j = 0; j < vecLength; ++j){
-                if (vec[j] != to[i][j]){
-                    SALSAUtility.debugPrintCameHere(" in copyToMArray " + i  + "," + j + " elements do not match. to=" + to[i][j] + " buffer " + vec[j], -2);
+                if (vec[j] != to[i+startIndex][j]){
+                    SALSAUtility.debugPrintCameHere(" in copyToMArray " + i  + "," + j + " elements do not match. to[i+startIdx]=" + to[i][j] + " buffer " + vec[j], -2);
                 }
             }
         }
