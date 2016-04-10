@@ -105,4 +105,8 @@ public class MPI2DDoubleVectorPacket{
     public int getFirstPoint(){
         return buffer.getInt(firstPointOffset);
     }
+
+    public int getNumberOfPoints() {
+        return buffer.getInt(numberOfPointsOffset);
+    }
 }
