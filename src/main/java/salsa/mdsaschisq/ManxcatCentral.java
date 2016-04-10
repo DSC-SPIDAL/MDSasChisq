@@ -1925,6 +1925,14 @@ public class ManxcatCentral
                     // Note. arguments for copy are in correct order (from and to)
                     // irrespective of their naming (Togo.. and From..), which may make you think they are in wrong order
                     MPI2DDoubleVectorPacket.copy(TogoDiagVector, FromAfar2DDoubleVector);
+					// TODO - Debugs
+					SALSAUtility.debugPrintCameHere(
+							" --- in SetupDiagonalScaling TogoDiagVector"
+							+ ".numpoints="
+							+ TogoDiagVector.getNumberOfPoints()
+							+ " FromAfar2DDoubleVector.numpoints="
+							+ FromAfar2DDoubleVector.getNumberOfPoints()
+							+ " mpicomstep=" + MPICommunicationSteps, -2);
 				}
 
                 // Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
@@ -1936,17 +1944,8 @@ public class ManxcatCentral
                     // Note. arguments for copy are in correct order (from and to)
                     // irrespective of their naming (Togo.. and From..), which may make you think they are in wrong order
 					MPI2DDoubleVectorPacket.copy(TogoSqDgInvVector, FromAfar2DDoubleVector);
-					// TODO - Debugs
-					SALSAUtility.debugPrintCameHere(" --- in SetupDiagonalScaling TogoSqDgInvVector.numpoints=" + TogoSqDgInvVector.getNumberOfPoints() + " FromAfar2DDoubleVector.numpoints=" + FromAfar2DDoubleVector.getNumberOfPoints(),-2);
 				}
-				// TODO - Debugs
-				SALSAUtility.debugPrintCameHere(
-						" --- in SetupDiagonalScaling TogoSqDgInvVector"
-						+ ".numpoints="
-						+ TogoSqDgInvVector.getNumberOfPoints()
-						+ " FromAfar2DDoubleVector.numpoints="
-						+ FromAfar2DDoubleVector.getNumberOfPoints()
-						+ " mpicomstep=" + MPICommunicationSteps, -2);
+
 				// Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
                 FromAfar2DDoubleVector = SALSAUtility.mpiOps.broadcast(FromAfar2DDoubleVector, MPICommunicationSteps);
                 FromAfar2DDoubleVector.copyMArrayTo(Hotsun.sqdginv, FromAfar2DDoubleVector.getFirstPoint());
