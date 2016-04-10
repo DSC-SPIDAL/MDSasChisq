@@ -41,6 +41,20 @@ public class MPI2DDoubleVectorPacket{
             dbuff.put(aFrom);
         }
         buffer.flip();
+
+        // TODO - Debugs - sanity check
+        int vecLength = from[0].length;
+        double[] vec = new double[vecLength];
+        DoubleBuffer dbuffer = buffer.asDoubleBuffer();
+        for (int i = 0; i < numberOfPoints; ++i){
+            dbuffer.position(i*vecLength);
+            dbuffer.get(vec);
+            for (int j = 0; j < vecLength; ++j){
+                if (vec[j] != from[i][j]){
+                    SALSAUtility.debugPrintCameHere(" in copyToMArray " + i  + "," + j + " elements do not match. from=" + from[i][j] + " to " + vec[j]);
+                }
+            }
+        }
     }
 
     public void copyMArrayTo(double[][] to, int startIndex){
