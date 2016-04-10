@@ -1938,7 +1938,7 @@ public class ManxcatCentral
                     // irrespective of their naming (Togo.. and From..), which may make you think they are in wrong order
 					MPI2DDoubleVectorPacket.copy(TogoSqDgInvVector, FromAfar2DDoubleVector);
 					// TODO - Debugs
-					SALSAUtility.debugPrintCameHere(" --- in SetupDiagonalScaling TogoSqDgInvVector.numpoints=" + TogoSqDgInvVector.getNumberOfPoints() + " FromAfar2DDoubleVector.numpoints=" + FromAfar2DDoubleVector.getNumberOfPoints());
+					SALSAUtility.debugPrintCameHere(" --- in SetupDiagonalScaling TogoSqDgInvVector.numpoints=" + TogoSqDgInvVector.getNumberOfPoints() + " FromAfar2DDoubleVector.numpoints=" + FromAfar2DDoubleVector.getNumberOfPoints(),-2);
 				}
                 // Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
                 FromAfar2DDoubleVector = SALSAUtility.mpiOps.broadcast(FromAfar2DDoubleVector, MPICommunicationSteps);
