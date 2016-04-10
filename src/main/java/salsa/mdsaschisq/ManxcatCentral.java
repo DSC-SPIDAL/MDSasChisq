@@ -2,7 +2,6 @@ package salsa.mdsaschisq;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import edu.rice.hj.api.SuspendableException;
 import mpi.MPI;
 import mpi.MPIException;
 import org.apache.commons.cli.*;
@@ -1940,7 +1939,15 @@ public class ManxcatCentral
 					// TODO - Debugs
 					SALSAUtility.debugPrintCameHere(" --- in SetupDiagonalScaling TogoSqDgInvVector.numpoints=" + TogoSqDgInvVector.getNumberOfPoints() + " FromAfar2DDoubleVector.numpoints=" + FromAfar2DDoubleVector.getNumberOfPoints(),-2);
 				}
-                // Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
+				// TODO - Debugs
+				SALSAUtility.debugPrintCameHere(
+						" --- in SetupDiagonalScaling TogoSqDgInvVector"
+						+ ".numpoints="
+						+ TogoSqDgInvVector.getNumberOfPoints()
+						+ " FromAfar2DDoubleVector.numpoints="
+						+ FromAfar2DDoubleVector.getNumberOfPoints()
+						+ " mpicomstep=" + MPICommunicationSteps, -2);
+				// Note - MPI Call - Broadcast - MPI2DDoubleVectorPacket
                 FromAfar2DDoubleVector = SALSAUtility.mpiOps.broadcast(FromAfar2DDoubleVector, MPICommunicationSteps);
                 FromAfar2DDoubleVector.copyMArrayTo(Hotsun.sqdginv, FromAfar2DDoubleVector.getFirstPoint());
 				SALSAUtility.StopSubTimer(SALSAUtility.MPISENDRECEIVETiming);
