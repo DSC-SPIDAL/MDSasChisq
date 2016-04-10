@@ -63,6 +63,12 @@ public class MPI2DDoubleVectorPacket{
 //        buffer.position(mArrayOffset).limit(extent);
         buffer.position(mArrayOffset);
         DoubleBuffer dbuff = buffer.asDoubleBuffer();
+
+        // TODO - Debugs
+        if (numberOfPoints+startIndex < 0){
+            SALSAUtility.debugPrintCameHere(" +++ in copyMArrayTo numberOfPoints=" + numberOfPoints + " startIdx=" + startIndex, -2);
+        }
+
         for (int i = 0; i < numberOfPoints; i++) {
             dbuff.get(to[i+startIndex],0,vectorDimension);
         }
