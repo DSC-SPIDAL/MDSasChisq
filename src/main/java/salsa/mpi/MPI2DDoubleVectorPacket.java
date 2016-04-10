@@ -73,7 +73,7 @@ public class MPI2DDoubleVectorPacket{
         buffer.position(mArrayOffset).limit(extent);
         DoubleBuffer dbuffer = buffer.asDoubleBuffer();
         for (int i = 0; i < numberOfPoints; ++i){
-            dbuffer.position(i*vecLength);
+            dbuffer.position((i+startIndex)*vecLength);
             dbuffer.get(vec);
             for (int j = 0; j < vecLength; ++j){
                 if (vec[j] != to[i][j]){
