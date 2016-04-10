@@ -76,7 +76,7 @@ public class MPI2DDoubleVectorPacket{
             dbuffer.get(vec);
             for (int j = 0; j < vecLength; ++j){
                 if (vec[j] != to[i][j]){
-                    SALSAUtility.debugPrintCameHere(" in copyToMArray " + i  + "," + j + " elements do not match. from=" + from[i][j] + " to " + vec[j], -2);
+                    SALSAUtility.debugPrintCameHere(" in copyToMArray " + i  + "," + j + " elements do not match. from=" + to[i][j] + " to " + vec[j], -2);
                 }
             }
         }

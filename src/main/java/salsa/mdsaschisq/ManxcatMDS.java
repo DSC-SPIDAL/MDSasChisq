@@ -812,7 +812,7 @@ public class ManxcatMDS {
                                  "   in Calcfg.invoke() after func1 "
                                  + "assignment thread="
                                  + threadIndex + " row=" + LocalToProcessIndex1
-                                 + " col=" + GlobalIndex2 + " func1=" + funcl + " WF1=" + WeightFunction1 + " AD=" + ActualDistance + " WF2=" + WeightFunction2);
+                                 + " col=" + GlobalIndex2 + " func1=" + funcl + " WF1=" + WeightFunction1 + " AD=" + ActualDistance + " WF2=" + WeightFunction2,-1);
                              double symmetryweight = 1.0;
 
                              if (symmetrize) {
