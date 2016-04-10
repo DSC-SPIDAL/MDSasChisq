@@ -90,7 +90,8 @@ public class MPI2DDoubleVectorPacket{
     }
 
     public void setMArrayElementAt(int i, int j, double value){
-        buffer.putDouble(i*vectorDimension+j, value);
+        buffer.position(mArrayOffset);
+        buffer.putDouble((i*vectorDimension+j)*Double.BYTES, value);
     }
 
     public static void copy(MPI2DDoubleVectorPacket from, MPI2DDoubleVectorPacket to){
