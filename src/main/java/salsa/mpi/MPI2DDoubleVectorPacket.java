@@ -45,6 +45,7 @@ public class MPI2DDoubleVectorPacket{
         // TODO - Debugs - sanity check
         int vecLength = from[0].length;
         double[] vec = new double[vecLength];
+        buffer.position(0).limit(extent);
         DoubleBuffer dbuffer = buffer.asDoubleBuffer();
         for (int i = 0; i < numberOfPoints; ++i){
             dbuffer.position(i*vecLength);
