@@ -573,7 +573,7 @@ public class ManxcatCentral
 
 				if (wefailed)
 				{
-                    System.out.println("We failed....");
+                    SALSAUtility.SALSAPrint(1,"We failed....");
                     break;
 				}
 
@@ -1261,7 +1261,7 @@ public class ManxcatCentral
 		// Perform follow-up
 		Sequel.invoke();
 
-		System.out.println("Completed");
+		SALSAUtility.SALSAPrint(1,"Completed");
 	}
 
 	// End Control

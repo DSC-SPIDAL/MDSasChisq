@@ -1020,8 +1020,8 @@ public class ManxcatMDS {
             boolean tempVar = ManxcatMDSDataProcessing.ReadMDSCluster_File(OriginalMDSFileName, InitialMDSString,
                     ColorValue, tempRef_InitializationNumberofPoints);
             InitializationNumberofPoints = tempRef_InitializationNumberofPoints.argValue;
-            if (tempVar && SALSAUtility.MPI_Rank==0) {
-                System.out.println(OriginalMDSFileName + " Read Successfully Points " + InitializationNumberofPoints);
+            if (tempVar) {
+                SALSAUtility.SALSAPrint(1,OriginalMDSFileName + " Read Successfully Points " + InitializationNumberofPoints);
             }
             if (SALSAUtility.PointCount_Global != InitializationNumberofPoints) {
                 SALSAUtility.printAndThrowRuntimeException(
