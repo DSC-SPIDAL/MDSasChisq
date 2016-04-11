@@ -1326,7 +1326,7 @@ public class ManxcatCentral
 		}
 		// Hotsun.tsolve and Hotsun.teigen set in StopTimer
 		Hotsun.tcalcfg = SALSAUtility.SubDurations[2];
-//		SALSAUtility.EndTiming();
+		SALSAUtility.EndTiming();
 		Hotsun.TotalTimeUsed = SALSAUtility.HPDuration;
 
 		SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName,
