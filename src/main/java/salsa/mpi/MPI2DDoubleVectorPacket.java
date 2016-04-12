@@ -34,7 +34,7 @@ public class MPI2DDoubleVectorPacket{
             SALSAUtility.printAndThrowRuntimeException("Error while copying double[][] to mArray");
             return;
         }
-        buffer.position(mArrayOffset).limit(extent);
+        buffer.position(mArrayOffset);
         DoubleBuffer dbuff = buffer.asDoubleBuffer();
         for (double[] aFrom : from) {
             dbuff.put(aFrom);
@@ -44,7 +44,7 @@ public class MPI2DDoubleVectorPacket{
 
     public void copyMArrayTo(double[][] to, int startIndex){
         int numberOfPoints = buffer.getInt(numberOfPointsOffset);
-        buffer.position(mArrayOffset).limit(extent);
+        buffer.position(mArrayOffset);
         DoubleBuffer dbuff = buffer.asDoubleBuffer();
         for (int i = 0; i < numberOfPoints; i++) {
             dbuff.get(to[i+startIndex],0,vectorDimension);
@@ -52,13 +52,12 @@ public class MPI2DDoubleVectorPacket{
     }
 
     public void setMArrayElementAt(int i, int j, double value){
-        buffer.putDouble(i*vectorDimension+j, value);
+        buffer.putDouble(mArrayOffset+((i*vectorDimension+j)*Double.BYTES), value);
     }
 
     public static void copy(MPI2DDoubleVectorPacket from, MPI2DDoubleVectorPacket to){
-        int capacity = from.buffer.capacity();
-        from.buffer.position(0).limit(capacity);
-        to.buffer.position(0).limit(capacity);
+        from.buffer.position(0);
+        to.buffer.position(0);
         to.buffer.put(from.buffer);
         to.buffer.flip();
         from.buffer.flip();
@@ -66,5 +65,9 @@ public class MPI2DDoubleVectorPacket{
 
     public int getFirstPoint(){
         return buffer.getInt(firstPointOffset);
+    }
+
+    public int getNumberOfPoints() {
+        return buffer.getInt(numberOfPointsOffset);
     }
 }

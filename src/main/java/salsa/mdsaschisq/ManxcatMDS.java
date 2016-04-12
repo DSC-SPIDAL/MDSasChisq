@@ -1,7 +1,6 @@
 package salsa.mdsaschisq;
 
 import com.google.common.base.Strings;
-import edu.rice.hj.api.SuspendableException;
 import mpi.MPIException;
 import tangible.RefObject;
 
@@ -207,7 +206,6 @@ public class ManxcatMDS {
         //  Set up Weights
         PointWeights = new double[SALSAUtility.PointCount_Global];
         WeightingOption = ManxcatCentral.config.WeightingOption;
-        System.out.println("Weights are being set...........................................................................................................................................");
         SetupWeightings(PointWeights);
 
         double DistancesNearEachOther = 0.0;
@@ -1014,7 +1012,7 @@ public class ManxcatMDS {
                     ColorValue, tempRef_InitializationNumberofPoints);
             InitializationNumberofPoints = tempRef_InitializationNumberofPoints.argValue;
             if (tempVar) {
-                System.out.println(OriginalMDSFileName + " Read Successfully Points " + InitializationNumberofPoints);
+                SALSAUtility.SALSAPrint(1,OriginalMDSFileName + " Read Successfully Points " + InitializationNumberofPoints);
             }
             if (SALSAUtility.PointCount_Global != InitializationNumberofPoints) {
                 SALSAUtility.printAndThrowRuntimeException(

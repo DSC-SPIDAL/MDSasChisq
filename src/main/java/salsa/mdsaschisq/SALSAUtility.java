@@ -131,7 +131,6 @@ public class SALSAUtility {
     public static int DebugPrintOption = 2; // Control Printing (= 0 None, ==1 Summary, = 2 Full)
 
     public static MpiOps mpiOps;
-    public static boolean timingCompleted = false;
     public static int dataTypeSize;
     public static ByteOrder endianness;
 
@@ -273,14 +272,17 @@ public class SALSAUtility {
         PreciseTimer.start();
     } // end EndTiming
 
-    public static void EndTiming() {
-        timingCompleted = true;
-        mainTimer.stop();
+    public static void EndTiming(boolean fullStop) {
         PreciseTimer.stop();
         HPDuration += PreciseTimer.elapsed(TimeUnit.MICROSECONDS) * 0.001;
-        mainDuration = mainTimer.elapsed(TimeUnit.MILLISECONDS);
-        mainTimer.reset();
         PreciseTimer.reset();
+        if (fullStop){
+            mainTimer.stop();
+            mainDuration = mainTimer.elapsed(TimeUnit.MILLISECONDS);
+            mainTimer.reset();
+        } else {
+            PreciseTimer.start();
+        }
         endTime = new Date();
     } // end EndTiming
 

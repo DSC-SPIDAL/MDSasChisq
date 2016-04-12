@@ -2,7 +2,6 @@ package salsa.mdsaschisq;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import edu.rice.hj.api.SuspendableException;
 import mpi.MPI;
 import mpi.MPIException;
 import org.apache.commons.cli.*;
@@ -117,6 +116,7 @@ public class ManxcatCentral
                         SALSAUtility.PointCount_Process, SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
                 TogoDistributed2DDoubleVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointStart_Process,
                         SALSAUtility.PointCount_Process, SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
+
                 TogoDiagVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointStart_Process,
                         SALSAUtility.PointCount_Process, SALSAUtility.PointCount_Largest, Hotsun.ParameterVectorDimension);
                 TogoSqDgInvVector = new MPI2DDoubleVectorPacket(SALSAUtility.PointStart_Process,
@@ -346,11 +346,13 @@ public class ManxcatCentral
 
 		while (Hotsun.InitializationLoopCount < Hotsun.InitializationLoops)
 		{
+			boolean fullStop = (Hotsun.InitializationLoopCount+1==Hotsun.InitializationLoops);
 			// Iterate over Initializations
 			// First call to user routine
 			Hotsun.numit = 0;
 			InitializeParameters.invoke(Hotsun.CurrentSolution, Hotsun.InitializationLoopCount);
 			ZeroSolution(Hotsun.CurrentSolution);
+
 			MakeVectorGlobal(Hotsun.CurrentSolution.param, Hotsun.GlobalParameter);
 			GlobalParameterSet = true; // Set Indicator  that Global Parameters are set
 
@@ -535,7 +537,7 @@ public class ManxcatCentral
 							if (Hotsun.materr > 1)
 							{
 								// Too many failures
-								EndupManxcat(6, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+								EndupManxcat(6, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 								wefailed = true;
 								break;
 							}
@@ -563,7 +565,7 @@ public class ManxcatCentral
 
 				if (wefailed)
 				{
-                    System.out.println("We failed....");
+                    SALSAUtility.SALSAPrint(1,"We failed....");
                     break;
 				}
 
@@ -1010,7 +1012,7 @@ public class ManxcatCentral
 				if (readInstruction == 0)
 				{
 					Hotsun.InitializationLoops = Hotsun.InitializationLoopCount + 1;
-					EndupManxcat(7, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+					EndupManxcat(7, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 					break;
 				}
 				else if (readInstruction > 0)
@@ -1024,14 +1026,14 @@ public class ManxcatCentral
 				if (TimeExceeded)
 				{
 					// Time limit reached
-					EndupManxcat(3, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+					EndupManxcat(3, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 					break;
 				}
 
 				if (Hotsun.numit >= Hotsun.maxit)
 				{
 					// Iteration limit reached
-					EndupManxcat(1, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+					EndupManxcat(1, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 					break;
 				}
 
@@ -1041,14 +1043,14 @@ public class ManxcatCentral
 				if (SmallExpectedChisqChange)
 				{
 					// Expected change in chisq <= preset limit
-					EndupManxcat(2, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+					EndupManxcat(2, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 					break;
 				}
 
 				if (Hotsun.bnderr > Hotsun.bnderrLimit)
 				{
 					// Boundary Value limit reached
-					EndupManxcat(5, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+					EndupManxcat(5, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 					break;
 				}
 
@@ -1068,7 +1070,7 @@ public class ManxcatCentral
 
 					if (TooLittleProgress)
 					{
-						EndupManxcat(4, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+						EndupManxcat(4, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 						break;
 					}
 				}
@@ -1251,7 +1253,7 @@ public class ManxcatCentral
 		// Perform follow-up
 		Sequel.invoke();
 
-		System.out.println("Completed");
+		SALSAUtility.SALSAPrint(1,"Completed");
 	}
 
 	// End Control
@@ -1303,7 +1305,7 @@ public class ManxcatCentral
 	//  ReasonToStop = 5 Boundary value limit reached
 	//  ReasonToStop = 6 Matrix Singular even though Q added
 
-	public static void EndupManxcat(int ReasonToStop, Hotsun.WriteSolutionSignature WriteSolution, Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct) throws MPIException {
+	public static void EndupManxcat(int ReasonToStop, Hotsun.WriteSolutionSignature WriteSolution, Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct, boolean fullStop) throws MPIException {
 
 		if (Hotsun.isaved != 0)
 		{
@@ -1316,7 +1318,7 @@ public class ManxcatCentral
 		}
 		// Hotsun.tsolve and Hotsun.teigen set in StopTimer
 		Hotsun.tcalcfg = SALSAUtility.SubDurations[2];
-//		SALSAUtility.EndTiming();
+		SALSAUtility.EndTiming(fullStop);
 		Hotsun.TotalTimeUsed = SALSAUtility.HPDuration;
 
 		SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName,
@@ -2044,25 +2046,20 @@ public class ManxcatCentral
 		{
 
 			// Parallel Calculation of Steepest Descent
-            try {
-                forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            launchHabaneroApp(() ->forallChunked(0, SALSAUtility.ThreadCount - 1, (threadIndex) ->
+            {
+                int indexlen = SALSAUtility.PointsperThread[threadIndex];
+                int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
+                for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
                 {
-                    int indexlen = SALSAUtility.PointsperThread[threadIndex];
-                    int beginpoint = SALSAUtility.StartPointperThread[threadIndex] - SALSAUtility.PointStart_Process;
-                    for (int LongIndex = beginpoint; LongIndex < indexlen + beginpoint; LongIndex++)
+                    int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
+                    for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
                     {
-                        int GlobalIndex = LongIndex + SALSAUtility.PointStart_Process;
-                        for (int LocalVectorIndex = 0; LocalVectorIndex < Hotsun.ParameterVectorDimension; LocalVectorIndex++)
-                        {
-                            double tmp = Hotsun.sqdginv[GlobalIndex][LocalVectorIndex];
-                            Solution.xshift[LongIndex][LocalVectorIndex] = Solution.first[LongIndex][LocalVectorIndex] * tmp;
-                        }
+                        double tmp = Hotsun.sqdginv[GlobalIndex][LocalVectorIndex];
+                        Solution.xshift[LongIndex][LocalVectorIndex] = Solution.first[LongIndex][LocalVectorIndex] * tmp;
                     }
                 }
-);
-            } catch (SuspendableException e) {
-                SALSAUtility.printAndThrowRuntimeException(e.getMessage());
-            }
+            }));
 
         }
 
