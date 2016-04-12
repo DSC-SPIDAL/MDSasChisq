@@ -346,6 +346,7 @@ public class ManxcatCentral
 
 		while (Hotsun.InitializationLoopCount < Hotsun.InitializationLoops)
 		{
+			boolean fullStop = (Hotsun.InitializationLoopCount+1==Hotsun.InitializationLoops);
 			// Iterate over Initializations
 			// First call to user routine
 			Hotsun.numit = 0;
@@ -545,7 +546,7 @@ public class ManxcatCentral
 							if (Hotsun.materr > 1)
 							{
 								// Too many failures
-								EndupManxcat(6, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+								EndupManxcat(6, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 								wefailed = true;
 								break;
 							}
@@ -1020,7 +1021,7 @@ public class ManxcatCentral
 				if (readInstruction == 0)
 				{
 					Hotsun.InitializationLoops = Hotsun.InitializationLoopCount + 1;
-					EndupManxcat(7, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+					EndupManxcat(7, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 					break;
 				}
 				else if (readInstruction > 0)
@@ -1034,14 +1035,14 @@ public class ManxcatCentral
 				if (TimeExceeded)
 				{
 					// Time limit reached
-					EndupManxcat(3, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+					EndupManxcat(3, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 					break;
 				}
 
 				if (Hotsun.numit >= Hotsun.maxit)
 				{
 					// Iteration limit reached
-					EndupManxcat(1, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+					EndupManxcat(1, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 					break;
 				}
 
@@ -1051,14 +1052,14 @@ public class ManxcatCentral
 				if (SmallExpectedChisqChange)
 				{
 					// Expected change in chisq <= preset limit
-					EndupManxcat(2, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+					EndupManxcat(2, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 					break;
 				}
 
 				if (Hotsun.bnderr > Hotsun.bnderrLimit)
 				{
 					// Boundary Value limit reached
-					EndupManxcat(5, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+					EndupManxcat(5, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 					break;
 				}
 
@@ -1078,7 +1079,7 @@ public class ManxcatCentral
 
 					if (TooLittleProgress)
 					{
-						EndupManxcat(4, WriteSolution, Calcfg, GlobalMatrixVectorProduct);
+						EndupManxcat(4, WriteSolution, Calcfg, GlobalMatrixVectorProduct, fullStop);
 						break;
 					}
 				}
@@ -1313,7 +1314,7 @@ public class ManxcatCentral
 	//  ReasonToStop = 5 Boundary value limit reached
 	//  ReasonToStop = 6 Matrix Singular even though Q added
 
-	public static void EndupManxcat(int ReasonToStop, Hotsun.WriteSolutionSignature WriteSolution, Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct) throws MPIException {
+	public static void EndupManxcat(int ReasonToStop, Hotsun.WriteSolutionSignature WriteSolution, Hotsun.CalcfgSignature Calcfg, Hotsun.GlobalMatrixVectorProductSignature GlobalMatrixVectorProduct, boolean fullStop) throws MPIException {
 
 		if (Hotsun.isaved != 0)
 		{
@@ -1326,7 +1327,7 @@ public class ManxcatCentral
 		}
 		// Hotsun.tsolve and Hotsun.teigen set in StopTimer
 		Hotsun.tcalcfg = SALSAUtility.SubDurations[2];
-		SALSAUtility.EndTiming();
+		SALSAUtility.EndTiming(fullStop);
 		Hotsun.TotalTimeUsed = SALSAUtility.HPDuration;
 
 		SALSAUtility.SALSAStatus(ManxcatCentral.ResultDirectoryName,
