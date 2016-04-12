@@ -137,6 +137,7 @@ public class SALSAUtility {
 
     // TODO - Debugs
     public static void debugPrintCameHere(String args){
+        System.out.println("***Rank=" + MPI_Rank + " Came here " + (!Strings.isNullOrEmpty(args) ? args : ""));
 //        debugPrintCameHere(args, true);
     }
     public static void debugPrintCameHere(String args, int onRank) {
